@@ -3,7 +3,7 @@ name: Firebase Deploy
 on:
   push:
     branches:
-      - main # deploy on merge to main
+      - main # deploy when merging to main
 
 jobs:
   build_and_deploy:
@@ -24,9 +24,11 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@v2
-        with:
-          args: deploy --only hosting:georgiev-development
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase deploy --only hosting,firestore
