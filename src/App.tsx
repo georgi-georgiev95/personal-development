@@ -1,4 +1,6 @@
 import React from 'react'
+import { ThemeProvider } from 'styled-components'
+import { theme } from './theme'
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,42 +29,44 @@ const GuestRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContainer>
-        <AppContent>
-          <Router>
-            <Routes>
-              <Route
-                path="/login"
-                element={
-                  <GuestRoute>
-                    <LoginPage />
-                  </GuestRoute>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <GuestRoute>
-                    <RegisterPage />
-                  </GuestRoute>
-                }
-              />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <HomePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </Router>
-        </AppContent>
-        <AppFooter>Georgi Georgiev | All rights reserved 2026</AppFooter>
-      </AppContainer>
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        <AppContainer>
+          <AppContent>
+            <Router>
+              <Routes>
+                <Route
+                  path="/login"
+                  element={
+                    <GuestRoute>
+                      <LoginPage />
+                    </GuestRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <GuestRoute>
+                      <RegisterPage />
+                    </GuestRoute>
+                  }
+                />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <HomePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Router>
+          </AppContent>
+          <AppFooter>Georgi Georgiev | All rights reserved 2026</AppFooter>
+        </AppContainer>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

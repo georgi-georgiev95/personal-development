@@ -1,14 +1,10 @@
 import React, { useState } from 'react'
+import { Button, TextField, Grid, Alert, InputAdornment } from '@mui/material'
 import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  Card,
-  Grid,
-  Alert,
-  InputAdornment,
-} from '@mui/material'
+  StyledLoginBox,
+  StyledLoginCard,
+  StyledTitle,
+} from './LoginPage.styled'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase/auth'
 import { Link } from 'react-router-dom'
@@ -32,22 +28,11 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <Box
-      minHeight="95vh"
-      sx={{
-        background: 'linear-gradient(135deg, #2575fc 0%, #6a11cb 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
+    <StyledLoginBox>
       <Grid container justifyContent="center">
         <Grid>
-          <Card elevation={6} sx={{ p: 4, width: 380, borderRadius: 3 }}>
-            <Typography variant="h4" mb={3} align="center" color="primary">
-              Login
-            </Typography>
+          <StyledLoginCard>
+            <StyledTitle>Login</StyledTitle>
             {error && (
               <Alert severity="error" sx={{ mb: 2, fontWeight: 'bold' }}>
                 {error}
@@ -105,10 +90,10 @@ const LoginPage: React.FC = () => {
             >
               Don't have an account? Register
             </Button>
-          </Card>
+          </StyledLoginCard>
         </Grid>
       </Grid>
-    </Box>
+    </StyledLoginBox>
   )
 }
 

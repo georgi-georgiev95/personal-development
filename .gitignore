@@ -25,3 +25,5 @@ dist-ssr
 
 # env
 .env
+
+CODING_GUIDELINES.md

@@ -1,15 +1,15 @@
 import styled from 'styled-components'
 
-export const StyledRegisterBox = styled.div`
+export const StyledLoginBox = styled.div`
   min-height: 95vh;
+  background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
   overflow: hidden;
 `
 
-export const StyledRegisterCard = styled.div`
+export const StyledLoginCard = styled.div`
   padding: 32px;
   width: 380px;
   border-radius: 24px;
