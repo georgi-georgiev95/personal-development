@@ -1,6 +1,6 @@
 import React from 'react'
-import { Typography, IconButton } from '@mui/material'
-import LogoutIcon from '@mui/icons-material/Logout'
+import { Typography } from '@mui/material'
+import NavBar from '../components/NavBar'
 import { StyledHomeBox } from './HomePage.styled'
 import { useAuth } from '../components/AuthProvider'
 import { auth } from '../firebase/auth'
@@ -37,23 +37,7 @@ const HomePage: React.FC = () => {
 
   return (
     <StyledHomeBox>
-      {/* Navbar with logout icon */}
-      <div
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          padding: '1rem',
-        }}
-      >
-        <IconButton color="secondary" onClick={handleLogout} size="large">
-          <LogoutIcon />
-        </IconButton>
-      </div>
+      <NavBar onLogout={handleLogout} />
       <Typography variant="h4" mb={2}>
         {getGreeting()}, {user?.email || 'User'}!
       </Typography>

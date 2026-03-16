@@ -10,4 +10,12 @@ export const StyledHomeBox = styled.div`
   padding: 2rem;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
   position: relative;
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    min-height: 90vh;
+  }
+  @media (max-width: 480px) {
+    padding: 1rem;
+    min-height: 85vh;
+  }
 `

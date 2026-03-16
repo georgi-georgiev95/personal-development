@@ -1,17 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { auth } from '../firebase/auth'
 import { onAuthStateChanged } from 'firebase/auth'
+import { AuthContext } from './AuthContext'
 import type { User } from 'firebase/auth'
-
-interface AuthContextProps {
-  user: User | null
-  loading: boolean
-}
-
-const AuthContext = createContext<AuthContextProps>({
-  user: null,
-  loading: true,
-})
+import { updateLastLogin } from '../services/userService'
 
 export const useAuth = () => useContext(AuthContext)
 
@@ -22,8 +14,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
+      if (firebaseUser) {
+        try {
+          await updateLastLogin(firebaseUser.uid)
+        } catch (error) {
+          console.error('Error updating last login:', error)
+        }
+      }
       setLoading(false)
     })
     return () => unsubscribe()

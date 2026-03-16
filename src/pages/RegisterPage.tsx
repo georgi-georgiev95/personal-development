@@ -10,18 +10,26 @@ import { auth } from '../firebase/auth'
 import { Link } from 'react-router-dom'
 import EmailIcon from '@mui/icons-material/Email'
 import LockIcon from '@mui/icons-material/Lock'
+import PersonIcon from '@mui/icons-material/Person'
+import { createUserProfile } from '../services/userService'
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
-      await createUserWithEmailAndPassword(auth, email, password)
-      // TODO: Redirect to home page after successful registration
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
+      await createUserProfile(userCredential.user.uid, email, username)
+      // Redirect handled by route guard
     } catch (err: any) {
       setError(err.message || 'Registration failed')
     }
@@ -39,6 +47,22 @@ const RegisterPage: React.FC = () => {
               </Alert>
             )}
             <form onSubmit={handleSubmit}>
+              <TextField
+                label="Username"
+                type="text"
+                fullWidth
+                margin="normal"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
               <TextField
                 label="Email"
                 type="email"
