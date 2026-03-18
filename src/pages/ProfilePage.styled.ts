@@ -22,7 +22,7 @@ export const StyledProfileBox = styled.div`
 
 export const StyledProfileCard = styled.div`
   background: ${theme.colors.navbar};
-  border-radius: ${theme.borderRadius.lg};
+  border-radius: ${theme.borderRadius};
   box-shadow: ${theme.boxShadow.md};
   padding: ${theme.spacing.md};
   max-width: 600px;
@@ -116,7 +116,7 @@ export const DetailRow = styled.div`
   align-items: center;
   padding: ${theme.spacing.sm} ${theme.spacing.md};
   background: ${theme.colors.background};
-  border-radius: ${theme.borderRadius.sm};
+  border-radius: ${theme.borderRadius};
 
   @media (max-width: 480px) {
     flex-direction: column;

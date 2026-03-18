@@ -8,12 +8,16 @@ import {
   Navigate,
 } from 'react-router-dom'
 import { AppContainer, AppContent, AppFooter } from './App.styled'
-import { AuthProvider, useAuth } from './components/AuthProvider'
+import { AuthProvider } from './components/AuthProvider'
+import { useAuth } from './components/useAuth'
 import { ProfileProvider } from './components/ProfileProvider'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
+import CreateListingPage from './pages/CreateListingPage'
+import ListingsPageWrapper from './pages/ListingsPageWrapper'
+import ListingDetailsPage from './pages/ListingDetailsPage'
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -69,6 +73,19 @@ const App: React.FC = () => {
                         <ProfilePage />
                       </ProtectedRoute>
                     }
+                  />
+                  <Route
+                    path="/create-listing"
+                    element={
+                      <ProtectedRoute>
+                        <CreateListingPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/listings" element={<ListingsPageWrapper />} />
+                  <Route
+                    path="/listings/:id"
+                    element={<ListingDetailsPage />}
                   />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Routes>

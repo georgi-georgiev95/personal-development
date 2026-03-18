@@ -1,21 +1,45 @@
 import styled from 'styled-components'
+import { theme } from '@/theme'
 
 export const StyledHomeBox = styled.div`
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background: ${theme.colors.gradient};
+`
+
+export const HomeContent = styled.main`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 95vh;
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-  padding: 2rem;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-  position: relative;
+  padding: calc(56px + ${theme.spacing.lg}) ${theme.spacing.lg}
+    ${theme.spacing.lg};
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+
   @media (max-width: 768px) {
-    padding: 1.5rem;
-    min-height: 90vh;
+    padding: calc(48px + ${theme.spacing.md}) ${theme.spacing.md}
+      ${theme.spacing.md};
   }
+
   @media (max-width: 480px) {
-    padding: 1rem;
-    min-height: 85vh;
+    padding: calc(48px + ${theme.spacing.sm}) ${theme.spacing.sm}
+      ${theme.spacing.sm};
+  }
+`
+
+export const ComponentGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: ${theme.spacing.lg};
+  width: 100%;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: ${theme.spacing.md};
   }
 `

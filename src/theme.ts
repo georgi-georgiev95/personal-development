@@ -9,6 +9,10 @@ export type Theme = {
     textSecondary: string
     navbar: string
     icon: string
+    border: string
+    cardBg: string
+    error: string
+    success: string
   }
   fontSizes: {
     xs: string
@@ -25,11 +29,7 @@ export type Theme = {
     lg: string
     xl: string
   }
-  borderRadius: {
-    sm: string
-    md: string
-    lg: string
-  }
+  borderRadius: string
   boxShadow: {
     sm: string
     md: string
@@ -46,6 +46,10 @@ export const theme: Theme = {
     textSecondary: '#4a4e69',
     navbar: '#fff',
     icon: '#6C63FF',
+    border: '#e0e0e0',
+    cardBg: '#ffffff',
+    error: '#f44336',
+    success: '#4caf50',
   },
   fontSizes: {
     xs: '0.75rem',
@@ -62,11 +66,7 @@ export const theme: Theme = {
     lg: '2rem',
     xl: '3rem',
   },
-  borderRadius: {
-    sm: '8px',
-    md: '16px',
-    lg: '24px',
-  },
+  borderRadius: '8px',
   boxShadow: {
     sm: '0 2px 8px rgba(31, 38, 135, 0.1)',
     md: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',

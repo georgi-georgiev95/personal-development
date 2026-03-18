@@ -30,8 +30,9 @@ const RegisterPage: React.FC = () => {
       )
       await createUserProfile(userCredential.user.uid, email, username)
       // Redirect handled by route guard
-    } catch (err: any) {
-      setError(err.message || 'Registration failed')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      setError(message || 'Registration failed')
     }
   }
 
