@@ -1,4 +1,5 @@
-import styled from 'styled-components'
+import { styled } from '@linaria/react'
+import { theme } from '@/theme'
 
 export const StyledRegisterBox = styled.div`
   min-height: 95vh;
@@ -10,34 +11,38 @@ export const StyledRegisterBox = styled.div`
 `
 
 export const StyledRegisterCard = styled.div`
-  padding: 32px;
+  padding: ${theme.spacing.lg};
   width: 380px;
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+
   @media (max-width: 768px) {
     width: 90vw;
-    padding: 24px;
+    padding: ${theme.spacing.md};
     border-radius: 16px;
   }
+
   @media (max-width: 480px) {
     width: 98vw;
-    padding: 12px;
+    padding: ${theme.spacing.sm};
     border-radius: 8px;
   }
 `
 
 export const StyledTitle = styled.h2`
-  margin-bottom: 24px;
+  margin-bottom: ${theme.spacing.lg};
   text-align: center;
   color: #2575fc;
   font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
   font-weight: 500;
-  font-size: 2rem;
+  font-size: ${theme.fontSizes.xl};
+
   @media (max-width: 768px) {
-    font-size: 1.5rem;
+    font-size: ${theme.fontSizes.lg};
   }
+
   @media (max-width: 480px) {
-    font-size: 1.2rem;
+    font-size: ${theme.fontSizes.md};
   }
 `

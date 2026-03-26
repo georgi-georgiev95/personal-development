@@ -16,10 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* DI / Decorators */
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
     /* Path aliases */
     "baseUrl": ".",
     "paths": {

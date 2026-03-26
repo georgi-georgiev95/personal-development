@@ -1,1 +1,1 @@
-export { useViewModel, useViewModelState } from './useViewModel'
+export { useViewModel } from './useViewModel'

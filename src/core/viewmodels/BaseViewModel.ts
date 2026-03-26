@@ -1,36 +1,44 @@
 /**
- * Base class for ViewModels with observable state
+ * Observable state store used by functional ViewModels.
+ * Created via createViewModel() — no classes, no decorators.
  */
-export abstract class BaseViewModel<S> {
-  protected _state: S
-  private _listeners: Set<() => void> = new Set()
+export interface ViewModelStore<S> {
+  /** Current snapshot of the state */
+  getState: () => S
+  /** Merge partial state and notify subscribers */
+  setState: (partial: Partial<S>) => void
+  /** Register a listener; returns an unsubscribe function */
+  subscribe: (listener: () => void) => () => void
+  /** Unsubscribe all listeners */
+  dispose: () => void
+}
 
-  constructor(initialState: S) {
-    this._state = initialState
+/**
+ * Creates an observable state store for a functional ViewModel.
+ *
+ * @param initialState - The initial state snapshot
+ * @returns A ViewModelStore with getState / setState / subscribe / dispose
+ */
+export function createViewModelStore<S>(initialState: S): ViewModelStore<S> {
+  let state: S = initialState
+  const listeners = new Set<() => void>()
+
+  const notify = (): void => {
+    listeners.forEach((listener) => listener())
   }
 
-  get state(): S {
-    return this._state
-  }
-
-  protected setState(newState: Partial<S>): void {
-    this._state = { ...this._state, ...newState }
-    this._notifyListeners()
-  }
-
-  subscribe(listener: () => void): () => void {
-    this._listeners.add(listener)
-    return () => this._listeners.delete(listener)
-  }
-
-  private _notifyListeners(): void {
-    this._listeners.forEach((listener) => listener())
-  }
-
-  /**
-   * Override in subclass for cleanup
-   */
-  dispose(): void {
-    this._listeners.clear()
+  return {
+    getState: () => state,
+    setState: (partial: Partial<S>) => {
+      state = { ...state, ...partial }
+      notify()
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
+    dispose: () => {
+      listeners.clear()
+    },
   }
 }

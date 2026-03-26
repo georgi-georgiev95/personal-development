@@ -1,1 +1,2 @@
-export { BaseViewModel } from './BaseViewModel'
+export { createViewModelStore } from './BaseViewModel'
+export type { ViewModelStore } from './BaseViewModel'

@@ -27,3 +27,5 @@ dist-ssr
 .env
 
 CODING_GUIDELINES.md
+*storybook.log
+storybook-static

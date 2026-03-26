@@ -1,162 +1,288 @@
-# Copilot / AI Agent Instructions — personal-development
+# Copilot / AI Agent Instructions — Widget Playground
 
-Purpose: give actionable, repository-specific guidance so an AI coding agent can be productive immediately.
+## What This App Is
 
-## Architecture Overview (MVVM + DI)
+A **responsive widget playground** — a grid canvas where users can mount, arrange, and resize independent MVVM widgets. Each widget is a self-contained unit you can drag into any other project. Authentication is present but optional (auth unlocks user-profile widgets).
 
-This project follows the **MVVM (Model-View-ViewModel)** pattern with **Dependency Injection**:
+**Target platforms:** Desktop (>=1024px), Tablet (768-1023px), Mobile (<768px) — every widget and layout must be responsive.
 
-- **View** (`.view.tsx`): UI only, no business logic. Renders state from ViewModel.
-- **ViewModel** (`.viewmodel.ts`): All business logic, state management, API calls. Injectable via tsyringe.
-- **Model**: Data types and services in `src/services/`.
-- **DI Container**: tsyringe for dependency injection (`src/core/di/`).
+---
 
-### Folder Structure
+## Architecture: MVVM + InversifyJS DI + EventBus
+
+```
+View  ──────► ViewModel ──────► EventBus ──────► Other ViewModels
+(React)     (InversifyJS)    (Singleton)       (via typed events)
+```
+
+- **View** (`.view.tsx`) — UI only, subscribes to ViewModel state
+- **ViewModel** (`.viewmodel.ts`) — all logic, `@injectable()`, injects `EventBus`
+- **EventBus** — the only legal channel for cross-widget communication
+- **DI Container** — InversifyJS `Container`, tokens in `src/core/di/tokens.ts`
+- **Styling** — `@linaria/react` (zero-runtime CSS-in-JS, build-time extraction)
+
+---
+
+## Folder Structure
 
 ```
 src/
-├── core/               # Framework infrastructure
-│   ├── di/             # DI container setup
-│   ├── hooks/          # useViewModel hook
-│   └── viewmodels/     # BaseViewModel class
-├── components/         # Independent, reusable MVVM components
-│   └── ComponentName/
-│       ├── ComponentName.view.tsx
-│       ├── ComponentName.viewmodel.ts
-│       ├── ComponentName.types.ts
-│       ├── ComponentName.styles.ts
+├── core/
+│   ├── di/
+│   │   ├── container.ts          # InversifyJS Container + all bindings
+│   │   ├── tokens.ts             # Every Symbol token lives here
+│   │   └── index.ts
+│   ├── event-bus/
+│   │   ├── EventBus.ts           # @injectable singleton
+│   │   ├── events.ts             # global WidgetEvents interface
+│   │   └── index.ts
+│   ├── hooks/
+│   │   ├── useViewModel.ts       # container.get<T>(token)
+│   │   └── index.ts
+│   └── viewmodels/
+│       ├── BaseViewModel.ts      # setState + subscribe
 │       └── index.ts
-├── pages/              # Route pages (compose components)
-├── services/           # Firestore/API services
-├── firebase/           # Firebase config
-└── theme.ts            # Styled-components theme
+├── components/
+│   └── <WidgetName>/
+│       ├── <WidgetName>.view.tsx
+│       ├── <WidgetName>.viewmodel.ts
+│       ├── <WidgetName>.types.ts
+│       ├── <WidgetName>.styles.ts     # @linaria/react styled
+│       ├── <WidgetName>.stories.tsx   # Storybook
+│       ├── <WidgetName>.test.ts       # Vitest
+│       └── index.ts
+├── pages/
+│   ├── PlaygroundPage.tsx        # public CSS Grid canvas
+│   ├── PlaygroundPage.styles.ts
+│   ├── widgetRegistry.ts         # Record<widgetId, React.ComponentType>
+│   ├── LoginPage.tsx / .styled.ts
+│   └── RegisterPage.tsx / .styled.ts
+├── services/
+│   └── userService.ts
+├── firebase/
+│   ├── auth.ts
+│   └── firebase.ts
+├── theme.ts                      # JS object — import directly, no ThemeProvider
+├── App.tsx / App.styles.ts
+└── main.tsx
 ```
 
-## Component Generator
+---
 
-Always use the generator to create new components:
+## Creating a New Widget
+
+**Always** use the generator:
 
 ```bash
-npm run generate <ComponentName>
-npm run generate <ComponentName> --path=features/dashboard
+npm run generate:widget <WidgetName>
+npm run generate:widget <WidgetName> --path=features/dashboard
 ```
 
-This scaffolds:
+After generating, complete 5 manual steps (printed by the script):
 
-- `ComponentName.view.tsx` — UI component (no logic)
-- `ComponentName.viewmodel.ts` — Business logic class with `@injectable()`
-- `ComponentName.types.ts` — Props and State interfaces
-- `ComponentName.styles.ts` — Styled components
-- `index.ts` — Barrel exports
+1. Add token to `src/core/di/tokens.ts`:
+   `<WidgetName>ViewModel: Symbol.for('<WidgetName>ViewModel')`
+2. Bind in `src/core/di/container.ts` (inTransientScope)
+3. Add `WidgetCatalogueEntry` to `WIDGET_CATALOGUE` in `NavigationWidget.viewmodel.ts`
+4. Register component in `src/pages/widgetRegistry.ts`
+5. Add new event types in `src/core/event-bus/events.ts`
 
-## Import Conventions
+---
 
-Use path aliases (`@/`) for all imports — never use deep relative paths:
-
-```tsx
-// ✅ Correct
-import { QuoteCard } from '@/components/QuoteCard'
-import { useViewModel } from '@/core/hooks'
-import { theme } from '@/theme'
-
-// ❌ Wrong
-import { QuoteCard } from '../../../components/QuoteCard'
-```
-
-## MVVM Patterns
-
-### ViewModel Pattern
+## ViewModel Pattern
 
 ```ts
-import { injectable } from 'tsyringe'
+import { injectable, inject } from 'inversify'
 import { BaseViewModel } from '@/core/viewmodels'
-import type { MyState } from './My.types'
+import { EventBus } from '@/core/event-bus'
+import { TOKENS } from '@/core/di'
+import type { MyWidgetState } from './MyWidget.types'
 
 @injectable()
-export class MyViewModel extends BaseViewModel<MyState> {
-  constructor() {
-    super({ loading: false, data: null })
+export class MyWidgetViewModel extends BaseViewModel<MyWidgetState> {
+  private readonly eventBus: EventBus
+
+  constructor(@inject(TOKENS.EventBus) eventBus: EventBus) {
+    super({ loading: false, error: null })
+    this.eventBus = eventBus
   }
 
-  async fetchData(): Promise<void> {
+  doSomething(): void {
     this.setState({ loading: true })
-    // Business logic here
-    this.setState({ loading: false, data: result })
+    this.eventBus.emit('mywidget:action', { payload: 'value' })
+  }
+
+  override dispose(): void {
+    super.dispose()
   }
 }
 ```
 
-### View Pattern (UI Only)
+## View Pattern (UI Only)
 
 ```tsx
+import React, { useEffect, useState } from 'react'
 import { useViewModel } from '@/core/hooks'
-import { MyViewModel } from './My.viewmodel'
+import { TOKENS } from '@/core/di'
 
-export const MyComponent: React.FC<Props> = () => {
-  const viewModel = useViewModel(MyViewModel)
-  const [state, setState] = useState(viewModel.state)
+export const MyWidget: React.FC = () => {
+  const viewModel = useViewModel<MyWidgetViewModel>(TOKENS.MyWidgetViewModel)
+  const [state, setLocalState] = useState<MyWidgetState>(viewModel.state)
 
   useEffect(() => {
-    const unsub = viewModel.subscribe(() => setState({ ...viewModel.state }))
-    viewModel.fetchData()
-    return unsub
+    const unsubscribe = viewModel.subscribe(() => setLocalState({ ...viewModel.state }))
+    return () => { unsubscribe(); viewModel.dispose() }
   }, [viewModel])
 
-  // UI only - render state, call viewModel methods on events
-  return <Container>{state.loading ? 'Loading...' : state.data}</Container>
+  return <Container>...</Container>
 }
 ```
 
-## Key Rules
+---
 
-1. **No business logic in Views** — all logic goes in ViewModel
-2. **Components must be independent** — drag-and-drop ready for other projects
-3. **Always use generator** — `npm run generate ComponentName`
-4. **Use @/ imports** — no relative imports beyond parent
-5. **Styles in .styles.ts** — import `theme` directly, no inline styles
+## EventBus Contract
 
-## Styling
+Widgets must **never import each other**. All cross-widget communication via EventBus only.
 
-- Use styled-components with `theme` import
-- Create `.styles.ts` file for each component
-- Responsive breakpoints: 768px (tablet), 480px (mobile)
+### Adding a new event — `src/core/event-bus/events.ts`
+```ts
+'mywidget:action': { payload: string }
+```
+
+### Emitting
+```ts
+this.eventBus.emit('mywidget:action', { payload: 'hello' })
+```
+
+### Subscribing
+```ts
+const off = this.eventBus.on('profile:updated', (data) => {
+  this.setState({ username: data.displayName })
+})
+// Call off() in dispose()
+```
+
+Event naming: `<namespace>:<verb>` — e.g. `profile:updated`, `navigation:widget-added`.
+
+---
+
+## Styling with @linaria/react
+
+Zero-runtime CSS-in-JS — extracted to static CSS at build time.
 
 ```ts
-import styled from 'styled-components'
+import { styled } from '@linaria/react'
+import { css } from '@linaria/core'
 import { theme } from '@/theme'
 
 export const Container = styled.div`
   padding: ${theme.spacing.md};
-  background: ${theme.colors.navbar};
 
-  @media (max-width: 768px) {
-    padding: ${theme.spacing.sm};
-  }
+  @media (max-width: 768px) { padding: ${theme.spacing.sm}; }
+  @media (max-width: 480px) { padding: ${theme.spacing.xs}; }
 `
 ```
+
+**No ThemeProvider.** Import `theme` as a plain JS object.
+
+### Responsive breakpoints (required in every widget)
+
+| Breakpoint | Context |
+|---|---|
+| >=1024px | Desktop — multi-column, full features |
+| 768-1023px | Tablet — 2 columns |
+| <768px | Mobile — single column |
+| <480px | Small mobile — compact, simplified |
+
+---
+
+## InversifyJS DI
+
+- Tokens: `src/core/di/tokens.ts` — `Symbol.for(...)` values only
+- Bindings: `src/core/di/container.ts`
+- Widget ViewModels: `inTransientScope()` — new instance per component mount
+- `EventBus`: `inSingletonScope()` — shared across entire app
+- Inject with `@inject(TOKENS.Token)` in constructor parameters
+
+---
+
+## Storybook
+
+Every widget has a `.stories.tsx` with a local test `Container`:
+
+```tsx
+const mockEventBus: EventBus = {
+  on: () => () => undefined,
+  off: () => undefined,
+  emit: () => undefined,
+} as unknown as EventBus
+
+const storyContainer = new Container()
+storyContainer.bind<EventBus>(TOKENS.EventBus).toConstantValue(mockEventBus)
+storyContainer.bind<MyViewModel>(TOKENS.MyViewModel).to(MyViewModel).inTransientScope()
+```
+
+---
+
+## Testing
+
+- Test `.viewmodel.ts` directly — no React rendering needed for logic
+- Mock `EventBus` with `vi.fn()`
+- Cover: initial state, state transitions, EventBus emissions, error cases
+
+---
+
+## Import Conventions
+
+```ts
+// Always use @/ aliases
+import { useViewModel } from '@/core/hooks'
+import { TOKENS } from '@/core/di'
+import { theme } from '@/theme'
+```
+
+---
+
+## Key Rules
+
+1. No business logic in Views
+2. No cross-widget imports — EventBus only
+3. Always use the generator
+4. No inline styles — `.styles.ts` with `@linaria/react`
+5. Strong typing everywhere — no `any`
+6. Every widget is responsive (all 4 breakpoints)
+7. Every widget has tests
+
+---
 
 ## Build & Dev Commands
 
 ```bash
-npm run dev       # Start dev server
-npm run build     # TypeScript check + Vite build
-npm run generate  # Create new MVVM component
-npm run lint      # ESLint
-npm run format    # Prettier
+npm run dev              # Vite dev server
+npm run build            # tsc + Vite build
+npm run test             # Vitest watch
+npm run test:run         # Vitest single run
+npm run lint             # ESLint
+npm run generate:widget  # Scaffold a new widget
+npx storybook dev        # Storybook dev server
 ```
 
-## Firebase Integration
-
-- Auth: `src/firebase/auth.ts`, wrapped by `AuthProvider`
-- Firestore: `src/firebase/firebase.ts`, helpers in `src/services/userService.ts`
-- Profile photos stored as base64 in Firestore (no Storage)
-
-## Providers (in App.tsx order)
-
-1. `ThemeProvider` — styled-components theme
-2. `AuthProvider` — Firebase auth state
-3. `ProfileProvider` — User profile/photo state
-
 ---
+
+## Auth Infrastructure
+
+- Firebase Auth: `src/firebase/auth.ts`
+- `AuthProvider` + `AuthContext` — provides `{ user: User | null, loading: boolean }`
+- `useAuth()` — consume auth state in views
+- `userService.ts` — Firestore CRUD for user profiles
+- Auth is **optional** — no route guards, playground is fully public
+
+## Routing
+
+| Path | Component | Auth required |
+|---|---|---|
+| `/` | `PlaygroundPage` | No |
+| `/login` | `LoginPage` | No |
+| `/register` | `RegisterPage` | No |
 
 (End of repo-specific guidance.)
