@@ -1,1 +1,0 @@
-export { useViewModel } from './useViewModel'

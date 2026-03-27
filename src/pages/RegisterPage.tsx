@@ -7,13 +7,14 @@ import {
 } from './RegisterPage.styled'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase/auth'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import EmailIcon from '@mui/icons-material/Email'
 import LockIcon from '@mui/icons-material/Lock'
 import PersonIcon from '@mui/icons-material/Person'
 import { createUserProfile } from '../services/userService'
 
 const RegisterPage: React.FC = () => {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -29,7 +30,7 @@ const RegisterPage: React.FC = () => {
         password
       )
       await createUserProfile(userCredential.user.uid, email, username)
-      // Redirect handled by route guard
+      navigate('/')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message || 'Registration failed')

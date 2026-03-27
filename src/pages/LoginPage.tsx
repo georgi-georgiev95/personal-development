@@ -7,11 +7,12 @@ import {
 } from './LoginPage.styled'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase/auth'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import EmailIcon from '@mui/icons-material/Email'
 import LockIcon from '@mui/icons-material/Lock'
 
 const LoginPage: React.FC = () => {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -21,7 +22,7 @@ const LoginPage: React.FC = () => {
     setError(null)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      // TODO: Redirect to home page after successful login
+      navigate('/')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message || 'Login failed')

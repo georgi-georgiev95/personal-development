@@ -29,20 +29,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  server: {
-    proxy: {
-      '/api/yahoo-chart': {
-        target: 'https://query1.finance.yahoo.com',
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/yahoo-chart/, '/v8/finance/chart'),
-      },
-      '/api/yahoo-search': {
-        target: 'https://query1.finance.yahoo.com',
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/yahoo-search/, '/v1/finance/search'),
-      },
-    },
-  },
   test: {
     projects: [
       {
