@@ -39,7 +39,9 @@ const customPath = pathArg ? pathArg.replace('--path=', '') : 'components'
 
 if (!widgetName) {
   console.error('❌ Please provide a widget name')
-  console.log('Usage: npm run generate:widget <WidgetName> [--path=<relative-src-path>]')
+  console.log(
+    'Usage: npm run generate:widget <WidgetName> [--path=<relative-src-path>]'
+  )
   process.exit(1)
 }
 
@@ -57,8 +59,7 @@ if (fs.existsSync(widgetDir)) {
 }
 
 const templates = {
-  types:
-`export interface ${widgetName}Props {
+  types: `export interface ${widgetName}Props {
   // Add component props here
 }
 
@@ -68,8 +69,7 @@ export interface ${widgetName}State {
 }
 `,
 
-  viewmodel:
-`import { createViewModelStore } from '@/core/viewmodels'
+  viewmodel: `import { createViewModelStore } from '@/core/viewmodels'
 import type { ViewModelStore } from '@/core/viewmodels'
 import type { EventBus } from '@/core/event-bus'
 import type { ${widgetName}State } from './${widgetName}.types'
@@ -96,8 +96,7 @@ export function create${widgetName}ViewModel(
 }
 `,
 
-  styles:
-`import { styled } from '@linaria/react'
+  styles: `import { styled } from '@linaria/react'
 import { theme } from '@/theme'
 
 export const Container = styled.div\`
@@ -126,8 +125,7 @@ export const WidgetTitle = styled.h2\`
 \`
 `,
 
-  view:
-`import React, { useEffect, useState } from 'react'
+  view: `import React, { useEffect, useState } from 'react'
 import { useViewModel } from '@/core/hooks'
 import { TOKENS } from '@/core/di'
 import type { ${widgetName}VM } from './${widgetName}.viewmodel'
@@ -158,8 +156,7 @@ export const ${widgetName}: React.FC<${widgetName}Props> = (_props) => {
 }
 `,
 
-  test:
-`import { describe, it, expect, vi, beforeEach } from 'vitest'
+  test: `import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { create${widgetName}ViewModel } from './${widgetName}.viewmodel'
 import type { ${widgetName}VM } from './${widgetName}.viewmodel'
 import type { EventBus } from '@/core/event-bus'
@@ -191,8 +188,7 @@ describe('${widgetName}ViewModel', () => {
 })
 `,
 
-  stories:
-`import type { Meta, StoryObj } from '@storybook/react-vite'
+  stories: `import type { Meta, StoryObj } from '@storybook/react-vite'
 import { ${widgetName} } from './${widgetName}.view'
 
 const meta: Meta<typeof ${widgetName}> = {
@@ -208,8 +204,7 @@ type Story = StoryObj<typeof ${widgetName}>
 export const Default: Story = {}
 `,
 
-  index:
-`export { ${widgetName} } from './${widgetName}.view'
+  index: `export { ${widgetName} } from './${widgetName}.view'
 export { create${widgetName}ViewModel } from './${widgetName}.viewmodel'
 export type { ${widgetName}VM } from './${widgetName}.viewmodel'
 export type { ${widgetName}Props, ${widgetName}State } from './${widgetName}.types'

@@ -130,8 +130,13 @@ export const MyWidget: React.FC = () => {
   const [state, setLocalState] = useState<MyWidgetState>(viewModel.state)
 
   useEffect(() => {
-    const unsubscribe = viewModel.subscribe(() => setLocalState({ ...viewModel.state }))
-    return () => { unsubscribe(); viewModel.dispose() }
+    const unsubscribe = viewModel.subscribe(() =>
+      setLocalState({ ...viewModel.state })
+    )
+    return () => {
+      unsubscribe()
+      viewModel.dispose()
+    }
   }, [viewModel])
 
   return <Container>...</Container>
@@ -145,16 +150,19 @@ export const MyWidget: React.FC = () => {
 Widgets must **never import each other**. All cross-widget communication via EventBus only.
 
 ### Adding a new event — `src/core/event-bus/events.ts`
+
 ```ts
 'mywidget:action': { payload: string }
 ```
 
 ### Emitting
+
 ```ts
 this.eventBus.emit('mywidget:action', { payload: 'hello' })
 ```
 
 ### Subscribing
+
 ```ts
 const off = this.eventBus.on('profile:updated', (data) => {
   this.setState({ username: data.displayName })
@@ -178,8 +186,12 @@ import { theme } from '@/theme'
 export const Container = styled.div`
   padding: ${theme.spacing.md};
 
-  @media (max-width: 768px) { padding: ${theme.spacing.sm}; }
-  @media (max-width: 480px) { padding: ${theme.spacing.xs}; }
+  @media (max-width: 768px) {
+    padding: ${theme.spacing.sm};
+  }
+  @media (max-width: 480px) {
+    padding: ${theme.spacing.xs};
+  }
 `
 ```
 
@@ -187,12 +199,12 @@ export const Container = styled.div`
 
 ### Responsive breakpoints (required in every widget)
 
-| Breakpoint | Context |
-|---|---|
-| >=1024px | Desktop — multi-column, full features |
-| 768-1023px | Tablet — 2 columns |
-| <768px | Mobile — single column |
-| <480px | Small mobile — compact, simplified |
+| Breakpoint | Context                               |
+| ---------- | ------------------------------------- |
+| >=1024px   | Desktop — multi-column, full features |
+| 768-1023px | Tablet — 2 columns                    |
+| <768px     | Mobile — single column                |
+| <480px     | Small mobile — compact, simplified    |
 
 ---
 
@@ -219,7 +231,10 @@ const mockEventBus: EventBus = {
 
 const storyContainer = new Container()
 storyContainer.bind<EventBus>(TOKENS.EventBus).toConstantValue(mockEventBus)
-storyContainer.bind<MyViewModel>(TOKENS.MyViewModel).to(MyViewModel).inTransientScope()
+storyContainer
+  .bind<MyViewModel>(TOKENS.MyViewModel)
+  .to(MyViewModel)
+  .inTransientScope()
 ```
 
 ---
@@ -279,10 +294,10 @@ npx storybook dev        # Storybook dev server
 
 ## Routing
 
-| Path | Component | Auth required |
-|---|---|---|
-| `/` | `PlaygroundPage` | No |
-| `/login` | `LoginPage` | No |
-| `/register` | `RegisterPage` | No |
+| Path        | Component        | Auth required |
+| ----------- | ---------------- | ------------- |
+| `/`         | `PlaygroundPage` | No            |
+| `/login`    | `LoginPage`      | No            |
+| `/register` | `RegisterPage`   | No            |
 
 (End of repo-specific guidance.)

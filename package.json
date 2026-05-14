@@ -25,7 +25,8 @@
     "firebase": "^12.10.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.13.1"
+    "react-router-dom": "^7.13.1",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.28.5",
@@ -44,6 +45,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^5.2.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
     "@vitest/browser-playwright": "^4.1.0",
