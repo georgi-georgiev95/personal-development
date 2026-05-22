@@ -4,5 +4,3 @@ export type OptimusRobotState = {
   transforming: boolean
   transformProgress: number
 }
-
-export default OptimusRobotState
