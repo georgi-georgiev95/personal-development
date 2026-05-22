@@ -6,24 +6,24 @@ import {
   Navigate,
 } from 'react-router-dom'
 import { AuthProvider } from './components/AuthProvider'
-import { PlaygroundPage } from './pages/PlaygroundPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import OptimusPage from './pages/OptimusPage'
-import { AppRoot, AppFooter } from './App.styles'
+import { AppRoot, AppFooter, AppContent } from './App.styles'
+import HomePage from './pages/HomePage'
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <AppRoot>
-          <Routes>
-            <Route path="/" element={<PlaygroundPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/optimus" element={<OptimusPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AppContent>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </AppContent>
           <AppFooter>Georgi Georgiev | All rights reserved 2026</AppFooter>
         </AppRoot>
       </Router>

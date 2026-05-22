@@ -30,7 +30,7 @@ const RegisterPage: React.FC = () => {
         password
       )
       await createUserProfile(userCredential.user.uid, email, username)
-      navigate('/')
+      navigate('/home')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message || 'Registration failed')

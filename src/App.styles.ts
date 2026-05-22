@@ -18,3 +18,14 @@ export const AppFooter = styled.footer`
   background: ${theme.colors.navbar};
   box-shadow: ${theme.boxShadow.sm};
 `
+export const AppContent = styled.main`
+  flex: 1;
+  padding: ${theme.spacing.lg};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 480px) {
+    padding: ${theme.spacing.md};
+  }
+`

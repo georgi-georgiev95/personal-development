@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
     setError(null)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      navigate('/')
+      navigate('/home')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
       setError(message || 'Login failed')
