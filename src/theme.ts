@@ -40,7 +40,7 @@ export const theme: Theme = {
   colors: {
     primary: '#6C63FF',
     secondary: '#FF6584',
-    background: '#f5f6fa',
+    background: '#000000',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     text: '#22223b',
     textSecondary: '#4a4e69',

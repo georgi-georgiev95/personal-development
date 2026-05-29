@@ -2,7 +2,8 @@ import { styled } from '@linaria/react'
 import { theme } from '@/theme'
 
 export const StyledRegisterBox = styled.div`
-  min-height: 95vh;
+  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;

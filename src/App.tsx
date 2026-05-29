@@ -18,10 +18,10 @@ const App: React.FC = () => {
         <AppRoot>
           <AppContent>
             <Routes>
+              <Route path="/home" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
           </AppContent>
           <AppFooter>Georgi Georgiev | All rights reserved 2026</AppFooter>

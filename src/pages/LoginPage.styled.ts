@@ -2,7 +2,8 @@ import { styled } from '@linaria/react'
 import { theme } from '@/theme'
 
 export const StyledLoginBox = styled.div`
-  min-height: 95vh;
+  flex: 1;
+  width: 100%;
   background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
   display: flex;
   align-items: center;

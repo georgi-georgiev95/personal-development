@@ -4,7 +4,8 @@ import { theme } from './theme'
 export const AppRoot = styled.div`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: ${theme.colors.background};
 `
 
@@ -20,12 +21,8 @@ export const AppFooter = styled.footer`
 `
 export const AppContent = styled.main`
   flex: 1;
-  padding: ${theme.spacing.lg};
   display: flex;
-  align-items: center;
-  justify-content: center;
-
-  @media (max-width: 480px) {
-    padding: ${theme.spacing.md};
-  }
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
 `
