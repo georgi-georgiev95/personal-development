@@ -212,7 +212,9 @@ const ImportedModel = ({
   armInward?: number // Z rotation to bring arms closer to body (negative = closer)
   legInward?: number // Y rotation to bring legs closer together (positive = closer)
 }) => {
-  const { scene } = useGLTF('/optimus-prime.glb')
+  // Lazy load GLB - models load on-demand, not at startup
+  // Drei's useGLTF now has Draco support built-in by default
+  const { scene } = useGLTF('/optimus-prime-compressed.glb')
   const groupRef = useRef<THREE.Group>(null)
 
   // Store initial bone rotations to apply deltas instead of absolutes
@@ -417,6 +419,16 @@ const ImportedModel = ({
   )
 }
 
+const ImportModelTruck = () => {
+  const { scene } = useGLTF('/optimus-prime-truck-compressed.glb')
+
+  return (
+    <group position={[10, -3, -6]}>
+      <primitive object={scene} scale={1.5} />
+    </group>
+  )
+}
+
 export const OptimusPrime: React.FC = () => {
   // Walk animation controls
   const { speed } = useControls('Walk', {
@@ -555,6 +567,8 @@ export const OptimusPrime: React.FC = () => {
         legInward={legInward}
       />
 
+      <ImportModelTruck />
+
       <OrbitControls enableDamping />
 
       <EffectComposer>
@@ -564,4 +578,6 @@ export const OptimusPrime: React.FC = () => {
   )
 }
 
-useGLTF.preload('/optimus-prime.glb')
+// Models now load lazily on-demand (not preloaded to improve initial page load)
+// Compressed versions with Draco: robot 9.2MB → 8.2MB, truck 85MB → 51MB
+// useGLTF will cache them after first load for performance
