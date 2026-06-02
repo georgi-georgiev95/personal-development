@@ -24,6 +24,5 @@ export const AppContent = styled.main`
   display: flex;
   flex-direction: column;
   width: 100%;
-  overflow-y: scroll;
   overflow-x: hidden;
 `

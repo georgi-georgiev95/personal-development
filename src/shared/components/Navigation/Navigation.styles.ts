@@ -6,21 +6,21 @@ export const Nav = styled.nav`
   align-items: center;
   justify-content: space-between;
   padding: 0 ${theme.spacing.lg};
-  height: 64px;
+  height: ${theme.layout.navHeight};
   background: ${theme.colors.navbar};
   box-shadow: ${theme.boxShadow.sm};
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: ${theme.zIndex.nav};
 
-  @media (max-width: 768px) {
+  @media (max-width: ${theme.breakpoint.tablet}) {
     padding: 0 ${theme.spacing.md};
-    height: 56px;
+    height: ${theme.layout.navHeightTablet};
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: ${theme.breakpoint.mobile}) {
     padding: 0 ${theme.spacing.sm};
-    height: 48px;
+    height: ${theme.layout.navHeightMobile};
   }
 `
 
@@ -28,9 +28,9 @@ export const NavBrand = styled.span`
   font-size: ${theme.fontSizes.lg};
   font-weight: 700;
   color: ${theme.colors.primary};
-  letter-spacing: -0.5px;
+  letter-spacing: ${theme.letterSpacing.tight};
 
-  @media (max-width: 480px) {
+  @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.md};
   }
 `
@@ -40,7 +40,7 @@ export const NavLinks = styled.div`
   align-items: center;
   gap: ${theme.spacing.sm};
 
-  @media (max-width: 768px) {
+  @media (max-width: ${theme.breakpoint.tablet}) {
     gap: ${theme.spacing.xs};
   }
 `
@@ -52,10 +52,10 @@ export const NavLink = styled.a<{ $active?: boolean }>`
   color: ${({ $active }) =>
     $active ? theme.colors.primary : theme.colors.textSecondary};
   padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius};
+  border-radius: ${theme.borderRadius.md};
   transition:
-    color 0.2s ease,
-    background 0.2s ease;
+    color ${theme.transition.fast},
+    background ${theme.transition.fast};
   cursor: pointer;
 
   &:hover {
@@ -63,7 +63,32 @@ export const NavLink = styled.a<{ $active?: boolean }>`
     background: rgba(108, 99, 255, 0.08);
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    font-size: ${theme.fontSizes.xs};
+    padding: ${theme.spacing.xs};
+  }
+`
+
+export const NavButton = styled.button`
+  background: none;
+  border: none;
+  font-size: ${theme.fontSizes.sm};
+  font-weight: 400;
+  color: ${theme.colors.textSecondary};
+  padding: ${theme.spacing.xs} ${theme.spacing.sm};
+  border-radius: ${theme.borderRadius.md};
+  transition:
+    color ${theme.transition.fast},
+    background ${theme.transition.fast};
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    color: ${theme.colors.primary};
+    background: rgba(108, 99, 255, 0.08);
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.xs};
     padding: ${theme.spacing.xs};
   }

@@ -7,43 +7,135 @@ export const StyledRegisterBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2575fc 0%, #6a11cb 100%);
+  background: ${theme.colors.gradientAlt};
   overflow: hidden;
 `
 
 export const StyledRegisterCard = styled.div`
   padding: ${theme.spacing.lg};
-  width: 380px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  width: ${theme.layout.cardMaxWidth};
+  border-radius: ${theme.borderRadius.xl};
+  background: ${theme.colors.cardBg};
+  box-shadow: ${theme.boxShadow.card};
 
-  @media (max-width: 768px) {
+  @media (max-width: ${theme.breakpoint.tablet}) {
     width: 90vw;
     padding: ${theme.spacing.md};
-    border-radius: 16px;
+    border-radius: ${theme.borderRadius.lg};
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: ${theme.breakpoint.mobile}) {
     width: 98vw;
     padding: ${theme.spacing.sm};
-    border-radius: 8px;
+    border-radius: ${theme.borderRadius.md};
   }
 `
 
 export const StyledTitle = styled.h2`
   margin-bottom: ${theme.spacing.lg};
   text-align: center;
-  color: #2575fc;
-  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  color: ${theme.colors.accent};
+  font-family: ${theme.font.family};
   font-weight: 500;
   font-size: ${theme.fontSizes.xl};
 
-  @media (max-width: 768px) {
+  @media (max-width: ${theme.breakpoint.tablet}) {
     font-size: ${theme.fontSizes.lg};
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.md};
   }
+`
+
+export const StyledForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
+`
+
+export const InputWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+`
+
+export const InputIcon = styled.span`
+  position: absolute;
+  left: ${theme.spacing.sm};
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.muted};
+  pointer-events: none;
+`
+
+export const StyledInput = styled.input`
+  width: 100%;
+  padding: ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.xl};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  font-size: ${theme.fontSizes.md};
+  font-family: inherit;
+  outline: none;
+  transition: border-color ${theme.transition.fast};
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: ${theme.colors.accent};
+  }
+
+  &::placeholder {
+    color: ${theme.colors.muted};
+  }
+`
+
+export const StyledButton = styled.button`
+  width: 100%;
+  padding: ${theme.spacing.sm};
+  margin-top: ${theme.spacing.sm};
+  border: none;
+  border-radius: ${theme.borderRadius.md};
+  background: ${theme.colors.gradientAlt};
+  color: ${theme.colors.cardBg};
+  font-size: ${theme.fontSizes.lg};
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity ${theme.transition.fast};
+  font-family: inherit;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`
+
+export const StyledLink = styled.a`
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: ${theme.spacing.sm};
+  padding: ${theme.spacing.xs};
+  color: ${theme.colors.accent};
+  font-weight: bold;
+  text-decoration: none;
+  font-size: ${theme.fontSizes.sm};
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
+export const ErrorMessage = styled.div`
+  padding: ${theme.spacing.sm};
+  margin-bottom: ${theme.spacing.sm};
+  border-radius: ${theme.borderRadius.md};
+  background: #fef2f2;
+  color: ${theme.colors.error};
+  font-weight: bold;
+  font-size: ${theme.fontSizes.sm};
+  text-align: center;
 `

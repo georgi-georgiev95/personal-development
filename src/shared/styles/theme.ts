@@ -5,14 +5,22 @@ export type Theme = {
     secondary: string
     background: string
     gradient: string
+    gradientAlt: string
     text: string
     textSecondary: string
+    textInverse: string
     navbar: string
     icon: string
     border: string
     cardBg: string
     error: string
     success: string
+    accent: string
+    accentHover: string
+    muted: string
+    overlay: string
+    spinner: string
+    surface: string
   }
   fontSizes: {
     xs: string
@@ -29,10 +37,50 @@ export type Theme = {
     lg: string
     xl: string
   }
-  borderRadius: string
+  borderRadius: {
+    sm: string
+    md: string
+    lg: string
+    xl: string
+    full: string
+  }
   boxShadow: {
     sm: string
     md: string
+    card: string
+  }
+  layout: {
+    navHeight: string
+    navHeightTablet: string
+    navHeightMobile: string
+    cardMaxWidth: string
+    containerMaxWidth: string
+  }
+  font: {
+    family: string
+    familyMono: string
+  }
+  letterSpacing: {
+    tight: string
+    normal: string
+    wide: string
+  }
+  lineHeight: {
+    tight: string
+    normal: string
+    relaxed: string
+  }
+  transition: {
+    fast: string
+    normal: string
+  }
+  breakpoint: {
+    tablet: string
+    mobile: string
+  }
+  zIndex: {
+    nav: string
+    overlay: string
   }
 }
 
@@ -42,14 +90,22 @@ export const theme: Theme = {
     secondary: '#FF6584',
     background: '#000000',
     gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    gradientAlt: 'linear-gradient(135deg, #2575fc 0%, #6a11cb 100%)',
     text: '#22223b',
     textSecondary: '#4a4e69',
+    textInverse: '#e5e7eb',
     navbar: '#fff',
     icon: '#6C63FF',
     border: '#e0e0e0',
     cardBg: '#ffffff',
     error: '#f44336',
     success: '#4caf50',
+    accent: '#2575fc',
+    accentHover: '#6a11cb',
+    muted: '#9ca3af',
+    overlay: 'rgba(0, 0, 0, 0.6)',
+    spinner: '#fbbf24',
+    surface: '#111827',
   },
   fontSizes: {
     xs: '0.75rem',
@@ -66,9 +122,49 @@ export const theme: Theme = {
     lg: '2rem',
     xl: '3rem',
   },
-  borderRadius: '8px',
+  borderRadius: {
+    sm: '6px',
+    md: '8px',
+    lg: '16px',
+    xl: '24px',
+    full: '50%',
+  },
   boxShadow: {
     sm: '0 2px 8px rgba(31, 38, 135, 0.1)',
     md: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+    card: '0 4px 24px rgba(0, 0, 0, 0.12)',
+  },
+  layout: {
+    navHeight: '64px',
+    navHeightTablet: '56px',
+    navHeightMobile: '48px',
+    cardMaxWidth: '380px',
+    containerMaxWidth: '1200px',
+  },
+  font: {
+    family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    familyMono: "'SF Mono', 'Fira Code', 'Fira Mono', monospace",
+  },
+  letterSpacing: {
+    tight: '-0.5px',
+    normal: '0',
+    wide: '0.5px',
+  },
+  lineHeight: {
+    tight: '1',
+    normal: '1.25',
+    relaxed: '1.5',
+  },
+  transition: {
+    fast: '0.2s ease',
+    normal: '0.3s ease-out',
+  },
+  breakpoint: {
+    tablet: '768px',
+    mobile: '480px',
+  },
+  zIndex: {
+    nav: '100',
+    overlay: '10',
   },
 }

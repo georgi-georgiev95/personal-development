@@ -1,17 +1,21 @@
 import React, { useState } from 'react'
-import { Button, TextField, Grid, Alert, InputAdornment } from '@mui/material'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/shared/config/firebase/auth'
+import { Link, useNavigate } from 'react-router-dom'
+import { createUserProfile } from '@/shared/services/userService'
+import { getAuthErrorMessage } from '@/shared/utils/authErrors'
 import {
   StyledRegisterBox,
   StyledRegisterCard,
   StyledTitle,
+  StyledForm,
+  InputWrapper,
+  InputIcon,
+  StyledInput,
+  StyledButton,
+  StyledLink,
+  ErrorMessage,
 } from './RegisterPage.styled'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '@/shared/config/firebase/auth'
-import { Link, useNavigate } from 'react-router-dom'
-import EmailIcon from '@mui/icons-material/Email'
-import LockIcon from '@mui/icons-material/Lock'
-import PersonIcon from '@mui/icons-material/Person'
-import { createUserProfile } from '@/shared/services/userService'
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
@@ -19,106 +23,102 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const validate = (): boolean => {
+    if (!username.trim()) {
+      setError('Username is required')
+      return false
+    }
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters')
+      return false
+    }
+    if (!email.trim()) {
+      setError('Email is required')
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address')
+      return false
+    }
+    if (!password) {
+      setError('Password is required')
+      return false
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return false
+    }
+    return true
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!validate()) return
+
+    setLoading(true)
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       )
-      await createUserProfile(userCredential.user.uid, email, username)
+      await createUserProfile(userCredential.user.uid, email, username.trim())
       navigate('/home')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err)
-      setError(message || 'Registration failed')
+      setError(getAuthErrorMessage(err))
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <StyledRegisterBox>
-      <Grid container justifyContent="center">
-        <Grid>
-          <StyledRegisterCard>
-            <StyledTitle>Register</StyledTitle>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2, fontWeight: 'bold' }}>
-                {error}
-              </Alert>
-            )}
-            <form onSubmit={handleSubmit}>
-              <TextField
-                label="Username"
-                type="text"
-                fullWidth
-                margin="normal"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                margin="normal"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                margin="normal"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ mt: 2, fontWeight: 'bold', fontSize: 18 }}
-              >
-                Register
-              </Button>
-            </form>
-            <Button
-              component={Link}
-              to="/login"
-              color="secondary"
-              fullWidth
-              sx={{ mt: 2, fontWeight: 'bold' }}
-            >
-              Already have an account? Login
-            </Button>
-          </StyledRegisterCard>
-        </Grid>
-      </Grid>
+      <StyledRegisterCard>
+        <StyledTitle>Register</StyledTitle>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        <StyledForm onSubmit={handleSubmit}>
+          <InputWrapper>
+            <InputIcon>👤</InputIcon>
+            <StyledInput
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </InputWrapper>
+          <InputWrapper>
+            <InputIcon>✉</InputIcon>
+            <StyledInput
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </InputWrapper>
+          <InputWrapper>
+            <InputIcon>🔒</InputIcon>
+            <StyledInput
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </InputWrapper>
+          <StyledButton type="submit" disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
+          </StyledButton>
+        </StyledForm>
+        <Link to="/login" style={{ textDecoration: 'none' }}>
+          <StyledLink>Already have an account? Login</StyledLink>
+        </Link>
+      </StyledRegisterCard>
     </StyledRegisterBox>
   )
 }

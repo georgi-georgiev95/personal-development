@@ -18,52 +18,94 @@ export interface UserProfile {
   commentCount: number
 }
 
+export class UserServiceError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
+    super(message)
+    this.name = 'UserServiceError'
+  }
+}
+
 export const createUserProfile = async (
   uid: string,
   email: string,
   username: string
 ): Promise<void> => {
-  const userRef = doc(db, 'users', uid)
-  await setDoc(userRef, {
-    uid,
-    email,
-    username,
-    photoURL: null,
-    createdAt: serverTimestamp(),
-    lastLogin: serverTimestamp(),
-    postCount: 0,
-    commentCount: 0,
-  })
+  try {
+    const userRef = doc(db, 'users', uid)
+    await setDoc(userRef, {
+      uid,
+      email,
+      username,
+      photoURL: null,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+      postCount: 0,
+      commentCount: 0,
+    })
+  } catch (error) {
+    console.error('Error creating user profile:', error)
+    throw new UserServiceError(
+      'Failed to create user profile',
+      'PROFILE_CREATE_FAILED'
+    )
+  }
 }
 
 export const getUserProfile = async (
   uid: string
 ): Promise<UserProfile | null> => {
-  const userRef = doc(db, 'users', uid)
-  const userSnap = await getDoc(userRef)
+  try {
+    const userRef = doc(db, 'users', uid)
+    const userSnap = await getDoc(userRef)
 
-  if (userSnap.exists()) {
-    const data = userSnap.data()
-    return {
-      ...data,
-      createdAt: data.createdAt?.toDate() || null,
-      lastLogin: data.lastLogin?.toDate() || null,
-    } as UserProfile
+    if (userSnap.exists()) {
+      const data = userSnap.data()
+      return {
+        ...data,
+        createdAt: data.createdAt?.toDate() || null,
+        lastLogin: data.lastLogin?.toDate() || null,
+      } as UserProfile
+    }
+    return null
+  } catch (error) {
+    console.error('Error fetching user profile:', error)
+    throw new UserServiceError(
+      'Failed to fetch user profile',
+      'PROFILE_FETCH_FAILED'
+    )
   }
-  return null
 }
 
 export const updateUserProfile = async (
   uid: string,
   data: Partial<UserProfile>
 ): Promise<void> => {
-  const userRef = doc(db, 'users', uid)
-  await updateDoc(userRef, data)
+  try {
+    const userRef = doc(db, 'users', uid)
+    await updateDoc(userRef, data)
+  } catch (error) {
+    console.error('Error updating user profile:', error)
+    throw new UserServiceError(
+      'Failed to update user profile',
+      'PROFILE_UPDATE_FAILED'
+    )
+  }
 }
 
 export const updateLastLogin = async (uid: string): Promise<void> => {
-  const userRef = doc(db, 'users', uid)
-  await updateDoc(userRef, {
-    lastLogin: serverTimestamp(),
-  })
+  try {
+    const userRef = doc(db, 'users', uid)
+    await updateDoc(userRef, {
+      lastLogin: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error('Error updating last login:', error)
+    throw new UserServiceError(
+      'Failed to update last login',
+      'LAST_LOGIN_UPDATE_FAILED'
+    )
+  }
 }

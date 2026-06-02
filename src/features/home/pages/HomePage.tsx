@@ -3,6 +3,12 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useRef, useState } from 'react'
 import { MeshWobbleMaterial, OrbitControls, useHelper } from '@react-three/drei'
 import { useControls } from 'leva'
+import {
+  HomeCanvasWrapper,
+  HintsOverlay,
+  HintsTitle,
+  HintItem,
+} from './HomePage.styles'
 
 type FormProps = {
   position: [number, number, number]
@@ -16,7 +22,6 @@ const Sphere = ({ position }: Pick<FormProps, 'position'>) => {
   const { color, radius, widthSegments, heightSegments } = useControls(
     'Sphere',
     {
-      // Use a different default color so hover (lightBlue) is visible
       color: 'orange',
       radius: { value: 1, min: 0.1, max: 4, step: 0.1 },
       widthSegments: { value: 32, min: 3, max: 64, step: 1 },
@@ -29,10 +34,8 @@ const Sphere = ({ position }: Pick<FormProps, 'position'>) => {
 
   useFrame((_, delta) => {
     if (ref.current) {
-      // ref.current.rotation.x += delta
       const speed = isHovered ? 2 : 0.2
       ref.current.rotation.y += delta * 0.2 * speed
-      // ref.current.position.z = Math.sin(state.clock.elapsedTime) * 2
     }
   })
 
@@ -62,18 +65,9 @@ const TorusKnot = ({ position, size }: FormProps) => {
     radius: { value: 0.7, min: 0.1, max: 1, step: 0.1 },
   })
 
-  // useFrame((state, delta) => {
-  //   if (ref.current) {
-  //     ref.current.rotation.x += delta
-  //     ref.current.rotation.y += delta * 2
-  //     ref.current.position.z = Math.sin(state.clock.elapsedTime) * 2
-  //   }
-  // })
-
   return (
     <mesh position={position} ref={ref}>
       <torusKnotGeometry args={[radius, ...size]} />
-      {/* <meshStandardMaterial color={color} /> */}
       <MeshWobbleMaterial color={color} speed={1} factor={0.6} />
     </mesh>
   )
@@ -109,35 +103,19 @@ const Scene = () => {
 
 export const HomePage: React.FC = () => {
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <HomeCanvasWrapper>
       <Canvas style={{ width: '100%', height: '100%' }}>
         <Scene />
       </Canvas>
 
-      <div
-        style={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          background: 'rgba(0,0,0,0.6)',
-          color: '#fff',
-          padding: '8px 12px',
-          borderRadius: 8,
-          fontSize: 20,
-          lineHeight: '1.25',
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: 6 }}>Hints:</div>
-        <div style={{ marginBottom: 4 }}>
-          White square ={'>'} directional light direction
-        </div>
-        <div>Drag: rotate</div>
-        <div>Scroll: zoom</div>
-        <div>Sphere supports hover and click effects</div>
-      </div>
-    </div>
+      <HintsOverlay>
+        <HintsTitle>Hints:</HintsTitle>
+        <HintItem>White square =&gt; directional light direction</HintItem>
+        <HintItem>Drag: rotate</HintItem>
+        <HintItem>Scroll: zoom</HintItem>
+        <HintItem>Sphere supports hover and click effects</HintItem>
+      </HintsOverlay>
+    </HomeCanvasWrapper>
   )
 }
 

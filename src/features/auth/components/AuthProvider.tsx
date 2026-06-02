@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { auth } from '@/shared/config/firebase/auth'
-import { onAuthStateChanged } from 'firebase/auth'
-import { AuthContext } from './AuthContext'
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
+import { AuthContext, type AuthContextValue } from './AuthContext'
 import type { User } from 'firebase/auth'
 import { updateLastLogin } from '@/shared/services/userService'
 
@@ -12,23 +12,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let lastUid: string | null = null
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
-      if (firebaseUser) {
+
+      if (firebaseUser && lastUid !== firebaseUser.uid) {
+        lastUid = firebaseUser.uid
         try {
           await updateLastLogin(firebaseUser.uid)
         } catch (error) {
           console.error('Error updating last login:', error)
         }
+      } else if (!firebaseUser) {
+        lastUid = null
       }
+
       setLoading(false)
     })
     return () => unsubscribe()
   }, [])
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  const handleSignOut = useCallback(async () => {
+    await firebaseSignOut(auth)
+  }, [])
+
+  const value: AuthContextValue = {
+    user,
+    loading,
+    signOut: handleSignOut,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

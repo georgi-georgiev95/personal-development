@@ -11,6 +11,11 @@ import {
 import { EffectComposer, SSAO } from '@react-three/postprocessing'
 import { Suspense, useEffect, useRef } from 'react'
 import { useControls } from 'leva'
+import {
+  CanvasWrapper,
+  PageFallback,
+  LoadingLabelContainer,
+} from './OptimusPrime.styles'
 
 type BodyPartProps = {
   side?: 'left' | 'right'
@@ -47,44 +52,12 @@ const ModelLoadingLabel = ({
   position: [number, number, number]
 }) => (
   <Html center position={position}>
-    <div
-      style={{
-        minWidth: 132,
-        padding: '8px 10px',
-        borderRadius: 6,
-        background: 'rgba(17, 24, 39, 0.82)',
-        color: '#e5e7eb',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        fontSize: 12,
-        fontWeight: 600,
-        textAlign: 'center',
-        whiteSpace: 'nowrap',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-        pointerEvents: 'none',
-      }}
-    >
-      {label}
-    </div>
+    <LoadingLabelContainer>{label}</LoadingLabelContainer>
   </Html>
 )
 
 const RobotPageFallback = ({ message }: { message: string }) => (
-  <div
-    style={{
-      width: '100%',
-      height: '100%',
-      display: 'grid',
-      placeItems: 'center',
-      background: 'linear-gradient(to bottom, #111827, #1f2937)',
-      color: '#e5e7eb',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      fontSize: 14,
-      textAlign: 'center',
-      padding: 24,
-    }}
-  >
-    {message}
-  </div>
+  <PageFallback>{message}</PageFallback>
 )
 
 const Head = (props: BodyPartProps) => {
@@ -94,14 +67,6 @@ const Head = (props: BodyPartProps) => {
     <group>
       <RoundedBox args={[1, 1, 1]} radius={0.08} position={[0, 1, 0]}>
         <Material color="#d90429" metalness={metalness} roughness={roughness} />
-      </RoundedBox>
-
-      <RoundedBox
-        args={[0.2, 0.5, 0.2]}
-        radius={0.03}
-        position={[-0.6, 1.5, 0]}
-      >
-        <Material color="#4361ee" metalness={metalness} roughness={roughness} />
       </RoundedBox>
 
       <RoundedBox args={[0.2, 0.5, 0.2]} radius={0.03} position={[0.6, 1.5, 0]}>
@@ -533,15 +498,7 @@ export const OptimusPrime: React.FC = () => {
   })
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        minHeight: 0,
-        position: 'relative',
-        background: 'linear-gradient(to bottom, #111827, #1f2937)',
-      }}
-    >
+    <CanvasWrapper>
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [-6, 5, 15], fov: 50 }}
@@ -550,12 +507,7 @@ export const OptimusPrime: React.FC = () => {
           <RobotPageFallback message="Unable to start the 3D renderer." />
         }
         gl={{ antialias: true, powerPreference: 'high-performance' }}
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'block',
-          background: 'linear-gradient(to bottom, #111827, #1f2937)',
-        }}
+        style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <ambientLight intensity={0.2} />
 
@@ -639,7 +591,7 @@ export const OptimusPrime: React.FC = () => {
           <SSAO samples={31} radius={0.1} intensity={20} />
         </EffectComposer>
       </Canvas>
-    </div>
+    </CanvasWrapper>
   )
 }
 
