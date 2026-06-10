@@ -82,7 +82,21 @@ const RegisterPage: React.FC = () => {
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <StyledForm onSubmit={handleSubmit}>
           <InputWrapper>
-            <InputIcon>👤</InputIcon>
+            <InputIcon>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </InputIcon>
             <StyledInput
               type="text"
               placeholder="Username"
@@ -92,7 +106,21 @@ const RegisterPage: React.FC = () => {
             />
           </InputWrapper>
           <InputWrapper>
-            <InputIcon>✉</InputIcon>
+            <InputIcon>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M22 4L12 13L2 4" />
+              </svg>
+            </InputIcon>
             <StyledInput
               type="email"
               placeholder="Email"
@@ -102,7 +130,21 @@ const RegisterPage: React.FC = () => {
             />
           </InputWrapper>
           <InputWrapper>
-            <InputIcon>🔒</InputIcon>
+            <InputIcon>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+            </InputIcon>
             <StyledInput
               type="password"
               placeholder="Password"

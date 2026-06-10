@@ -7,6 +7,14 @@ export const AppRoot = styled.div`
   height: 100vh;
   overflow: hidden;
   background: ${theme.colors.background};
+  position: relative;
+`
+
+export const CanvasBackground = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 `
 
 export const AppFooter = styled.footer`
@@ -14,15 +22,21 @@ export const AppFooter = styled.footer`
   align-items: center;
   justify-content: center;
   padding: ${theme.spacing.md} 0;
-  color: ${theme.colors.textSecondary};
+  color: rgba(255, 255, 255, 0.5);
   font-size: ${theme.fontSizes.sm};
-  background: ${theme.colors.navbar};
-  box-shadow: ${theme.boxShadow.sm};
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
 `
+
 export const AppContent = styled.main`
   flex: 1;
   display: flex;
   flex-direction: column;
   width: 100%;
   overflow-x: hidden;
+  position: relative;
+  z-index: 1;
 `

@@ -2,7 +2,8 @@ import React from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/components/AuthProvider'
 import { Navigation } from '@/shared/components/Navigation'
-import { AppRoot, AppFooter, AppContent } from './App.styles'
+import { StarFieldBackground } from '@/shared/components/StarFieldBackground'
+import { AppRoot, AppFooter, AppContent, CanvasBackground } from './App.styles'
 import { AppRoutes } from './routes'
 
 const App: React.FC = () => {
@@ -10,6 +11,9 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <AppRoot>
+          <CanvasBackground>
+            <StarFieldBackground />
+          </CanvasBackground>
           <Navigation />
           <AppContent>
             <AppRoutes />

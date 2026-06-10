@@ -21,6 +21,12 @@ export type Theme = {
     overlay: string
     spinner: string
     surface: string
+    starPrimary: string
+    starSecondary: string
+    starGlow: string
+    heroText: string
+    heroTagline: string
+    errorBg: string
   }
   fontSizes: {
     xs: string
@@ -86,26 +92,32 @@ export type Theme = {
 
 export const theme: Theme = {
   colors: {
-    primary: '#6C63FF',
+    primary: '#f97316',
     secondary: '#FF6584',
     background: '#000000',
-    gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-    gradientAlt: 'linear-gradient(135deg, #2575fc 0%, #6a11cb 100%)',
+    gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+    gradientAlt: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
     text: '#22223b',
     textSecondary: '#4a4e69',
     textInverse: '#e5e7eb',
-    navbar: '#fff',
-    icon: '#6C63FF',
+    navbar: '#ffffff',
+    icon: '#f97316',
     border: '#e0e0e0',
     cardBg: '#ffffff',
     error: '#f44336',
     success: '#4caf50',
-    accent: '#2575fc',
-    accentHover: '#6a11cb',
+    accent: '#f97316',
+    accentHover: '#ea580c',
     muted: '#9ca3af',
     overlay: 'rgba(0, 0, 0, 0.6)',
     spinner: '#fbbf24',
     surface: '#111827',
+    starPrimary: '#f97316',
+    starSecondary: '#fbbf24',
+    starGlow: '#ea580c',
+    heroText: '#ffffff',
+    heroTagline: 'rgba(255, 255, 255, 0.7)',
+    errorBg: '#fef2f2',
   },
   fontSizes: {
     xs: '0.75rem',

@@ -7,8 +7,9 @@ export const Nav = styled.nav`
   justify-content: space-between;
   padding: 0 ${theme.spacing.lg};
   height: ${theme.layout.navHeight};
-  background: ${theme.colors.navbar};
-  box-shadow: ${theme.boxShadow.sm};
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: ${theme.zIndex.nav};
@@ -24,11 +25,14 @@ export const Nav = styled.nav`
   }
 `
 
-export const NavBrand = styled.span`
+export const NavBrand = styled.a`
   font-size: ${theme.fontSizes.lg};
   font-weight: 700;
-  color: ${theme.colors.primary};
+  color: ${theme.colors.textInverse};
   letter-spacing: ${theme.letterSpacing.tight};
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  text-decoration: none;
+  cursor: pointer;
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.md};
@@ -50,17 +54,18 @@ export const NavLink = styled.a<{ $active?: boolean }>`
   font-size: ${theme.fontSizes.sm};
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   color: ${({ $active }) =>
-    $active ? theme.colors.primary : theme.colors.textSecondary};
+    $active ? theme.colors.primary : 'rgba(255, 255, 255, 0.7)'};
   padding: ${theme.spacing.xs} ${theme.spacing.sm};
   border-radius: ${theme.borderRadius.md};
   transition:
     color ${theme.transition.fast},
     background ${theme.transition.fast};
   cursor: pointer;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 
   &:hover {
     color: ${theme.colors.primary};
-    background: rgba(108, 99, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
@@ -74,7 +79,7 @@ export const NavButton = styled.button`
   border: none;
   font-size: ${theme.fontSizes.sm};
   font-weight: 400;
-  color: ${theme.colors.textSecondary};
+  color: rgba(255, 255, 255, 0.7);
   padding: ${theme.spacing.xs} ${theme.spacing.sm};
   border-radius: ${theme.borderRadius.md};
   transition:
@@ -82,10 +87,11 @@ export const NavButton = styled.button`
     background ${theme.transition.fast};
   cursor: pointer;
   font-family: inherit;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 
   &:hover {
     color: ${theme.colors.primary};
-    background: rgba(108, 99, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
