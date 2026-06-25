@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
 import { Link, useNavigate } from 'react-router-dom'
-import { createUserProfile } from '@/shared/services/userService'
+import { createUserProfile } from '@/entities/user'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
 import {
   StyledRegisterBox,

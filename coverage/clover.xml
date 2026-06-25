@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1782401898058" clover="3.2.0">
+  <project timestamp="1782401898058" name="All files">
+    <metrics statements="39" coveredstatements="39" conditionals="15" coveredconditionals="15" methods="6" coveredmethods="6" elements="60" coveredelements="60" complexity="0" loc="39" ncloc="39" packages="3" files="4" classes="4"/>
+    <package name="entities">
+      <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="index.ts" path="/Users/georgigeorgiev/Desktop/personal-development/src/entities/index.ts">
+        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      </file>
+    </package>
+    <package name="entities.user">
+      <metrics statements="31" coveredstatements="31" conditionals="6" coveredconditionals="6" methods="5" coveredmethods="5"/>
+      <file name="index.ts" path="/Users/georgigeorgiev/Desktop/personal-development/src/entities/user/index.ts">
+        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      </file>
+      <file name="userService.ts" path="/Users/georgigeorgiev/Desktop/personal-development/src/entities/user/userService.ts">
+        <metrics statements="31" coveredstatements="31" conditionals="6" coveredconditionals="6" methods="5" coveredmethods="5"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="26" count="5" type="stmt"/>
+        <line num="27" count="5" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="36" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="2" type="stmt"/>
+        <line num="49" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="60" count="4" type="stmt"/>
+        <line num="61" count="4" type="stmt"/>
+        <line num="62" count="4" type="stmt"/>
+        <line num="64" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="72" count="1" type="stmt"/>
+        <line num="74" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="82" count="1" type="stmt"/>
+        <line num="86" count="2" type="stmt"/>
+        <line num="87" count="2" type="stmt"/>
+        <line num="88" count="2" type="stmt"/>
+        <line num="90" count="1" type="stmt"/>
+        <line num="91" count="1" type="stmt"/>
+        <line num="98" count="1" type="stmt"/>
+        <line num="99" count="2" type="stmt"/>
+        <line num="100" count="2" type="stmt"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="105" count="1" type="stmt"/>
+        <line num="106" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="shared.utils">
+      <metrics statements="8" coveredstatements="8" conditionals="9" coveredconditionals="9" methods="1" coveredmethods="1"/>
+      <file name="authErrors.ts" path="/Users/georgigeorgiev/Desktop/personal-development/src/shared/utils/authErrors.ts">
+        <metrics statements="8" coveredstatements="8" conditionals="9" coveredconditionals="9" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="14" count="8" type="cond" truecount="5" falsecount="0"/>
+        <line num="15" count="4" type="stmt"/>
+        <line num="16" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="20" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="23" count="3" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

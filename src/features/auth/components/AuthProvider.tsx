@@ -3,7 +3,7 @@ import { auth } from '@/shared/config/firebase/auth'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { AuthContext, type AuthContextValue } from './AuthContext'
 import type { User } from 'firebase/auth'
-import { updateLastLogin } from '@/shared/services/userService'
+import { updateLastLogin } from '@/entities/user'
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

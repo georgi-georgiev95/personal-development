@@ -22,7 +22,7 @@ const guestRoutes: RouteItem[] = [
 export const Navigation: React.FC = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
 
   const handleClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -45,16 +45,18 @@ export const Navigation: React.FC = () => {
         Georgi Georgiev
       </NavBrand>
       <NavLinks>
-        {visibleRoutes.map((route) => (
-          <NavLink
-            key={route.path}
-            href={route.path}
-            $active={location.pathname === route.path}
-            onClick={(e) => handleClick(e, route.path)}
-          >
-            {route.label}
-          </NavLink>
-        ))}
+        {loading
+          ? null
+          : visibleRoutes.map((route) => (
+              <NavLink
+                key={route.path}
+                href={route.path}
+                $active={location.pathname === route.path}
+                onClick={(e) => handleClick(e, route.path)}
+              >
+                {route.label}
+              </NavLink>
+            ))}
         {user && <NavButton onClick={handleSignOut}>Logout</NavButton>}
       </NavLinks>
     </Nav>

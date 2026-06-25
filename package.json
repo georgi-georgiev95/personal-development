@@ -16,6 +16,7 @@
     "generate": "node scripts/generate-component.js",
     "test": "vitest",
     "test:run": "vitest run",
+    "coverage": "vitest run --config vitest.config.ts --coverage",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -30,7 +31,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "undici": "^8.5.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.28.5",
