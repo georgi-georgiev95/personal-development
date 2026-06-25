@@ -148,3 +148,42 @@ export const ErrorMessage = styled.div`
   font-size: ${theme.fontSizes.sm};
   text-align: center;
 `
+
+export const Row = styled.div`
+  display: flex;
+  gap: ${theme.spacing.sm};
+
+  & > * {
+    flex: 1;
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    flex-direction: column;
+  }
+`
+
+export const StyledSelect = styled.select`
+  width: 100%;
+  padding: ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.sm}
+    ${theme.spacing.xl};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  background: ${theme.colors.background};
+  color: ${theme.colors.textInverse};
+  font-size: ${theme.fontSizes.md};
+  font-family: inherit;
+  outline: none;
+  transition: border-color ${theme.transition.fast};
+  box-sizing: border-box;
+  appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: ${theme.colors.accent};
+  }
+
+  option {
+    background: ${theme.colors.background};
+    color: ${theme.colors.textInverse};
+  }
+`

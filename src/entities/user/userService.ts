@@ -11,6 +11,9 @@ export interface UserProfile {
   uid: string
   email: string
   username: string
+  firstName: string
+  lastName: string
+  age: number | null
   photoURL?: string
   createdAt: Date | null
   lastLogin: Date | null
@@ -31,7 +34,10 @@ export class UserServiceError extends Error {
 export const createUserProfile = async (
   uid: string,
   email: string,
-  username: string
+  username: string,
+  firstName: string,
+  lastName: string,
+  age: number | null
 ): Promise<void> => {
   try {
     const userRef = doc(db, 'users', uid)
@@ -39,6 +45,9 @@ export const createUserProfile = async (
       uid,
       email,
       username,
+      firstName,
+      lastName,
+      age,
       photoURL: null,
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),

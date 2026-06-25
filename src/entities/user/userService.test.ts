@@ -52,7 +52,14 @@ describe('createUserProfile', () => {
   it('calls setDoc with the user data', async () => {
     MockedSetDoc.mockResolvedValue(undefined)
 
-    await createUserProfile('uid-1', 'test@example.com', 'testuser')
+    await createUserProfile(
+      'uid-1',
+      'test@example.com',
+      'testuser',
+      'John',
+      'Doe',
+      25
+    )
 
     expect(MockedSetDoc).toHaveBeenCalledTimes(1)
     expect(MockedSetDoc).toHaveBeenCalledWith(
@@ -61,6 +68,9 @@ describe('createUserProfile', () => {
         uid: 'uid-1',
         email: 'test@example.com',
         username: 'testuser',
+        firstName: 'John',
+        lastName: 'Doe',
+        age: 25,
         photoURL: null,
         postCount: 0,
         commentCount: 0,
@@ -72,7 +82,14 @@ describe('createUserProfile', () => {
     MockedSetDoc.mockRejectedValue(new Error('Firestore error'))
 
     await expect(
-      createUserProfile('uid-1', 'test@example.com', 'testuser')
+      createUserProfile(
+        'uid-1',
+        'test@example.com',
+        'testuser',
+        'John',
+        'Doe',
+        25
+      )
     ).rejects.toThrow(UserServiceError)
   })
 })

@@ -14,6 +14,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
     coverage: {
       include: ['src/entities/**', 'src/shared/utils/**'],
+      exclude: ['**/index.ts'],
       thresholds: {
         statements: 100,
         branches: 100,

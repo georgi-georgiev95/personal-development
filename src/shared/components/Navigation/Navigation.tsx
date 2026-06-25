@@ -1,6 +1,7 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/components/useAuth'
+import { ProfileModal } from '@/features/auth/components/ProfileModal'
 import {
   Nav,
   NavBrand,
@@ -57,7 +58,12 @@ export const Navigation: React.FC = () => {
                 {route.label}
               </NavLink>
             ))}
-        {user && <NavButton onClick={handleSignOut}>Logout</NavButton>}
+        {user && (
+          <>
+            <ProfileModal />
+            <NavButton onClick={handleSignOut}>Logout</NavButton>
+          </>
+        )}
       </NavLinks>
     </Nav>
   )
