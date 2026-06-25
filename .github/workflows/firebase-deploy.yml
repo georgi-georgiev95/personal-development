@@ -47,4 +47,14 @@ jobs:
       - name: Deploy to Firebase
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        run: firebase deploy --only hosting,firestore
+        run: |
+          # Deploy; if it fails only because the version is already live, succeed anyway
+          firebase deploy --only hosting,firestore 2>&1 | tee deploy_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ "$EXIT_CODE" != "0" ]; then
+            if grep -q "is the current active version" deploy_output.txt; then
+              echo "Version already deployed and active. Nothing to do."
+            else
+              exit $EXIT_CODE
+            fi
+          fi
