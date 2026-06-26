@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
+import { GlowingOrb } from '@/shared/components/GlowingOrb'
 import {
   StyledLoginBox,
   StyledLoginCard,
@@ -14,6 +15,8 @@ import {
   StyledButton,
   StyledLink,
   ErrorMessage,
+  OrbContainer,
+  FormContent,
 } from './LoginPage.styled'
 
 const LoginPage: React.FC = () => {
@@ -63,64 +66,69 @@ const LoginPage: React.FC = () => {
   return (
     <StyledLoginBox>
       <StyledLoginCard>
-        <StyledTitle>Login</StyledTitle>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <StyledForm onSubmit={handleSubmit}>
-          <InputWrapper>
-            <InputIcon>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="2" y="4" width="20" height="16" rx="2" />
-                <path d="M22 4L12 13L2 4" />
-              </svg>
-            </InputIcon>
-            <StyledInput
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </InputWrapper>
-          <InputWrapper>
-            <InputIcon>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-            </InputIcon>
-            <StyledInput
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </InputWrapper>
-          <StyledButton type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </StyledButton>
-        </StyledForm>
-        <Link to="/register" style={{ textDecoration: 'none' }}>
-          <StyledLink>Don't have an account? Register</StyledLink>
-        </Link>
+        <OrbContainer>
+          <GlowingOrb />
+        </OrbContainer>
+        <FormContent>
+          <StyledTitle>Login</StyledTitle>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <StyledForm onSubmit={handleSubmit}>
+            <InputWrapper>
+              <InputIcon>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 4L12 13L2 4" />
+                </svg>
+              </InputIcon>
+              <StyledInput
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </InputWrapper>
+            <InputWrapper>
+              <InputIcon>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              </InputIcon>
+              <StyledInput
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </InputWrapper>
+            <StyledButton type="submit" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </StyledButton>
+          </StyledForm>
+          <Link to="/register" style={{ textDecoration: 'none' }}>
+            <StyledLink>Don't have an account? Register</StyledLink>
+          </Link>
+        </FormContent>
       </StyledLoginCard>
     </StyledLoginBox>
   )

@@ -19,8 +19,7 @@ src/
 │   └── routes.styles.ts
 ├── features/               # Feature modules
 │   ├── auth/               # Authentication (Login, Register, AuthProvider)
-│   ├── home/               # Home page with 3D experiments
-│   └── robot/              # Robot showcase with 3D model
+│   └── home/               # Home page with 3D experiments
 ├── shared/                 # Shared code
 │   ├── components/         # Reusable components (Navigation, ErrorBoundary)
 │   ├── config/             # Firebase config
@@ -113,12 +112,10 @@ npm run format       # Prettier
 
 ## Routing
 
-| Path        | Component             | Auth required |
-| ----------- | --------------------- | ------------- |
-| `/`         | Redirects to `/robot` | No            |
-| `/home`     | `HomePage`            | No            |
-| `/login`    | `LoginPage`           | No            |
-| `/register` | `RegisterPage`        | No            |
-| `/robot`    | `OptimusPrime`        | No            |
+| Path        | Component      | Auth required |
+| ----------- | -------------- | ------------- |
+| `/`         | `HomePage`     | No            |
+| `/login`    | `LoginPage`    | No            |
+| `/register` | `RegisterPage` | No            |
 
 (End of repo-specific guidance.)

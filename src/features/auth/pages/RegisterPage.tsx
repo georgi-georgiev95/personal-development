@@ -4,6 +4,7 @@ import { auth } from '@/shared/config/firebase/auth'
 import { Link, useNavigate } from 'react-router-dom'
 import { createUserProfile } from '@/entities/user'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
+import { GlowingOrb } from '@/shared/components/GlowingOrb'
 import {
   StyledRegisterBox,
   StyledRegisterCard,
@@ -17,6 +18,8 @@ import {
   ErrorMessage,
   Row,
   StyledSelect,
+  OrbContainer,
+  FormContent,
 } from './RegisterPage.styled'
 
 const MONTHS = [
@@ -169,64 +172,48 @@ const RegisterPage: React.FC = () => {
     </svg>
   )
 
-  const calendarIcon = (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  )
-
   return (
     <StyledRegisterBox>
       <StyledRegisterCard>
-        <StyledTitle>Register</StyledTitle>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <StyledForm onSubmit={handleSubmit}>
-          <Row>
+        <OrbContainer>
+          <GlowingOrb />
+        </OrbContainer>
+        <FormContent>
+          <StyledTitle>Register</StyledTitle>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <StyledForm onSubmit={handleSubmit}>
+            <Row>
+              <InputWrapper>
+                <InputIcon>{personIcon}</InputIcon>
+                <StyledInput
+                  type="text"
+                  placeholder="First name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </InputWrapper>
+              <InputWrapper>
+                <InputIcon>{personIcon}</InputIcon>
+                <StyledInput
+                  type="text"
+                  placeholder="Last name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </InputWrapper>
+            </Row>
             <InputWrapper>
               <InputIcon>{personIcon}</InputIcon>
               <StyledInput
                 type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </InputWrapper>
-            <InputWrapper>
-              <InputIcon>{personIcon}</InputIcon>
-              <StyledInput
-                type="text"
-                placeholder="Last name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-              />
-            </InputWrapper>
-          </Row>
-          <InputWrapper>
-            <InputIcon>{personIcon}</InputIcon>
-            <StyledInput
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </InputWrapper>
-          <InputWrapper>
-            <InputIcon>{calendarIcon}</InputIcon>
             <Row>
               <StyledSelect
                 value={day}
@@ -271,34 +258,34 @@ const RegisterPage: React.FC = () => {
                 ))}
               </StyledSelect>
             </Row>
-          </InputWrapper>
-          <InputWrapper>
-            <InputIcon>{emailIcon}</InputIcon>
-            <StyledInput
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </InputWrapper>
-          <InputWrapper>
-            <InputIcon>{lockIcon}</InputIcon>
-            <StyledInput
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </InputWrapper>
-          <StyledButton type="submit" disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
-          </StyledButton>
-        </StyledForm>
-        <Link to="/login" style={{ textDecoration: 'none' }}>
-          <StyledLink>Already have an account? Login</StyledLink>
-        </Link>
+            <InputWrapper>
+              <InputIcon>{emailIcon}</InputIcon>
+              <StyledInput
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </InputWrapper>
+            <InputWrapper>
+              <InputIcon>{lockIcon}</InputIcon>
+              <StyledInput
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </InputWrapper>
+            <StyledButton type="submit" disabled={loading}>
+              {loading ? 'Registering...' : 'Register'}
+            </StyledButton>
+          </StyledForm>
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <StyledLink>Already have an account? Login</StyledLink>
+          </Link>
+        </FormContent>
       </StyledRegisterCard>
     </StyledRegisterBox>
   )
