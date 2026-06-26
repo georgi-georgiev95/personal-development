@@ -14,7 +14,6 @@ src/
   features/         Feature-owned pages, components, hooks, and styles
     auth/
     home/
-    robot/
   entities/         Business entities and services (user, experiment, etc.)
     user/
   shared/           Cross-feature infra — config, styles, components, utils
@@ -32,7 +31,7 @@ src/
 | `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)              |
 | `pages/`    | Composed page layouts that wire together widgets and features               |
 | `widgets/`  | Reusable UI blocks that use entities/features under the hood                |
-| `features/` | Self-contained user-facing features (auth, home, robot, experiments)        |
+| `features/` | Self-contained user-facing features (auth, home, experiments)               |
 | `entities/` | Business logic that doesn't belong to a single feature (user service, etc.) |
 | `shared/`   | Truly reusable infra — config, styles, global components, utility functions |
 
