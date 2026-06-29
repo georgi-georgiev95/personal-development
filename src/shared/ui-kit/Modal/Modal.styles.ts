@@ -22,6 +22,7 @@ export const Overlay = styled.div`
 `
 
 export const Dialog = styled.div`
+  position: relative;
   background: ${theme.colors.surface};
   border: 1px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.lg};
@@ -51,6 +52,9 @@ export const Title = styled.h2`
 `
 
 export const CloseButton = styled.button`
+  position: absolute;
+  top: ${theme.spacing.sm};
+  right: ${theme.spacing.sm};
   background: none;
   border: none;
   color: ${theme.colors.muted};
