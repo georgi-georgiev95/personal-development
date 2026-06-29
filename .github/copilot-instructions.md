@@ -118,4 +118,20 @@ npm run format       # Prettier
 | `/login`    | `LoginPage`    | No            |
 | `/register` | `RegisterPage` | No            |
 
+---
+
+## Harness Integration
+
+This project includes a **universal AI agent harness** in the `harness/` directory. The harness provides structured context following [Harness Engineering Guide](https://harness-guide.com/) principles.
+
+**Key Harness Files** (load in order):
+
+1. `harness/GUARDRAILS.md` — Agent identity, permissions, constraints (ALWAYS LOAD FIRST)
+2. `harness/CONTEXT.md` — Context assembly rules, token budgeting
+3. `harness/MEMORY.md` — Project knowledge, conventions, architecture
+4. `harness/SKILLS.md` — Scaffolding patterns (load on demand)
+5. `harness/TOOLS.md` — Build/test workflows (load on demand)
+
+**Quick Reference**: See `harness/QUICKSTART.md` for usage examples.
+
 (End of repo-specific guidance.)
