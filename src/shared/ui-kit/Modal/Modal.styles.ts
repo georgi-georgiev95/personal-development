@@ -36,6 +36,23 @@ export const Dialog = styled.div`
     margin: ${theme.spacing.md};
     padding: ${theme.spacing.md};
   }
+
+  &.profile-modal-dialog {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.07) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 10px 36px rgba(0, 0, 0, 0.55),
+      0 0 70px rgba(249, 115, 22, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
 `
 
 export const Header = styled.div`

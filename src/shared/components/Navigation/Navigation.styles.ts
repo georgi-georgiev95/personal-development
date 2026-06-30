@@ -8,8 +8,6 @@ export const Nav = styled.nav`
   padding: 0 ${theme.spacing.lg};
   height: ${theme.layout.navHeight};
   background: transparent;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: ${theme.zIndex.nav};
@@ -43,10 +41,30 @@ export const NavLinks = styled.div`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.sm};
+`
 
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    gap: ${theme.spacing.xs};
+export const NavPill = styled.div`
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50px;
+  padding: 6px 18px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  gap: 4px;
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    padding: 4px 12px;
   }
+`
+
+export const NavPillSeparator = styled.span`
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.28);
+  margin: 0 6px;
 `
 
 export const NavLink = styled.a<{ $active?: boolean }>`
@@ -55,22 +73,19 @@ export const NavLink = styled.a<{ $active?: boolean }>`
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
   color: ${({ $active }) =>
     $active ? theme.colors.primary : 'rgba(255, 255, 255, 0.7)'};
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.md};
-  transition:
-    color ${theme.transition.fast},
-    background ${theme.transition.fast};
+  padding: 4px 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color ${theme.transition.fast};
   cursor: pointer;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 
   &:hover {
-    color: ${theme.colors.primary};
-    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.xs};
-    padding: ${theme.spacing.xs};
+    padding: 2px 6px;
   }
 `
 
@@ -79,23 +94,20 @@ export const NavButton = styled.button`
   border: none;
   font-size: ${theme.fontSizes.sm};
   font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.7);
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border-radius: ${theme.borderRadius.md};
-  transition:
-    color ${theme.transition.fast},
-    background ${theme.transition.fast};
+  padding: 4px 8px;
+  transition: color ${theme.transition.fast};
   cursor: pointer;
   font-family: inherit;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 
   &:hover {
-    color: ${theme.colors.primary};
-    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.xs};
-    padding: ${theme.spacing.xs};
+    padding: 2px 6px;
   }
 `

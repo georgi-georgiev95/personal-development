@@ -1,27 +1,18 @@
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { ProfileModal } from '@/features/auth/components/ProfileModal'
 import {
   Nav,
   NavBrand,
   NavLinks,
+  NavPill,
+  NavPillSeparator,
   NavLink,
   NavButton,
 } from './Navigation.styles'
 
-type RouteItem = {
-  path: string
-  label: string
-}
-
-const guestRoutes: RouteItem[] = [
-  { path: '/login', label: 'Login' },
-  { path: '/register', label: 'Register' },
-]
-
 export const Navigation: React.FC = () => {
-  const location = useLocation()
   const navigate = useNavigate()
   const { user, loading, signOut } = useAuth()
 
@@ -38,32 +29,34 @@ export const Navigation: React.FC = () => {
     navigate('/')
   }
 
-  const visibleRoutes = user ? [] : guestRoutes
-
   return (
     <Nav>
       <NavBrand href="/" onClick={(e) => handleClick(e, '/')}>
         Georgi Georgiev
       </NavBrand>
       <NavLinks>
-        {loading
-          ? null
-          : visibleRoutes.map((route) => (
-              <NavLink
-                key={route.path}
-                href={route.path}
-                $active={location.pathname === route.path}
-                onClick={(e) => handleClick(e, route.path)}
-              >
-                {route.label}
+        <NavPill>
+          {loading ? null : user ? (
+            <>
+              <ProfileModal />
+              <NavPillSeparator />
+              <NavButton onClick={handleSignOut}>Logout</NavButton>
+            </>
+          ) : (
+            <>
+              <NavLink href="/login" onClick={(e) => handleClick(e, '/login')}>
+                Login
               </NavLink>
-            ))}
-        {user && (
-          <>
-            <ProfileModal />
-            <NavButton onClick={handleSignOut}>Logout</NavButton>
-          </>
-        )}
+              <NavPillSeparator />
+              <NavLink
+                href="/register"
+                onClick={(e) => handleClick(e, '/register')}
+              >
+                Register
+              </NavLink>
+            </>
+          )}
+        </NavPill>
       </NavLinks>
     </Nav>
   )
