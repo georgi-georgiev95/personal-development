@@ -4,8 +4,9 @@ import { theme } from '@/shared/styles/theme'
 export const AppRoot = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: hidden;
   background: ${theme.colors.background};
   position: relative;
 `
@@ -33,10 +34,13 @@ export const AppFooter = styled.footer`
 
 export const AppContent = styled.main`
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   position: relative;
   z-index: 1;
 `
