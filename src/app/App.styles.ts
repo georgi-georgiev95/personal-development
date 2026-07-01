@@ -4,7 +4,8 @@ import { theme } from '@/shared/styles/theme'
 export const AppRoot = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100vh;
+  height: 100svh;
   overflow-x: hidden;
   overflow-y: hidden;
   background: ${theme.colors.background};
@@ -39,8 +40,13 @@ export const AppContent = styled.main`
   flex-direction: column;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-y: hidden;
   position: relative;
   z-index: 1;
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 `

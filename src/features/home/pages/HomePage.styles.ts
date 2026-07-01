@@ -362,8 +362,8 @@ export const CardTag = styled.span<{ $accent: string }>`
 // ─── Card Navigation ─────────────────────────────────────────────────────────
 
 export const CardNav = styled.div`
-  position: absolute;
-  top: ${theme.spacing.md};
+  position: fixed;
+  top: calc(${theme.layout.navHeight} + ${theme.spacing.md});
   right: ${theme.spacing.md};
   display: flex;
   align-items: center;
@@ -375,9 +375,14 @@ export const CardNav = styled.div`
   padding: 5px 12px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  transform: translateZ(0);
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    top: calc(${theme.layout.navHeightTablet} + ${theme.spacing.sm});
+  }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    top: ${theme.spacing.sm};
+    top: calc(${theme.layout.navHeightMobile} + ${theme.spacing.sm});
     right: ${theme.spacing.sm};
     padding: 4px 10px;
   }
