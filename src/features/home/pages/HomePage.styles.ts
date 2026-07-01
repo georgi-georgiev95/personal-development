@@ -380,12 +380,12 @@ export const CardNav = styled.div`
   padding: 6px 12px;
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    top: 38px;
+    top: 58px;
     right: ${theme.spacing.md};
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    top: 30px;
+    top: 50px;
     right: ${theme.spacing.sm};
     padding: 4px 10px;
   }
