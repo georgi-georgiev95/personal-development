@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
+import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
 import { RouteFallbackContainer, Spinner } from './routes.styles'
 
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
@@ -18,8 +19,22 @@ export const AppRoutes = () => (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/login"
+          element={
+            <GuestOnlyRoute>
+              <LoginPage />
+            </GuestOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestOnlyRoute>
+              <RegisterPage />
+            </GuestOnlyRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

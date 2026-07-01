@@ -75,6 +75,10 @@ export const NavBrandPrefix = styled.span`
   font-weight: 600;
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: ${theme.letterSpacing.tight};
+
+  @media (min-width: 1440px) {
+    font-size: ${theme.fontSizes.xl};
+  }
 `
 
 export const NavBrandName = styled.span`
@@ -82,6 +86,10 @@ export const NavBrandName = styled.span`
   font-weight: 600;
   color: ${theme.colors.heroText};
   letter-spacing: ${theme.letterSpacing.tight};
+
+  @media (min-width: 1440px) {
+    font-size: ${theme.fontSizes.xl};
+  }
 `
 
 export const NavCursor = styled.span`

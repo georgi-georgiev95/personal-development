@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { ProfileModal } from '@/features/auth/components/ProfileModal'
 import {
@@ -21,6 +21,7 @@ import {
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, loading, signOut } = useAuth()
 
   const handleClick = (
@@ -58,13 +59,17 @@ export const Navigation: React.FC = () => {
             </NavUserRow>
           ) : (
             <>
-              <NavLink href="/login" onClick={(e) => handleClick(e, '/login')}>
+              <NavLink
+                href="/login"
+                $active={location.pathname === '/login'}
+                onClick={(e) => handleClick(e, '/login')}
+              >
                 Login
               </NavLink>
               <NavSep />
               <NavLink
                 href="/register"
-                $active
+                $active={location.pathname === '/register'}
                 onClick={(e) => handleClick(e, '/register')}
               >
                 Register

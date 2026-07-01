@@ -54,16 +54,16 @@ export const Dialog = styled.div`
 
     &::before {
       top: 18px;
-      right: 18px;
+      left: 18px;
       border-top: 1px solid rgba(45, 212, 191, 0.4);
-      border-right: 1px solid rgba(45, 212, 191, 0.4);
+      border-left: 1px solid rgba(45, 212, 191, 0.4);
     }
 
     &::after {
       bottom: 18px;
-      left: 18px;
+      right: 18px;
       border-bottom: 1px solid rgba(45, 212, 191, 0.4);
-      border-left: 1px solid rgba(45, 212, 191, 0.4);
+      border-right: 1px solid rgba(45, 212, 191, 0.4);
     }
   }
 `
