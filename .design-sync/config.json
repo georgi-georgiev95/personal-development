@@ -1,0 +1,23 @@
+{
+  "projectId": "b3e58411-d96f-4a8e-81be-eda5f4f76d9b",
+  "shape": "storybook",
+  "pkg": "ui-kit",
+  "globalName": "UiKit",
+  "storybookStatic": ".design-sync/sb-reference",
+  "storybookConfigDir": ".storybook",
+  "buildCmd": "./scripts/build-ds-lib.sh",
+  "cssEntry": "personal-development.css",
+  "extraFonts": ["../.design-sync/fonts/jetbrains-mono.css"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "titleMap": {
+    "Auth/ProfileModal": null
+  },
+  "overrides": {
+    "Text": {
+      "cardMode": "column"
+    },
+    "Modal": {
+      "cardMode": "single"
+    }
+  }
+}

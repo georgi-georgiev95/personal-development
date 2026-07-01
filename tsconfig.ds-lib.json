@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "skipLibCheck": true,
+    "outDir": "dist-ds-lib/types",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/shared/ui-kit/index.ts", "src/shared/ui-kit/**/*.ts", "src/shared/ui-kit/**/*.tsx"],
+  "exclude": ["src/shared/ui-kit/**/*.test.ts", "src/shared/ui-kit/**/*.test.tsx", "src/shared/ui-kit/**/*.stories.ts", "src/shared/ui-kit/**/*.stories.tsx"]
+}
