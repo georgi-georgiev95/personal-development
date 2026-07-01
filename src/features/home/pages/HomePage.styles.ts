@@ -4,46 +4,530 @@ import { theme } from '@/shared/styles/theme'
 // ─── Layout ─────────────────────────────────────────────────────────────────
 
 export const PageWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
   position: relative;
-  overflow: hidden;
-`
-
-// ─── Left Sidebar ────────────────────────────────────────────────────────────
-
-export const Sidebar = styled.aside`
-  position: absolute;
-  left: ${theme.spacing.lg};
-  bottom: ${theme.spacing.lg};
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  z-index: 10;
+  justify-content: space-between;
+  gap: 24px;
+  height: calc(100vh - ${theme.layout.navHeight});
+  padding: ${theme.spacing.lg} 56px;
+  overflow: hidden;
 
   @media (max-width: 1023px) {
-    left: ${theme.spacing.md};
-    bottom: ${theme.spacing.md};
+    height: calc(100vh - ${theme.layout.navHeightTablet});
+    padding: ${theme.spacing.md} 40px;
+    gap: clamp(12px, 2.5vh, 40px);
   }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    height: calc(100vh - ${theme.layout.navHeightMobile});
+    padding: 16px ${theme.spacing.md};
+    gap: clamp(8px, 2vh, 32px);
+  }
+`
+
+// ─── HUD corner brackets ─────────────────────────────────────────────────────
+
+export const HudCorner = styled.div<{ $corner: 'tl' | 'tr' | 'bl' | 'br' }>`
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  z-index: 6;
+  pointer-events: none;
+  top: ${({ $corner }) =>
+    $corner === 'tl' || $corner === 'tr' ? '20px' : 'auto'};
+  bottom: ${({ $corner }) =>
+    $corner === 'bl' || $corner === 'br' ? '20px' : 'auto'};
+  left: ${({ $corner }) =>
+    $corner === 'tl' || $corner === 'bl' ? '20px' : 'auto'};
+  right: ${({ $corner }) =>
+    $corner === 'tr' || $corner === 'br' ? '20px' : 'auto'};
+  border-top: ${({ $corner }) =>
+    $corner === 'tl' || $corner === 'tr'
+      ? '1px solid rgba(255, 255, 255, 0.25)'
+      : 'none'};
+  border-bottom: ${({ $corner }) =>
+    $corner === 'bl' || $corner === 'br'
+      ? '1px solid rgba(255, 255, 255, 0.25)'
+      : 'none'};
+  border-left: ${({ $corner }) =>
+    $corner === 'tl' || $corner === 'bl'
+      ? '1px solid rgba(255, 255, 255, 0.25)'
+      : 'none'};
+  border-right: ${({ $corner }) =>
+    $corner === 'tr' || $corner === 'br'
+      ? '1px solid rgba(255, 255, 255, 0.25)'
+      : 'none'};
 
   @media (max-width: ${theme.breakpoint.tablet}) {
     display: none;
   }
 `
 
-export const SidebarLabel = styled.p`
+// ─── Main row (headline + card stack + scroll hint) ─────────────────────────
+
+export const MainRow = styled.div`
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  perspective: 1400px;
+
+  @media (max-width: 1023px) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: clamp(8px, 2vh, 32px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    gap: clamp(6px, 1.5vh, 24px);
+  }
+`
+
+// ─── Headline ────────────────────────────────────────────────────────────────
+
+export const HeadlineWrap = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  max-width: 440px;
+  text-align: left;
+
+  @media (max-width: 1023px) {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    max-width: 480px;
+    text-align: center;
+    margin: 0 auto;
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    max-width: 320px;
+  }
+`
+
+export const HeroLabel = styled.p`
+  margin: 0 0 16px;
+  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.sm};
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 400;
+`
+
+export const HeroText = styled.div`
+  color: ${theme.colors.text};
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.32;
+  font-size: 36px;
+
+  @media (max-width: 1023px) {
+    font-size: 28px;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    font-size: 21px;
+  }
+`
+
+export const HeroCursor = styled.span`
+  display: inline-block;
+  width: 9px;
+  height: 20px;
+  background: ${theme.colors.primary};
+  margin-left: 4px;
+  vertical-align: -3px;
+  animation: heroCursorBlink 1.1s step-end infinite;
+
+  @keyframes heroCursorBlink {
+    0%,
+    45% {
+      opacity: 1;
+    }
+    50%,
+    95% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+`
+
+export const HeroPillsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  justify-content: flex-start;
+
+  @media (max-width: 1023px) {
+    justify-content: center;
+  }
+`
+
+export const HeroPill = styled.span`
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  padding: 5px 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: 1px;
+  text-transform: uppercase;
+`
+
+// ─── Card stack ──────────────────────────────────────────────────────────────
+
+export const StackWrap = styled.div<{ $tiltX: number; $tiltY: number }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(360px, 30vw);
+  height: min(480px, 100%);
+  will-change: transform;
+  touch-action: none;
+  transform: translate(-50%, -50%) rotateX(${({ $tiltX }) => $tiltX}deg)
+    rotateY(${({ $tiltY }) => $tiltY}deg);
+
+  @media (max-width: 1023px) {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0 auto;
+    flex: 0 0 auto;
+    width: min(300px, 78vw);
+    height: min(400px, 44vh);
+    transform: rotateX(${({ $tiltX }) => $tiltX}deg)
+      rotateY(${({ $tiltY }) => $tiltY}deg);
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    width: min(248px, 72vw);
+    height: min(340px, 40vh);
+  }
+`
+
+export const CardStage = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+`
+
+export const ProjectCard = styled.div<{ $offset: number; $accent: string }>`
+  --stack-step: 16px;
+  position: absolute;
+  inset: 0;
+  border-radius: ${theme.borderRadius.lg};
+  overflow: hidden;
+  background: ${theme.colors.surface};
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+  cursor: ${({ $offset }) => ($offset === 0 ? 'default' : 'pointer')};
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease;
+  transform: translate(
+      calc(var(--stack-step) * ${({ $offset }) => $offset}),
+      calc(var(--stack-step) * ${({ $offset }) => $offset})
+    )
+    rotate(${({ $offset }) => $offset * 2.5}deg)
+    scale(${({ $offset }) => 1 - $offset * 0.045});
+  opacity: ${({ $offset }) => ($offset === 0 ? 1 : $offset === 1 ? 0.5 : 0.24)};
+  z-index: ${({ $offset }) => 10 - $offset};
+  pointer-events: ${({ $offset }) => ($offset === 0 ? 'auto' : 'none')};
+
+  @media (max-width: 1023px) {
+    --stack-step: 13px;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    --stack-step: 10px;
+  }
+`
+
+export const CardGlow = styled.div<{ $accent: string }>`
+  position: absolute;
+  inset: 0 0 55% 0;
+  background: linear-gradient(
+    160deg,
+    ${({ $accent }) => $accent}33,
+    #05070880 70%
+  );
+`
+
+export const CardInner = styled.div`
+  position: absolute;
+  inset: 0;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  @media (max-width: 1023px) {
+    padding: 22px;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    padding: 18px;
+  }
+`
+
+export const CardBadge = styled.span<{ $accent: string }>`
+  display: inline-block;
+  color: ${({ $accent }) => $accent};
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+`
+
+export const CardBody = styled.div``
+
+export const CardTitle = styled.h2`
   margin: 0 0 12px;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-size: 24px;
+
+  @media (max-width: 1023px) {
+    font-size: 21px;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    font-size: 18px;
+  }
+`
+
+export const CardDescription = styled.p`
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.55;
+  font-size: 13px;
+
+  @media (max-width: 1023px) {
+    font-size: 12.5px;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    font-size: 11.5px;
+  }
+`
+
+export const CardMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+`
+
+export const CardTag = styled.span<{ $accent: string }>`
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: ${({ $accent }) => $accent};
+`
+
+export const CardViewLink = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+`
+
+export const AccentArrow = styled.span<{ $color: string }>`
+  color: ${({ $color }) => $color};
+`
+
+// ─── Card pager (top right) ─────────────────────────────────────────────────
+
+export const CardNav = styled.div`
+  position: fixed;
+  top: 50px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 20;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  padding: 6px 12px;
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    top: 38px;
+    right: ${theme.spacing.md};
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    top: 30px;
+    right: ${theme.spacing.sm};
+    padding: 4px 10px;
+  }
+`
+
+export const NavArrow = styled.button`
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: ${theme.fontSizes.sm};
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px 6px;
+  letter-spacing: 1.32px;
+  transition: color ${theme.transition.fast};
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    font-size: ${theme.fontSizes.xs};
+    padding: 2px 4px;
+  }
+`
+
+export const NavCounter = styled.span`
+  color: rgba(255, 255, 255, 0.85);
+  font-size: ${theme.fontSizes.sm};
+  letter-spacing: 0.16em;
+  text-align: center;
+  font-weight: 400;
+  white-space: nowrap;
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    font-size: ${theme.fontSizes.xs};
+    letter-spacing: 1.2px;
+  }
+`
+
+export const PagerTitle = styled.span`
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    display: none;
+  }
+`
+
+// ─── Scroll hint ─────────────────────────────────────────────────────────────
+
+export const ScrollHintWrap = styled.div`
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(240px, 40%) + 20px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 280px;
+
+  @media (max-width: 1023px) {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+`
+
+export const ScrollHintText = styled.p`
+  margin: 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+`
+
+export const ScrollArrow = styled.span`
+  color: rgba(255, 255, 255, 0.5);
+  font-size: ${theme.fontSizes.md};
+  animation: bounceDown 2s ease-in-out infinite;
+
+  @keyframes bounceDown {
+    0%,
+    100% {
+      transform: translateY(0px);
+      opacity: 0.35;
+    }
+    50% {
+      transform: translateY(6px);
+      opacity: 0.9;
+    }
+  }
+`
+
+export const ScrollTicksRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+`
+
+export const ScrollTick = styled.span<{ $active: boolean; $color: string }>`
+  width: ${({ $active }) => ($active ? '22px' : '12px')};
+  height: 2px;
+  border-radius: 1px;
+  background: ${({ $active, $color }) =>
+    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
+  transition: all 0.3s ease;
+`
+
+// ─── Bottom row (sidebar + chat / coordinates + copyright) ──────────────────
+
+export const BottomRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  @media (max-width: 1023px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+  }
+`
+
+export const LeftCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`
+
+export const RightCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: flex-end;
+
+  @media (max-width: 1023px) {
+    align-items: flex-start;
+  }
+`
+
+export const SidebarLabel = styled.p`
+  margin: 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 `
 
 export const SidebarFilters = styled.ul`
   list-style: none;
-  margin: 0 0 ${theme.spacing.md};
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -58,368 +542,118 @@ export const SidebarFilter = styled.li`
 export const SidebarLink = styled.a<{ $active: boolean }>`
   margin: 0;
   padding: 0;
-  display: inline-block;
-  color: ${({ $active }) =>
-    $active ? theme.colors.starPrimary : 'rgba(255, 255, 255, 0.48)'};
-  font-size: ${theme.fontSizes.sm};
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
   cursor: pointer;
   text-decoration: none;
-  transition: color ${theme.transition.fast};
-  font-weight: ${({ $active }) => ($active ? 600 : 400)};
   user-select: none;
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.9);
-  }
 `
 
-export const AskButton = styled.button`
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50px;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 8px 20px;
-  cursor: pointer;
-  font-family: inherit;
-  transition:
-    border-color ${theme.transition.fast},
-    color ${theme.transition.fast};
-  width: fit-content;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.45);
-    color: rgba(255, 255, 255, 0.82);
-  }
+export const SidebarLinkArrow = styled.span`
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
 `
 
-// ─── Card Carousel ───────────────────────────────────────────────────────────
+export const SidebarLinkIndex = styled.span<{
+  $active: boolean
+  $color: string
+}>`
+  font-size: 11px;
+  color: ${({ $active, $color }) =>
+    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
+  transition: color ${theme.transition.fast};
+`
 
-export const CarouselArea = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
+export const SidebarLinkTitle = styled.span<{
+  $active: boolean
+  $color: string
+}>`
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: ${({ $active, $color }) =>
+    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
+  transition: color ${theme.transition.fast};
+`
+
+export const ChatForm = styled.form`
+  margin-top: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
-`
-
-export const CardStage = styled.div`
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  perspective: 1400px;
-  perspective-origin: 50% 50%;
-  transform-style: preserve-3d;
-`
-
-type ProjectCardProps = {
-  $offset: number
-  $colorFrom: string
-  $colorTo: string
-  $accent: string
-}
-
-export const ProjectCard = styled.div<ProjectCardProps>`
-  position: absolute;
-  width: 340px;
-  height: 480px;
-  border-radius: ${theme.borderRadius.lg};
-  background: linear-gradient(
-    145deg,
-    ${({ $colorFrom }) => $colorFrom} 0%,
-    ${({ $colorTo }) => $colorTo} 100%
-  );
-  border: 1px solid ${({ $accent }) => $accent}3a;
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 ${({ $accent }) => $accent}22;
-  cursor: ${({ $offset }) => ($offset === 0 ? 'default' : 'pointer')};
-  transition:
-    transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    opacity 0.45s ease,
-    filter 0.45s ease;
-  transform: perspective(1400px)
-    translateX(
-      ${({ $offset }) => {
-        const angle = $offset * 0.72
-        return Math.sin(angle) * 270
-      }}px
-    )
-    translateY(
-      ${({ $offset }) => {
-        return $offset * 220
-      }}px
-    )
-    translateZ(
-      ${({ $offset }) => {
-        const angle = $offset * 0.72
-        return -120 - Math.abs($offset) * 185 + Math.cos(angle) * 40
-      }}px
-    )
-    rotateY(
-      ${({ $offset }) => {
-        return Math.sin($offset * 0.72) * 26 - 8
-      }}deg
-    )
-    rotateX(
-      ${({ $offset }) => {
-        return -Math.sign($offset) * Math.min(Math.abs($offset) * 6, 16)
-      }}deg
-    )
-    scale(
-      ${({ $offset }) => {
-        const abs = Math.abs($offset)
-        if (abs === 0) return 1
-        if (abs === 1) return 0.8
-        if (abs === 2) return 0.64
-        return 0.5
-      }}
-    );
-  opacity: ${({ $offset }) => {
-    const abs = Math.abs($offset)
-    if (abs === 0) return 1
-    if (abs === 1) return 0.56
-    if (abs === 2) return 0.3
-    return 0
-  }};
-  filter: ${({ $offset }) => {
-    const abs = Math.abs($offset)
-    if (abs === 0) return 'blur(0px)'
-    if (abs === 1) return 'blur(1px)'
-    if (abs === 2) return 'blur(2.2px)'
-    return 'blur(3px)'
-  }};
-  z-index: ${({ $offset }) => Math.max(10 - Math.abs($offset) * 3, 0)};
-  pointer-events: ${({ $offset }) =>
-    Math.abs($offset) <= 2 ? 'auto' : 'none'};
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding: 10px 14px;
+  width: 300px;
+  max-width: 340px;
+  background: rgba(255, 255, 255, 0.02);
 
   @media (max-width: 1023px) {
-    width: 300px;
-    height: 420px;
-    transform: perspective(1200px)
-      translateX(${({ $offset }) => Math.sin($offset * 0.72) * 220}px)
-      translateY(${({ $offset }) => $offset * 180}px)
-      translateZ(
-        ${({ $offset }) =>
-          -100 - Math.abs($offset) * 155 + Math.cos($offset * 0.72) * 34}px
-      )
-      rotateY(
-        ${({ $offset }) => {
-          return Math.sin($offset * 0.72) * 22 - 8
-        }}deg
-      )
-      rotateX(
-        ${({ $offset }) => {
-          return -Math.sign($offset) * Math.min(Math.abs($offset) * 5, 14)
-        }}deg
-      )
-      scale(
-        ${({ $offset }) => {
-          const abs = Math.abs($offset)
-          if (abs === 0) return 1
-          if (abs === 1) return 0.78
-          if (abs === 2) return 0.62
-          return 0.5
-        }}
-      );
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    width: 260px;
-    height: 360px;
-    transform: perspective(1000px)
-      translateX(${({ $offset }) => Math.sin($offset * 0.72) * 176}px)
-      translateY(${({ $offset }) => $offset * 144}px)
-      translateZ(
-        ${({ $offset }) =>
-          -80 - Math.abs($offset) * 130 + Math.cos($offset * 0.72) * 28}px
-      )
-      rotateY(
-        ${({ $offset }) => {
-          return Math.sin($offset * 0.72) * 19 - 8
-        }}deg
-      )
-      rotateX(
-        ${({ $offset }) => {
-          return -Math.sign($offset) * Math.min(Math.abs($offset) * 4, 12)
-        }}deg
-      )
-      scale(
-        ${({ $offset }) => {
-          const abs = Math.abs($offset)
-          if (abs === 0) return 1
-          if (abs === 1) return 0.76
-          if (abs === 2) return 0.6
-          return 0.48
-        }}
-      );
+    width: 100%;
   }
 `
 
-export const CardInner = styled.div`
-  position: absolute;
-  inset: 0;
-  padding: ${theme.spacing.lg};
-  display: flex;
-  flex-direction: column;
-  border-radius: inherit;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.07) 0%,
-      transparent 55%
-    );
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.35), transparent);
-    border-radius: inherit;
-    pointer-events: none;
-  }
+export const ChatPrompt = styled.span`
+  color: ${theme.colors.primary};
+  font-size: 13px;
 `
 
-export const CardBadge = styled.span<{ $accent: string }>`
-  display: inline-block;
-  color: ${({ $accent }) => $accent};
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-weight: 700;
-  margin-bottom: auto;
-  position: relative;
-  z-index: 1;
-`
-
-export const CardTitle = styled.h2`
-  margin: auto 0 ${theme.spacing.sm};
-  color: #ffffff;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: 1.15rem;
-  }
-`
-
-export const CardDescription = styled.p`
-  margin: 0 0 ${theme.spacing.md};
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.875rem;
-  line-height: 1.6;
-  position: relative;
-  z-index: 1;
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: 0.8rem;
-  }
-`
-
-export const CardMeta = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  position: relative;
-  z-index: 1;
-`
-
-export const CardTag = styled.span<{ $accent: string }>`
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid ${({ $accent }) => $accent}55;
-  color: ${({ $accent }) => $accent};
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-`
-
-// ─── Card Navigation ─────────────────────────────────────────────────────────
-
-export const CardNav = styled.div`
-  position: fixed;
-  top: calc(${theme.layout.navHeight} + ${theme.spacing.md});
-  right: ${theme.spacing.md};
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  z-index: 20;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: ${theme.borderRadius.md};
-  padding: 5px 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transform: translateZ(0);
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    top: calc(${theme.layout.navHeightTablet} + ${theme.spacing.sm});
-  }
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    top: calc(${theme.layout.navHeightMobile} + ${theme.spacing.sm});
-    right: ${theme.spacing.sm};
-    padding: 4px 10px;
-  }
-`
-
-export const NavArrow = styled.button`
-  background: none;
+export const ChatInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: ${theme.fontSizes.sm};
-  cursor: pointer;
+  outline: none;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.02em;
   font-family: inherit;
-  padding: 2px 6px;
-  letter-spacing: 0.04em;
-  transition: color ${theme.transition.fast};
 
-  &:hover {
-    color: rgba(255, 255, 255, 0.95);
-  }
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.xs};
-    padding: 2px 4px;
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.35);
   }
 `
 
-export const NavCounter = styled.span`
-  color: rgba(255, 255, 255, 0.82);
-  font-size: ${theme.fontSizes.sm};
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  min-width: 110px;
-  text-align: center;
-  font-weight: 500;
+export const ChatReply = styled.div`
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 340px;
+  animation: fadeUp 0.3s ease;
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.xs};
-    min-width: 80px;
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+`
+
+export const Coordinates = styled.div`
+  text-align: right;
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.7;
+
+  @media (max-width: 1023px) {
+    text-align: left;
+  }
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    display: none;
+  }
+`
+
+export const CopyrightText = styled.div`
+  font-size: ${theme.fontSizes.sm};
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.4);
 `

@@ -1,176 +1,200 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import {
   PageWrapper,
-  Sidebar,
-  SidebarLabel,
-  SidebarFilters,
-  SidebarFilter,
-  SidebarLink,
-  AskButton,
-  CarouselArea,
+  HudCorner,
+  MainRow,
+  HeadlineWrap,
+  HeroLabel,
+  HeroText,
+  HeroCursor,
+  HeroPillsRow,
+  HeroPill,
+  StackWrap,
   CardStage,
   ProjectCard,
+  CardGlow,
   CardInner,
   CardBadge,
+  CardBody,
   CardTitle,
   CardDescription,
   CardMeta,
   CardTag,
+  CardViewLink,
+  AccentArrow,
   CardNav,
   NavArrow,
   NavCounter,
+  PagerTitle,
+  ScrollHintWrap,
+  ScrollHintText,
+  ScrollArrow,
+  ScrollTicksRow,
+  ScrollTick,
+  BottomRow,
+  LeftCol,
+  RightCol,
+  SidebarLabel,
+  SidebarFilters,
+  SidebarFilter,
+  SidebarLink,
+  SidebarLinkArrow,
+  SidebarLinkIndex,
+  SidebarLinkTitle,
+  ChatForm,
+  ChatPrompt,
+  ChatInput,
+  ChatReply,
+  Coordinates,
+  CopyrightText,
 } from './HomePage.styles'
 
 const CARDS = [
   {
     id: 'star-field',
-    number: '01',
     name: 'Star Field',
-    shortName: 'STARFIELD',
-    category: '3D / WEBGL',
     description:
       'Three.js particle system with 600 animated star spheres drifting in deep space.',
     tags: ['THREE.JS', 'WEBGL', 'PARTICLES'],
-    colorFrom: '#041a1a',
-    colorTo: '#083030',
-    accent: '#14b8a6',
+    accent: '#2dd4bf',
   },
   {
     id: 'scroll-orbit',
-    number: '02',
     name: 'Scroll Orbit',
-    shortName: 'ORBIT',
-    category: 'SCROLL',
     description:
-      'Scroll-driven 3D card orbit. Cards fade and scale by depth as you scroll the axle.',
-    tags: ['R3F', 'SCROLL', '3D'],
-    colorFrom: '#100820',
-    colorTo: '#1e0e38',
-    accent: '#a855f7',
+      'Scroll-driven 3D card orbit. Cards fade and scale by depth as you scroll the axis.',
+    tags: ['GSAP', 'SCROLL', '3D'],
+    accent: '#a78bfa',
   },
   {
     id: 'spine-figure',
-    number: '03',
     name: 'Spine Figure',
-    shortName: 'SPINE',
-    category: '3D / WEBGL',
     description:
-      'Anatomical spiral form in Three.js with scroll-driven rotation and curvature response.',
-    tags: ['THREE.JS', 'GEOMETRY', 'ANIMATION'],
-    colorFrom: '#060e22',
-    colorTo: '#0c1a3a',
-    accent: '#3b82f6',
+      'Skeletal rig animation blended in real time through the Spine runtime.',
+    tags: ['SPINE', 'CANVAS', 'RIG'],
+    accent: '#60a5fa',
   },
   {
     id: 'firebase-auth',
-    number: '04',
     name: 'Firebase Auth',
-    shortName: 'AUTH',
-    category: 'AUTHENTICATION',
     description:
-      'Full auth flow — login, register, profile modal, sign out — powered by Firebase.',
-    tags: ['FIREBASE', 'REACT', 'AUTH'],
-    colorFrom: '#1a0e04',
-    colorTo: '#301a08',
-    accent: '#f97316',
+      'Full auth flow with email link, OAuth providers and persisted sessions.',
+    tags: ['FIREBASE', 'AUTH', 'SDK'],
+    accent: '#fbbf24',
   },
   {
     id: 'ui-kit',
-    number: '05',
     name: 'UI Kit',
-    shortName: 'UI-KIT',
-    category: 'UI',
     description:
-      'Reusable component library — Button, Modal, Text — built with zero-runtime Linaria CSS.',
-    tags: ['LINARIA', 'STORYBOOK', 'VITEST'],
-    colorFrom: '#200614',
-    colorTo: '#360a22',
-    accent: '#ec4899',
+      'Reusable component library with design tokens, variants and Storybook docs.',
+    tags: ['REACT', 'TOKENS', 'STORYBOOK'],
+    accent: '#fb7185',
   },
   {
     id: 'error-boundary',
-    number: '06',
     name: 'Error Boundary',
-    shortName: 'ERRBOUND',
-    category: 'EXPERIMENTS',
     description:
-      'React Error Boundary with graceful fallback UI and route-level error isolation.',
-    tags: ['REACT', 'ERROR', 'UX'],
-    colorFrom: '#041408',
-    colorTo: '#082210',
-    accent: '#22c55e',
+      'Resilient React error boundaries with graceful fallback UI and logging.',
+    tags: ['REACT', 'RESILIENCE', 'LOGGING'],
+    accent: '#f87171',
   },
 ]
 
+const STACK_SIZE = 3
+const AUTO_ROTATE_MS = 5000
+
+const formatIndex = (index: number) => String(index + 1).padStart(2, '0')
+
 export const HomePage: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [mouse, setMouse] = useState({ x: 0, y: 0 })
+  const [clock, setClock] = useState(() => new Date())
+  const [chatValue, setChatValue] = useState('')
+  const [chatReply, setChatReply] = useState<string | null>(null)
+
   const touchStartYRef = useRef<number | null>(null)
+  const wheelCooldownRef = useRef(false)
+  const autoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pageWrapperRef = useRef<HTMLDivElement | null>(null)
 
-  const clampedIndex = Math.min(activeIndex, CARDS.length - 1)
-  const activeCard = CARDS[clampedIndex]
+  const activeCard = CARDS[activeIndex]
 
-  const prev = useCallback(() => {
-    setActiveIndex((i) => (i > 0 ? i - 1 : CARDS.length - 1))
+  const restartAutoRotate = useCallback(() => {
+    if (autoTimerRef.current) clearInterval(autoTimerRef.current)
+    autoTimerRef.current = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % CARDS.length)
+    }, AUTO_ROTATE_MS)
   }, [])
 
-  const next = useCallback(() => {
-    setActiveIndex((i) => (i < CARDS.length - 1 ? i + 1 : 0))
-  }, [])
-
-  const moveBy = useCallback((delta: number) => {
-    if (delta === 0 || CARDS.length <= 1) {
-      return
+  useEffect(() => {
+    restartAutoRotate()
+    return () => {
+      if (autoTimerRef.current) clearInterval(autoTimerRef.current)
     }
+  }, [restartAutoRotate])
 
-    setActiveIndex((index) => {
-      const length = CARDS.length
-      const normalized = (((index + delta) % length) + length) % length
-      return normalized
-    })
+  useEffect(() => {
+    const timer = setInterval(() => setClock(new Date()), 1000)
+    return () => clearInterval(timer)
   }, [])
 
-  const handleCardLinkClick = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>, index: number) => {
-      event.preventDefault()
-      setActiveIndex(index)
+  const goTo = useCallback(
+    (index: number) => {
+      const length = CARDS.length
+      setActiveIndex(((index % length) + length) % length)
+      restartAutoRotate()
     },
-    []
+    [restartAutoRotate]
+  )
+
+  const prev = useCallback(() => goTo(activeIndex - 1), [goTo, activeIndex])
+
+  const next = useCallback(() => goTo(activeIndex + 1), [goTo, activeIndex])
+
+  const moveBy = useCallback(
+    (delta: number) => {
+      if (delta === 0) {
+        return
+      }
+      goTo(activeIndex + delta)
+    },
+    [goTo, activeIndex]
   )
 
   const handleWheel = useCallback(
-    (event: React.WheelEvent<HTMLDivElement>) => {
-      if (CARDS.length <= 1) {
+    (event: WheelEvent) => {
+      event.preventDefault()
+
+      if (wheelCooldownRef.current) {
         return
       }
 
       const absDelta = Math.abs(event.deltaY)
-      if (absDelta < 6) {
+      if (absDelta < 20) {
         return
       }
 
-      const stepSize = 64
-      const steps = Math.min(5, Math.max(1, Math.floor(absDelta / stepSize)))
-      const direction = event.deltaY > 0 ? 1 : -1
+      moveBy(event.deltaY > 0 ? 1 : -1)
 
-      moveBy(direction * steps)
+      wheelCooldownRef.current = true
+      setTimeout(() => {
+        wheelCooldownRef.current = false
+      }, 500)
     },
     [moveBy]
   )
 
-  const handleTouchStart = useCallback(
-    (event: React.TouchEvent<HTMLDivElement>) => {
-      if (CARDS.length <= 1) {
-        return
-      }
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    touchStartYRef.current = event.touches[0]?.clientY ?? null
+  }, [])
 
-      touchStartYRef.current = event.touches[0]?.clientY ?? null
-    },
-    []
-  )
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    event.preventDefault()
+  }, [])
 
   const handleTouchEnd = useCallback(
-    (event: React.TouchEvent<HTMLDivElement>) => {
-      if (CARDS.length <= 1 || touchStartYRef.current === null) {
+    (event: TouchEvent) => {
+      if (touchStartYRef.current === null) {
         return
       }
 
@@ -184,90 +208,207 @@ export const HomePage: React.FC = () => {
       const deltaY = touchStartYRef.current - endY
       const swipeThreshold = 26
 
-      if (Math.abs(deltaY) < swipeThreshold) {
-        touchStartYRef.current = null
-        return
+      if (Math.abs(deltaY) >= swipeThreshold) {
+        moveBy(deltaY > 0 ? 1 : -1)
       }
-
-      const stepSize = 70
-      const steps = Math.min(
-        4,
-        Math.max(1, Math.floor(Math.abs(deltaY) / stepSize))
-      )
-      const direction = deltaY > 0 ? 1 : -1
-
-      moveBy(direction * steps)
 
       touchStartYRef.current = null
     },
     [moveBy]
   )
 
+  // React's onWheel/onTouchMove handlers are attached as passive listeners,
+  // so preventDefault() inside them is silently ignored and the page still
+  // scrolls. Attach native, non-passive listeners on the whole page so the
+  // carousel responds to scroll/swipe gestures anywhere, not just when the
+  // cursor is directly over the card stack.
+  useEffect(() => {
+    const node = pageWrapperRef.current
+    if (!node) {
+      return
+    }
+
+    node.addEventListener('wheel', handleWheel, { passive: false })
+    node.addEventListener('touchstart', handleTouchStart, { passive: true })
+    node.addEventListener('touchmove', handleTouchMove, { passive: false })
+    node.addEventListener('touchend', handleTouchEnd, { passive: true })
+
+    return () => {
+      node.removeEventListener('wheel', handleWheel)
+      node.removeEventListener('touchstart', handleTouchStart)
+      node.removeEventListener('touchmove', handleTouchMove)
+      node.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd])
+
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      const x = (event.clientX / window.innerWidth - 0.5) * 2
+      const y = (event.clientY / window.innerHeight - 0.5) * 2
+      setMouse({ x, y })
+    },
+    []
+  )
+
+  const handleChatSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      if (!chatValue.trim()) {
+        return
+      }
+      setChatReply('coming soon — an AI assistant trained on my projects.')
+      setChatValue('')
+    },
+    [chatValue]
+  )
+
+  const tiltX = mouse.y * -4
+  const tiltY = mouse.x * 4
+
+  const stackCards = Array.from({ length: STACK_SIZE }, (_, offset) => {
+    const index = (activeIndex + offset) % CARDS.length
+    return { offset, index, card: CARDS[index] }
+  })
+
+  const coordsTime = clock.toTimeString().slice(0, 8)
+
   return (
-    <PageWrapper>
-      <Sidebar>
-        <SidebarLabel>What are you looking for?</SidebarLabel>
-        <SidebarFilters>
-          {CARDS.map((card, index) => (
-            <SidebarFilter key={card.id}>
-              <SidebarLink
-                href={`#${card.id}`}
-                $active={index === clampedIndex}
-                onClick={(event) => handleCardLinkClick(event, index)}
-              >
-                {`→ ${card.name}`}
-              </SidebarLink>
-            </SidebarFilter>
-          ))}
-        </SidebarFilters>
-        <AskButton>Ask me anything...</AskButton>
-      </Sidebar>
+    <PageWrapper ref={pageWrapperRef} onMouseMove={handleMouseMove}>
+      <HudCorner $corner="tl" />
+      <HudCorner $corner="tr" />
+      <HudCorner $corner="bl" />
+      <HudCorner $corner="br" />
 
-      <CarouselArea
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <CardNav>
-          <NavArrow onClick={prev} aria-label="Previous project">
-            {'<<'}
-          </NavArrow>
-          <NavCounter>{`${clampedIndex + 1}. ${activeCard.shortName}`}</NavCounter>
-          <NavArrow onClick={next} aria-label="Next project">
-            {'>>'}
-          </NavArrow>
-        </CardNav>
+      <CardNav>
+        <NavArrow onClick={prev} aria-label="Previous project">
+          {'<<'}
+        </NavArrow>
+        <NavCounter>
+          {`${formatIndex(activeIndex)} / ${formatIndex(CARDS.length - 1)}`}
+          <PagerTitle>{` · ${activeCard.name}`}</PagerTitle>
+        </NavCounter>
+        <NavArrow onClick={next} aria-label="Next project">
+          {'>>'}
+        </NavArrow>
+      </CardNav>
 
-        <CardStage>
-          {CARDS.map((card, index) => {
-            const offset = index - clampedIndex
-            return (
+      <MainRow>
+        <HeadlineWrap>
+          <HeroLabel>// about</HeroLabel>
+          <HeroText>
+            Full-stack engineer crafting interactive, three-dimensional
+            interfaces for the web
+            <HeroCursor />
+          </HeroText>
+          <HeroPillsRow>
+            <HeroPill>React</HeroPill>
+            <HeroPill>Three.js</HeroPill>
+            <HeroPill>Firebase</HeroPill>
+          </HeroPillsRow>
+        </HeadlineWrap>
+
+        <StackWrap $tiltX={tiltX} $tiltY={tiltY}>
+          <CardStage>
+            {stackCards.map(({ offset, index, card }) => (
               <ProjectCard
                 key={card.id}
-                id={card.id}
                 $offset={offset}
-                $colorFrom={card.colorFrom}
-                $colorTo={card.colorTo}
                 $accent={card.accent}
-                onClick={() => setActiveIndex(index)}
+                onClick={offset === 0 ? undefined : () => goTo(index)}
               >
+                <CardGlow $accent={card.accent} />
                 <CardInner>
-                  <CardBadge $accent={card.accent}>{card.number}</CardBadge>
-                  <CardTitle>{card.name}</CardTitle>
-                  <CardDescription>{card.description}</CardDescription>
-                  <CardMeta>
-                    {card.tags.map((tag) => (
-                      <CardTag key={tag} $accent={card.accent}>
-                        {tag}
-                      </CardTag>
-                    ))}
-                  </CardMeta>
+                  <CardBadge $accent={card.accent}>
+                    {formatIndex(index)}
+                  </CardBadge>
+                  <CardBody>
+                    <CardTitle>{card.name}</CardTitle>
+                    <CardDescription>{card.description}</CardDescription>
+                    <CardMeta>
+                      {card.tags.map((tag) => (
+                        <CardTag key={tag} $accent={card.accent}>
+                          {tag}
+                        </CardTag>
+                      ))}
+                    </CardMeta>
+                    <CardViewLink>
+                      view project{' '}
+                      <AccentArrow $color={card.accent}>→</AccentArrow>
+                    </CardViewLink>
+                  </CardBody>
                 </CardInner>
               </ProjectCard>
-            )
-          })}
-        </CardStage>
-      </CarouselArea>
+            ))}
+          </CardStage>
+        </StackWrap>
+
+        <ScrollHintWrap>
+          <ScrollHintText>scroll or click to explore</ScrollHintText>
+          <ScrollArrow>▼</ScrollArrow>
+          <ScrollTicksRow>
+            {CARDS.map((card, index) => (
+              <ScrollTick
+                key={card.id}
+                $active={index === activeIndex}
+                $color={card.accent}
+              />
+            ))}
+          </ScrollTicksRow>
+        </ScrollHintWrap>
+      </MainRow>
+
+      <BottomRow>
+        <LeftCol>
+          <SidebarLabel>What are you looking for?</SidebarLabel>
+          <SidebarFilters>
+            {CARDS.map((card, index) => (
+              <SidebarFilter key={card.id}>
+                <SidebarLink
+                  href={`#${card.id}`}
+                  $active={index === activeIndex}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    goTo(index)
+                  }}
+                >
+                  <SidebarLinkIndex
+                    $active={index === activeIndex}
+                    $color={card.accent}
+                  >
+                    {formatIndex(index)}
+                  </SidebarLinkIndex>
+                  <SidebarLinkArrow>→</SidebarLinkArrow>
+                  <SidebarLinkTitle
+                    $active={index === activeIndex}
+                    $color={card.accent}
+                  >
+                    {card.name}
+                  </SidebarLinkTitle>
+                </SidebarLink>
+              </SidebarFilter>
+            ))}
+          </SidebarFilters>
+          <ChatForm onSubmit={handleChatSubmit}>
+            <ChatPrompt>&gt;</ChatPrompt>
+            <ChatInput
+              placeholder="ask me anything..."
+              value={chatValue}
+              onChange={(event) => setChatValue(event.target.value)}
+            />
+          </ChatForm>
+          {chatReply && <ChatReply>{`→ ${chatReply}`}</ChatReply>}
+        </LeftCol>
+
+        <RightCol>
+          <Coordinates>
+            <div>42.6977° N, 23.3219° E</div>
+            <div>{`Sofia, BG · ${coordsTime}`}</div>
+          </Coordinates>
+          <CopyrightText>
+            Georgi Georgiev — all rights reserved 2026
+          </CopyrightText>
+        </RightCol>
+      </BottomRow>
     </PageWrapper>
   )
 }

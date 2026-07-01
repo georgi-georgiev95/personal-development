@@ -95,12 +95,20 @@ video {
 }
 body {
   line-height: 1;
-  background: #000000;
+  background: #030304;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  overflow: hidden;
+}
+
+* {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.35);
+  color: #ffffff;
 }
 
 html,
@@ -108,7 +116,6 @@ body,
 #root {
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 ol,
 ul {

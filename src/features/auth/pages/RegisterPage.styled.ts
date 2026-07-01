@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react'
+import { Link } from 'react-router-dom'
 import { theme } from '@/shared/styles/theme'
 
 export const StyledRegisterBox = styled.div`
@@ -7,58 +8,46 @@ export const StyledRegisterBox = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: ${theme.spacing.md};
 `
 
 export const StyledRegisterCard = styled.div`
   position: relative;
   z-index: 1;
-  padding: ${theme.spacing.lg};
-  width: 440px;
-  max-width: ${theme.layout.cardMaxWidth};
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 32px 32px;
   border-radius: ${theme.borderRadius.xl};
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.02) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.45),
-    0 0 80px rgba(249, 115, 22, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  background: ${theme.colors.surface};
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.85);
+  max-height: 90vh;
+  overflow-y: auto;
 
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    width: 90vw;
-    padding: ${theme.spacing.md};
-    border-radius: ${theme.borderRadius.lg};
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+  }
+
+  &::before {
+    top: 18px;
+    right: 18px;
+    border-top: 1px solid rgba(45, 212, 191, 0.4);
+    border-right: 1px solid rgba(45, 212, 191, 0.4);
+  }
+
+  &::after {
+    bottom: 18px;
+    left: 18px;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.4);
+    border-left: 1px solid rgba(45, 212, 191, 0.4);
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    width: 98vw;
-    padding: ${theme.spacing.sm};
-    border-radius: ${theme.borderRadius.md};
-  }
-`
-
-export const OrbContainer = styled.div`
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 140px;
-  height: 140px;
-  opacity: 0.5;
-  pointer-events: none;
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    width: 100px;
-    height: 100px;
-    top: -30px;
-    right: -30px;
+    padding: 32px 20px 24px;
   }
 `
 
@@ -67,28 +56,36 @@ export const FormContent = styled.div`
   z-index: 1;
 `
 
-export const StyledTitle = styled.h2`
-  margin-bottom: ${theme.spacing.lg};
+export const TitleBlock = styled.div`
   text-align: center;
-  color: ${theme.colors.heroText};
-  font-family: ${theme.font.family};
-  font-weight: 500;
-  font-size: ${theme.fontSizes.xl};
-  text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  margin-bottom: 26px;
+`
 
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: ${theme.fontSizes.lg};
-  }
+export const Eyebrow = styled.p`
+  margin: 0 0 10px;
+  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.sm};
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+`
+
+export const StyledTitle = styled.h2`
+  margin: 0;
+  color: #fff;
+  font-family: ${theme.font.family};
+  font-weight: 700;
+  font-size: 26px;
+  text-shadow: 0 0 26px rgba(45, 212, 191, 0.35);
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.md};
+    font-size: 22px;
   }
 `
 
 export const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${theme.spacing.sm};
+  gap: 12px;
 `
 
 export const InputWrapper = styled.div`
@@ -99,26 +96,24 @@ export const InputWrapper = styled.div`
 
 export const InputIcon = styled.span`
   position: absolute;
-  left: ${theme.spacing.sm};
-  font-size: ${theme.fontSizes.sm};
-  color: ${theme.colors.starSecondary};
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(45, 212, 191, 0.75);
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
 `
 
 export const StyledInput = styled.input`
   width: 100%;
-  padding: ${theme.spacing.sm} ${theme.spacing.sm} ${theme.spacing.sm}
-    ${theme.spacing.xl};
-  border: 1px solid rgba(249, 115, 22, 0.15);
-  border-radius: ${theme.borderRadius.md};
-  background: rgba(0, 0, 0, 0.3);
-  color: ${theme.colors.textInverse};
-  font-size: ${theme.fontSizes.md};
+  padding: 13px 14px 13px 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  font-size: 13px;
   font-family: inherit;
   outline: none;
   transition:
@@ -128,7 +123,7 @@ export const StyledInput = styled.input`
 
   &:focus {
     border-color: ${theme.colors.accent};
-    box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.18);
   }
 
   &::placeholder {
@@ -138,38 +133,23 @@ export const StyledInput = styled.input`
 
 export const StyledButton = styled.button`
   width: 100%;
-  padding: ${theme.spacing.sm};
-  margin-top: ${theme.spacing.sm};
+  margin-top: 6px;
+  padding: 14px;
   border: none;
-  border-radius: ${theme.borderRadius.md};
+  border-radius: 5px;
   background: ${theme.colors.gradient};
-  color: ${theme.colors.heroText};
-  font-size: ${theme.fontSizes.lg};
-  font-weight: bold;
+  color: ${theme.colors.textOnAccent};
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   cursor: pointer;
   transition:
-    opacity ${theme.transition.fast},
     box-shadow ${theme.transition.fast},
     transform ${theme.transition.fast};
   font-family: inherit;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      transparent 50%
-    );
-    pointer-events: none;
-  }
 
   &:hover:not(:disabled) {
-    opacity: 1;
-    box-shadow: 0 0 24px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 0 24px rgba(45, 212, 191, 0.3);
     transform: translateY(-1px);
   }
 
@@ -183,22 +163,23 @@ export const StyledButton = styled.button`
   }
 `
 
-export const StyledLink = styled.a`
-  display: block;
+export const BottomText = styled.p`
+  margin: 18px 0 0;
   width: 100%;
   text-align: center;
-  margin-top: ${theme.spacing.sm};
-  padding: ${theme.spacing.xs};
-  color: ${theme.colors.starSecondary};
-  font-weight: bold;
-  text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
   font-size: ${theme.fontSizes.sm};
+`
+
+export const StyledLink = styled(Link)`
+  color: ${theme.colors.primary};
+  font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   transition: color ${theme.transition.fast};
 
   &:hover {
-    color: ${theme.colors.starPrimary};
-    text-decoration: none;
+    color: ${theme.colors.accentHover};
   }
 `
 
@@ -216,7 +197,7 @@ export const ErrorMessage = styled.div`
 
 export const Row = styled.div`
   display: flex;
-  gap: ${theme.spacing.sm};
+  gap: 10px;
 
   & > * {
     flex: 1;
@@ -229,14 +210,14 @@ export const Row = styled.div`
 
 export const StyledSelect = styled.select`
   width: 100%;
-  padding: ${theme.spacing.sm};
+  padding: 13px 10px;
   text-align: center;
   text-align-last: center;
-  border: 1px solid rgba(249, 115, 22, 0.15);
-  border-radius: ${theme.borderRadius.md};
-  background: rgba(0, 0, 0, 0.3);
-  color: ${theme.colors.textInverse};
-  font-size: ${theme.fontSizes.md};
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12.5px;
   font-family: inherit;
   outline: none;
   transition:
@@ -248,7 +229,7 @@ export const StyledSelect = styled.select`
 
   &:focus {
     border-color: ${theme.colors.accent};
-    box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.18);
   }
 
   option {

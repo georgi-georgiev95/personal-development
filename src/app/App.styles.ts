@@ -19,20 +19,6 @@ export const CanvasBackground = styled.div`
   pointer-events: none;
 `
 
-export const AppFooter = styled.footer`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: ${theme.spacing.md} 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: ${theme.fontSizes.sm};
-  background: transparent;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  position: relative;
-  z-index: 1;
-`
-
 export const AppContent = styled.main`
   flex: 1;
   min-height: 0;
@@ -40,13 +26,7 @@ export const AppContent = styled.main`
   flex-direction: column;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
   position: relative;
   z-index: 1;
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    -webkit-overflow-scrolling: touch;
-  }
 `

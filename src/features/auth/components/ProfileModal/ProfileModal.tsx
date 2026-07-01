@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { getUserProfile, updateUserProfile } from '@/entities/user'
 import type { UserProfile } from '@/entities/user'
@@ -17,7 +17,9 @@ import {
   ProfileSubtext,
   Section,
   StatusText,
+  TriggerAvatar,
   TriggerButton,
+  TriggerName,
 } from './ProfileModal.styles'
 
 const TRIGGER_LABEL = 'Open profile settings'
@@ -104,6 +106,24 @@ const ProfileModal: React.FC = () => {
     [makeSnapshot]
   )
 
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      try {
+        const data = await getUserProfile(user.uid)
+        if (!cancelled) applyProfile(data)
+      } catch (error) {
+        console.error('Failed to preload profile:', error)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [user, applyProfile])
+
   const handleOpen = useCallback(async () => {
     setErrorMessage('')
     if (!user) {
@@ -178,7 +198,8 @@ const ProfileModal: React.FC = () => {
   const displayName =
     [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') ||
     profile?.email ||
-    'Profile settings'
+    user?.email ||
+    'Account'
 
   const initials = `${firstName.trim().charAt(0)}${lastName.trim().charAt(0)}`
     .toUpperCase()
@@ -192,19 +213,8 @@ const ProfileModal: React.FC = () => {
         aria-label={TRIGGER_LABEL}
         onClick={handleOpen}
       >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+        <TriggerAvatar aria-hidden="true">{avatarText}</TriggerAvatar>
+        <TriggerName>{displayName}</TriggerName>
       </TriggerButton>
       <Modal
         open={open}
@@ -283,7 +293,7 @@ const ProfileModal: React.FC = () => {
           )}
         </Modal.Content>
         <Modal.Footer>
-          <FooterHint>
+          <FooterHint $dirty={hasChanges}>
             {hasChanges ? 'Unsaved changes' : 'All changes saved'}
           </FooterHint>
           <Button variant="secondary" onClick={handleClose} disabled={saving}>

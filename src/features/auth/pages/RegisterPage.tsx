@@ -1,24 +1,25 @@
 import React, { useState } from 'react'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { createUserProfile } from '@/entities/user'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
-import { GlowingOrb } from '@/shared/components/GlowingOrb'
 import {
   StyledRegisterBox,
   StyledRegisterCard,
+  TitleBlock,
+  Eyebrow,
   StyledTitle,
   StyledForm,
   InputWrapper,
   InputIcon,
   StyledInput,
   StyledButton,
+  BottomText,
   StyledLink,
   ErrorMessage,
   Row,
   StyledSelect,
-  OrbContainer,
   FormContent,
 } from './RegisterPage.styled'
 
@@ -126,8 +127,8 @@ const RegisterPage: React.FC = () => {
 
   const personIcon = (
     <svg
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -135,15 +136,15 @@ const RegisterPage: React.FC = () => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
     </svg>
   )
 
   const emailIcon = (
     <svg
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -151,15 +152,15 @@ const RegisterPage: React.FC = () => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="M22 4L12 13L2 4" />
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
     </svg>
   )
 
   const lockIcon = (
     <svg
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -167,19 +168,19 @@ const RegisterPage: React.FC = () => {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0110 0v4" />
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V7a4 4 0 018 0v4" />
     </svg>
   )
 
   return (
     <StyledRegisterBox>
       <StyledRegisterCard>
-        <OrbContainer>
-          <GlowingOrb />
-        </OrbContainer>
         <FormContent>
-          <StyledTitle>Register</StyledTitle>
+          <TitleBlock>
+            <Eyebrow>// register</Eyebrow>
+            <StyledTitle>Create account</StyledTitle>
+          </TitleBlock>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
             <Row>
@@ -282,9 +283,9 @@ const RegisterPage: React.FC = () => {
               {loading ? 'Registering...' : 'Register'}
             </StyledButton>
           </StyledForm>
-          <Link to="/login" style={{ textDecoration: 'none' }}>
-            <StyledLink>Already have an account? Login</StyledLink>
-          </Link>
+          <BottomText>
+            Already have an account? <StyledLink to="/login">Login</StyledLink>
+          </BottomText>
         </FormContent>
       </StyledRegisterCard>
     </StyledRegisterBox>

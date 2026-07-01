@@ -4,10 +4,17 @@ import { useAuth } from '@/features/auth/components/useAuth'
 import { ProfileModal } from '@/features/auth/components/ProfileModal'
 import {
   Nav,
-  NavBrand,
-  NavLinks,
-  NavPill,
-  NavPillSeparator,
+  NavLeft,
+  NavBrandLink,
+  NavBrandPrefix,
+  NavBrandName,
+  NavCursor,
+  NavStatusRow,
+  NavStatusDot,
+  NavRight,
+  NavAuthRow,
+  NavUserRow,
+  NavSep,
   NavLink,
   NavButton,
 } from './Navigation.styles'
@@ -31,33 +38,41 @@ export const Navigation: React.FC = () => {
 
   return (
     <Nav>
-      <NavBrand href="/" onClick={(e) => handleClick(e, '/')}>
-        Georgi Georgiev
-      </NavBrand>
-      <NavLinks>
-        <NavPill>
+      <NavLeft>
+        <NavBrandLink href="/" onClick={(e) => handleClick(e, '/')}>
+          <NavBrandPrefix>~/</NavBrandPrefix>
+          <NavBrandName>georgi-georgiev</NavBrandName>
+          <NavCursor />
+        </NavBrandLink>
+        <NavStatusRow>
+          <NavStatusDot />
+          status: online
+        </NavStatusRow>
+      </NavLeft>
+      <NavRight>
+        <NavAuthRow>
           {loading ? null : user ? (
-            <>
+            <NavUserRow>
               <ProfileModal />
-              <NavPillSeparator />
-              <NavButton onClick={handleSignOut}>Logout</NavButton>
-            </>
+              <NavButton onClick={handleSignOut}>Log out</NavButton>
+            </NavUserRow>
           ) : (
             <>
               <NavLink href="/login" onClick={(e) => handleClick(e, '/login')}>
                 Login
               </NavLink>
-              <NavPillSeparator />
+              <NavSep />
               <NavLink
                 href="/register"
+                $active
                 onClick={(e) => handleClick(e, '/register')}
               >
                 Register
               </NavLink>
             </>
           )}
-        </NavPill>
-      </NavLinks>
+        </NavAuthRow>
+      </NavRight>
     </Nav>
   )
 }

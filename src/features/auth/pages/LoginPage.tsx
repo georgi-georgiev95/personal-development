@@ -1,21 +1,22 @@
 import React, { useState } from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
-import { GlowingOrb } from '@/shared/components/GlowingOrb'
 import {
   StyledLoginBox,
   StyledLoginCard,
+  TitleBlock,
+  Eyebrow,
   StyledTitle,
   StyledForm,
   InputWrapper,
   InputIcon,
   StyledInput,
   StyledButton,
+  BottomText,
   StyledLink,
   ErrorMessage,
-  OrbContainer,
   FormContent,
 } from './LoginPage.styled'
 
@@ -66,18 +67,18 @@ const LoginPage: React.FC = () => {
   return (
     <StyledLoginBox>
       <StyledLoginCard>
-        <OrbContainer>
-          <GlowingOrb />
-        </OrbContainer>
         <FormContent>
-          <StyledTitle>Login</StyledTitle>
+          <TitleBlock>
+            <Eyebrow>// login</Eyebrow>
+            <StyledTitle>Login</StyledTitle>
+          </TitleBlock>
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
             <InputWrapper>
               <InputIcon>
                 <svg
-                  width="16"
-                  height="16"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -85,8 +86,8 @@ const LoginPage: React.FC = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="M22 4L12 13L2 4" />
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="M3 7l9 6 9-6" />
                 </svg>
               </InputIcon>
               <StyledInput
@@ -100,8 +101,8 @@ const LoginPage: React.FC = () => {
             <InputWrapper>
               <InputIcon>
                 <svg
-                  width="16"
-                  height="16"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -109,8 +110,8 @@ const LoginPage: React.FC = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                  <rect x="5" y="11" width="14" height="9" rx="2" />
+                  <path d="M8 11V7a4 4 0 018 0v4" />
                 </svg>
               </InputIcon>
               <StyledInput
@@ -125,9 +126,10 @@ const LoginPage: React.FC = () => {
               {loading ? 'Logging in...' : 'Login'}
             </StyledButton>
           </StyledForm>
-          <Link to="/register" style={{ textDecoration: 'none' }}>
-            <StyledLink>Don't have an account? Register</StyledLink>
-          </Link>
+          <BottomText>
+            Don&apos;t have an account?{' '}
+            <StyledLink to="/register">Register</StyledLink>
+          </BottomText>
         </FormContent>
       </StyledLoginCard>
     </StyledLoginBox>

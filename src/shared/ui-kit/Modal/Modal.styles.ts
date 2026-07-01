@@ -38,20 +38,33 @@ export const Dialog = styled.div`
   }
 
   &.profile-modal-dialog {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(255, 255, 255, 0.07) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow:
-      0 10px 36px rgba(0, 0, 0, 0.55),
-      0 0 70px rgba(249, 115, 22, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    max-width: 420px;
+    padding: 32px;
+    border-radius: ${theme.borderRadius.xl};
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.85);
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+    }
+
+    &::before {
+      top: 18px;
+      right: 18px;
+      border-top: 1px solid rgba(45, 212, 191, 0.4);
+      border-right: 1px solid rgba(45, 212, 191, 0.4);
+    }
+
+    &::after {
+      bottom: 18px;
+      left: 18px;
+      border-bottom: 1px solid rgba(45, 212, 191, 0.4);
+      border-left: 1px solid rgba(45, 212, 191, 0.4);
+    }
   }
 `
 

@@ -29,7 +29,7 @@ const base = `
 export const PrimaryButton = styled.button`
   ${base}
   background: ${theme.colors.gradient};
-  color: ${theme.colors.heroText};
+  color: ${theme.colors.textOnAccent};
   font-size: ${theme.fontSizes.sm};
   padding: ${theme.spacing.sm} ${theme.spacing.lg};
 `
@@ -43,6 +43,6 @@ export const SecondaryButton = styled.button`
   border: 1px solid ${theme.colors.primary};
 
   &:hover {
-    background: rgba(249, 115, 22, 0.1);
+    background: rgba(45, 212, 191, 0.1);
   }
 `

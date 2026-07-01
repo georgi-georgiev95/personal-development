@@ -1,12 +1,13 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useRef, useMemo } from 'react'
-import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { theme } from '@/shared/styles/theme'
 
 const STAR_COUNT = 600
 const SPHERE_RADIUS = 0.03
 const SPHERE_SEGMENTS = 8
+const FIELD_HEIGHT = 24
+const SCROLL_SPEED = 0.4
 
 const STAR_COLOR_PRIMARY = theme.colors.starPrimary
 const STAR_COLOR_SECONDARY = theme.colors.starSecondary
@@ -30,7 +31,7 @@ const starScales = Array.from(
 )
 
 const StarField = () => {
-  const groupRef = useRef<THREE.Group>(null)
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
   const geometry = useMemo(
     () =>
@@ -71,17 +72,25 @@ const StarField = () => {
   }, [materials])
 
   useFrame((_, delta) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.015
-      groupRef.current.rotation.x += delta * 0.008
-    }
+    const halfHeight = FIELD_HEIGHT / 2
+    meshRefs.current.forEach((mesh) => {
+      if (!mesh) return
+      let y = mesh.position.y - delta * SCROLL_SPEED
+      if (y < -halfHeight) {
+        y += FIELD_HEIGHT
+      }
+      mesh.position.y = y
+    })
   })
 
   return (
-    <group ref={groupRef}>
+    <group>
       {meshes.map((star, i) => (
         <mesh
           key={i}
+          ref={(el) => {
+            meshRefs.current[i] = el
+          }}
           position={star.position}
           material={star.material}
           scale={star.scale}
@@ -106,12 +115,6 @@ const Scene = () => (
       color={STAR_COLOR_SECONDARY}
     />
     <StarField />
-    <OrbitControls
-      enableZoom={false}
-      enablePan={false}
-      autoRotate
-      autoRotateSpeed={0.3}
-    />
   </>
 )
 
