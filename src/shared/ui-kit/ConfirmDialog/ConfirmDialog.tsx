@@ -1,8 +1,11 @@
 import React from 'react'
-import { theme } from '@/shared/styles/theme'
 import { Modal } from '../Modal'
 import { Button } from '../Button'
-import { DialogTitle, DialogMessage } from './ConfirmDialog.styles'
+import {
+  DialogTitle,
+  DialogMessage,
+  DestructiveButton,
+} from './ConfirmDialog.styles'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -40,20 +43,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <Button variant="secondary" onClick={() => onOpenChange(false)}>
           Cancel
         </Button>
-        <Button
-          variant="primary"
-          onClick={handleConfirm}
-          style={
-            destructive
-              ? {
-                  background: theme.colors.error,
-                  color: theme.colors.textInverse,
-                }
-              : undefined
-          }
-        >
-          {confirmLabel}
-        </Button>
+        {destructive ? (
+          <DestructiveButton type="button" onClick={handleConfirm}>
+            {confirmLabel}
+          </DestructiveButton>
+        ) : (
+          <Button variant="primary" onClick={handleConfirm}>
+            {confirmLabel}
+          </Button>
+        )}
       </Modal.Footer>
     </Modal>
   )

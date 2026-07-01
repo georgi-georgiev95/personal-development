@@ -73,6 +73,28 @@ describe('ConfirmDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
+  it('calls onConfirm and closes when the destructive confirm button is clicked', async () => {
+    const user = userEvent.setup()
+    const onConfirm = vi.fn()
+    const onOpenChange = vi.fn()
+    render(
+      <ConfirmDialog
+        open
+        onOpenChange={onOpenChange}
+        title="Delete photo"
+        message="Are you sure?"
+        confirmLabel="Delete"
+        destructive
+        onConfirm={onConfirm}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(onConfirm).toHaveBeenCalledTimes(1)
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
   it('uses the default confirm label when none is provided', () => {
     render(
       <ConfirmDialog
