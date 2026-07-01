@@ -105,6 +105,8 @@ const CARDS = [
 export const HomePage: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const wheelLockRef = useRef(0)
+  const touchStartYRef = useRef<number | null>(null)
+  const swipeLockRef = useRef(0)
 
   const clampedIndex = Math.min(activeIndex, CARDS.length - 1)
   const activeCard = CARDS[clampedIndex]
@@ -149,6 +151,59 @@ export const HomePage: React.FC = () => {
     [next, prev]
   )
 
+  const handleTouchStart = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      if (CARDS.length <= 1) {
+        return
+      }
+
+      touchStartYRef.current = event.touches[0]?.clientY ?? null
+    },
+    []
+  )
+
+  const handleTouchEnd = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      if (CARDS.length <= 1 || touchStartYRef.current === null) {
+        return
+      }
+
+      const now = Date.now()
+      const lockMs = 220
+
+      if (now - swipeLockRef.current < lockMs) {
+        touchStartYRef.current = null
+        return
+      }
+
+      const endY = event.changedTouches[0]?.clientY
+
+      if (typeof endY !== 'number') {
+        touchStartYRef.current = null
+        return
+      }
+
+      const deltaY = touchStartYRef.current - endY
+      const swipeThreshold = 26
+
+      if (Math.abs(deltaY) < swipeThreshold) {
+        touchStartYRef.current = null
+        return
+      }
+
+      swipeLockRef.current = now
+
+      if (deltaY > 0) {
+        next()
+      } else {
+        prev()
+      }
+
+      touchStartYRef.current = null
+    },
+    [next, prev]
+  )
+
   return (
     <PageWrapper>
       <Sidebar>
@@ -169,7 +224,11 @@ export const HomePage: React.FC = () => {
         <AskButton>Ask me anything...</AskButton>
       </Sidebar>
 
-      <CarouselArea onWheel={handleWheel}>
+      <CarouselArea
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <CardNav>
           <NavArrow onClick={prev} aria-label="Previous project">
             {'<<'}
