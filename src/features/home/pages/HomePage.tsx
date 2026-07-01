@@ -104,9 +104,7 @@ const CARDS = [
 
 export const HomePage: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const wheelLockRef = useRef(0)
   const touchStartYRef = useRef<number | null>(null)
-  const swipeLockRef = useRef(0)
 
   const clampedIndex = Math.min(activeIndex, CARDS.length - 1)
   const activeCard = CARDS[clampedIndex]
@@ -117,6 +115,18 @@ export const HomePage: React.FC = () => {
 
   const next = useCallback(() => {
     setActiveIndex((i) => (i < CARDS.length - 1 ? i + 1 : 0))
+  }, [])
+
+  const moveBy = useCallback((delta: number) => {
+    if (delta === 0 || CARDS.length <= 1) {
+      return
+    }
+
+    setActiveIndex((index) => {
+      const length = CARDS.length
+      const normalized = (((index + delta) % length) + length) % length
+      return normalized
+    })
   }, [])
 
   const handleCardLinkClick = useCallback(
@@ -133,22 +143,18 @@ export const HomePage: React.FC = () => {
         return
       }
 
-      const now = Date.now()
-      const lockMs = 180
-
-      if (now - wheelLockRef.current < lockMs || Math.abs(event.deltaY) < 6) {
+      const absDelta = Math.abs(event.deltaY)
+      if (absDelta < 6) {
         return
       }
 
-      wheelLockRef.current = now
+      const stepSize = 64
+      const steps = Math.min(5, Math.max(1, Math.floor(absDelta / stepSize)))
+      const direction = event.deltaY > 0 ? 1 : -1
 
-      if (event.deltaY > 0) {
-        next()
-      } else {
-        prev()
-      }
+      moveBy(direction * steps)
     },
-    [next, prev]
+    [moveBy]
   )
 
   const handleTouchStart = useCallback(
@@ -168,14 +174,6 @@ export const HomePage: React.FC = () => {
         return
       }
 
-      const now = Date.now()
-      const lockMs = 220
-
-      if (now - swipeLockRef.current < lockMs) {
-        touchStartYRef.current = null
-        return
-      }
-
       const endY = event.changedTouches[0]?.clientY
 
       if (typeof endY !== 'number') {
@@ -191,17 +189,18 @@ export const HomePage: React.FC = () => {
         return
       }
 
-      swipeLockRef.current = now
+      const stepSize = 70
+      const steps = Math.min(
+        4,
+        Math.max(1, Math.floor(Math.abs(deltaY) / stepSize))
+      )
+      const direction = deltaY > 0 ? 1 : -1
 
-      if (deltaY > 0) {
-        next()
-      } else {
-        prev()
-      }
+      moveBy(direction * steps)
 
       touchStartYRef.current = null
     },
-    [next, prev]
+    [moveBy]
   )
 
   return (
