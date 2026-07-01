@@ -1,7 +1,15 @@
 import type { Preview } from '@storybook/react-vite'
+import { theme } from '../src/shared/styles/theme'
 
 const preview: Preview = {
   parameters: {
+    backgrounds: {
+      options: {
+        app: { name: 'app', value: theme.colors.background },
+        light: { name: 'light', value: '#ffffff' },
+      },
+    },
+
     controls: {
       matchers: {
         color: /(background|color)$/i,
@@ -15,6 +23,10 @@ const preview: Preview = {
       // 'off' - skip a11y checks entirely
       test: 'todo',
     },
+  },
+
+  initialGlobals: {
+    backgrounds: { value: 'app' },
   },
 }
 

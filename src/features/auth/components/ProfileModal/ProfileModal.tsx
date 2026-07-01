@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { getUserProfile, updateUserProfile } from '@/entities/user'
 import type { UserProfile } from '@/entities/user'
-import { Modal, Button } from '@/shared/ui-kit'
+import { Modal, Button, Skeleton } from '@/shared/ui-kit'
 import {
   AvatarBadge,
   FieldGrid,
@@ -55,6 +55,7 @@ const ProfileModal: React.FC = () => {
   const [age, setAge] = useState('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(true)
   const [initialSnapshot, setInitialSnapshot] =
     useState<ProfileFormSnapshot>(emptySnapshot)
   const [errorMessage, setErrorMessage] = useState('')
@@ -117,6 +118,8 @@ const ProfileModal: React.FC = () => {
         if (!cancelled) applyProfile(data)
       } catch (error) {
         console.error('Failed to preload profile:', error)
+      } finally {
+        if (!cancelled) setProfileLoading(false)
       }
     })()
     return () => {
@@ -212,9 +215,19 @@ const ProfileModal: React.FC = () => {
         type="button"
         aria-label={TRIGGER_LABEL}
         onClick={handleOpen}
+        disabled={profileLoading}
       >
-        <TriggerAvatar aria-hidden="true">{avatarText}</TriggerAvatar>
-        <TriggerName>{displayName}</TriggerName>
+        {profileLoading ? (
+          <>
+            <Skeleton variant="circle" width="26px" height="26px" />
+            <Skeleton variant="text" width="72px" />
+          </>
+        ) : (
+          <>
+            <TriggerAvatar aria-hidden="true">{avatarText}</TriggerAvatar>
+            <TriggerName>{displayName}</TriggerName>
+          </>
+        )}
       </TriggerButton>
       <Modal
         open={open}
