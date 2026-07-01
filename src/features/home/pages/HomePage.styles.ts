@@ -79,14 +79,9 @@ export const MainRow = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly;
-    gap: clamp(8px, 2vh, 32px);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    gap: clamp(6px, 1.5vh, 24px);
+    justify-content: center;
+    gap: clamp(2px, 1.2cqh, 24px);
+    container-type: size;
   }
 `
 
@@ -123,6 +118,10 @@ export const HeroLabel = styled.p`
   letter-spacing: 0.16em;
   text-transform: uppercase;
   font-weight: 400;
+
+  @media (max-width: 1023px) {
+    margin: 0 0 clamp(2px, 1.6cqh, 10px);
+  }
 `
 
 export const HeroText = styled.div`
@@ -133,11 +132,11 @@ export const HeroText = styled.div`
   font-size: 36px;
 
   @media (max-width: 1023px) {
-    font-size: 28px;
+    font-size: clamp(13px, min(4.2cqh, 6cqw), 28px);
   }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: 21px;
+    font-size: clamp(11px, min(4.2cqh, 6cqw), 21px);
   }
 `
 
@@ -175,6 +174,7 @@ export const HeroPillsRow = styled.div`
 
   @media (max-width: 1023px) {
     justify-content: center;
+    margin-top: clamp(4px, 2cqh, 20px);
   }
 `
 
@@ -199,7 +199,7 @@ export const CarouselZone = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(8px, 2vh, 32px);
+    gap: clamp(2px, 1.6cqh, 28px);
   }
 `
 
@@ -223,14 +223,14 @@ export const StackWrap = styled.div<{ $tiltX: number; $tiltY: number }>`
     margin: 0 auto;
     flex: 0 0 auto;
     width: min(300px, 78vw);
-    height: min(400px, 44vh);
+    height: clamp(230px, 42cqh, 400px);
     transform: rotateX(${({ $tiltX }) => $tiltX}deg)
       rotateY(${({ $tiltY }) => $tiltY}deg);
   }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
     width: min(248px, 72vw);
-    height: min(340px, 40vh);
+    height: clamp(210px, 38cqh, 340px);
   }
 `
 
@@ -453,6 +453,7 @@ export const ScrollHintWrap = styled.div`
     width: 100%;
     max-width: 280px;
     margin: 0 auto;
+    gap: clamp(2px, 1cqh, 8px);
   }
 `
 
