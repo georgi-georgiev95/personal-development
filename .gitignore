@@ -32,3 +32,4 @@ coverage
 CODING_GUIDELINES.md
 *storybook.log
 storybook-static
+.claude/settings.local.json

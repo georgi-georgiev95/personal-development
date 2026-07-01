@@ -119,6 +119,24 @@ Before submitting code changes:
 - [ ] No console.log in production code (use proper logging if needed)
 - [ ] Accessibility: semantic HTML, keyboard navigation
 
+## Pull Request Gate (MANDATORY)
+
+Before creating a PR, always run these in order and confirm each is green:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm format
+pnpm build
+```
+
+- ❌ **Never open a PR with a failing command above** — this is what causes
+  failed CI checks and failed deploys.
+- ✅ If a command fails, fix the issue and re-run the full sequence before
+  creating the PR.
+- This gate applies every time, with no exceptions, regardless of how small
+  the change looks.
+
 ## Interaction Guidelines
 
 ### Tone
