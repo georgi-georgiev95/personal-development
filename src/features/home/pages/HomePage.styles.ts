@@ -190,14 +190,29 @@ export const HeroPill = styled.span`
 
 // ─── Card stack ──────────────────────────────────────────────────────────────
 
+export const CarouselZone = styled.div`
+  position: absolute;
+  inset: 0;
+
+  @media (max-width: 1023px) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(8px, 2vh, 32px);
+  }
+`
+
 export const StackWrap = styled.div<{ $tiltX: number; $tiltY: number }>`
   position: absolute;
   top: 50%;
   left: 50%;
   width: min(360px, 30vw);
   height: min(480px, 100%);
+  overflow: hidden;
   will-change: transform;
   touch-action: none;
+  transform-style: preserve-3d;
   transform: translate(-50%, -50%) rotateX(${({ $tiltX }) => $tiltX}deg)
     rotateY(${({ $tiltY }) => $tiltY}deg);
 
@@ -223,10 +238,11 @@ export const CardStage = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
+  transform-style: preserve-3d;
 `
 
-export const ProjectCard = styled.div<{ $offset: number; $accent: string }>`
-  --stack-step: 16px;
+export const ProjectCard = styled.div<{ $delta: number; $accent: string }>`
+  --spiral-step: 92%;
   position: absolute;
   inset: 0;
   border-radius: ${theme.borderRadius.lg};
@@ -234,27 +250,22 @@ export const ProjectCard = styled.div<{ $offset: number; $accent: string }>`
   background: ${theme.colors.surface};
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
-  cursor: ${({ $offset }) => ($offset === 0 ? 'default' : 'pointer')};
+  cursor: ${({ $delta }) => ($delta === 0 ? 'default' : 'pointer')};
   transition:
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.5s ease;
-  transform: translate(
-      calc(var(--stack-step) * ${({ $offset }) => $offset}),
-      calc(var(--stack-step) * ${({ $offset }) => $offset})
-    )
-    rotate(${({ $offset }) => $offset * 2.5}deg)
-    scale(${({ $offset }) => 1 - $offset * 0.045});
-  opacity: ${({ $offset }) => ($offset === 0 ? 1 : $offset === 1 ? 0.5 : 0.24)};
-  z-index: ${({ $offset }) => 10 - $offset};
-  pointer-events: ${({ $offset }) => ($offset === 0 ? 'auto' : 'none')};
-
-  @media (max-width: 1023px) {
-    --stack-step: 13px;
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    --stack-step: 10px;
-  }
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s ease;
+  transform: translateY(calc(var(--spiral-step) * ${({ $delta }) => $delta}))
+    rotateX(${({ $delta }) => $delta * -12}deg)
+    scale(${({ $delta }) => 1 - Math.abs($delta) * 0.1});
+  opacity: ${({ $delta }) => {
+    const distance = Math.abs($delta)
+    if (distance === 0) return 1
+    if (distance === 1) return 0.45
+    if (distance === 2) return 0.16
+    return 0
+  }};
+  z-index: ${({ $delta }) => 50 - Math.abs($delta) * 10};
+  pointer-events: ${({ $delta }) => ($delta === 0 ? 'auto' : 'none')};
 `
 
 export const CardGlow = styled.div<{ $accent: string }>`
@@ -517,21 +528,56 @@ export const RightCol = styled.div`
   }
 `
 
-export const SidebarLabel = styled.p`
+export const SidebarLabel = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: default;
   color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+
+  @media (max-width: 1023px) {
+    cursor: pointer;
+    width: 100%;
+    justify-content: space-between;
+  }
 `
 
-export const SidebarFilters = styled.ul`
+export const SidebarChevron = styled.span<{ $open: boolean }>`
+  display: none;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
+  transition: transform 0.25s ease;
+
+  @media (max-width: 1023px) {
+    display: inline-block;
+  }
+`
+
+export const SidebarFilters = styled.ul<{ $open: boolean }>`
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+
+  @media (max-width: 1023px) {
+    overflow: hidden;
+    max-height: ${({ $open }) => ($open ? '360px' : '0px')};
+    opacity: ${({ $open }) => ($open ? 1 : 0)};
+    transition:
+      max-height 0.3s ease,
+      opacity 0.25s ease;
+  }
 `
 
 export const SidebarFilter = styled.li`

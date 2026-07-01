@@ -9,6 +9,7 @@ import {
   HeroCursor,
   HeroPillsRow,
   HeroPill,
+  CarouselZone,
   StackWrap,
   CardStage,
   ProjectCard,
@@ -35,6 +36,7 @@ import {
   LeftCol,
   RightCol,
   SidebarLabel,
+  SidebarChevron,
   SidebarFilters,
   SidebarFilter,
   SidebarLink,
@@ -100,7 +102,7 @@ const CARDS = [
   },
 ]
 
-const STACK_SIZE = 3
+const VISIBLE_SPIRAL_RANGE = 2
 const AUTO_ROTATE_MS = 5000
 
 const formatIndex = (index: number) => String(index + 1).padStart(2, '0')
@@ -111,11 +113,13 @@ export const HomePage: React.FC = () => {
   const [clock, setClock] = useState(() => new Date())
   const [chatValue, setChatValue] = useState('')
   const [chatReply, setChatReply] = useState<string | null>(null)
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   const touchStartYRef = useRef<number | null>(null)
   const wheelCooldownRef = useRef(false)
   const autoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const pageWrapperRef = useRef<HTMLDivElement | null>(null)
+  const carouselZoneRef = useRef<HTMLDivElement | null>(null)
 
   const activeCard = CARDS[activeIndex]
 
@@ -218,12 +222,12 @@ export const HomePage: React.FC = () => {
   )
 
   // React's onWheel/onTouchMove handlers are attached as passive listeners,
-  // so preventDefault() inside them is silently ignored and the page still
-  // scrolls. Attach native, non-passive listeners on the whole page so the
-  // carousel responds to scroll/swipe gestures anywhere, not just when the
-  // cursor is directly over the card stack.
+  // so preventDefault() inside them is silently ignored and the gesture still
+  // falls through. Attach native, non-passive listeners scoped to just the
+  // carousel zone, so scrolling over the navbar, sidebar links, footer or
+  // pager leaves those static and only the card stack reacts.
   useEffect(() => {
-    const node = pageWrapperRef.current
+    const node = carouselZoneRef.current
     if (!node) {
       return
     }
@@ -265,10 +269,13 @@ export const HomePage: React.FC = () => {
   const tiltX = mouse.y * -4
   const tiltY = mouse.x * 4
 
-  const stackCards = Array.from({ length: STACK_SIZE }, (_, offset) => {
-    const index = (activeIndex + offset) % CARDS.length
-    return { offset, index, card: CARDS[index] }
-  })
+  const length = CARDS.length
+  const spiralCards = CARDS.map((card, index) => {
+    let delta = index - activeIndex
+    if (delta > length / 2) delta -= length
+    if (delta < -length / 2) delta += length
+    return { delta, index, card }
+  }).filter(({ delta }) => Math.abs(delta) <= VISIBLE_SPIRAL_RANGE)
 
   const coordsTime = clock.toTimeString().slice(0, 8)
 
@@ -307,60 +314,70 @@ export const HomePage: React.FC = () => {
           </HeroPillsRow>
         </HeadlineWrap>
 
-        <StackWrap $tiltX={tiltX} $tiltY={tiltY}>
-          <CardStage>
-            {stackCards.map(({ offset, index, card }) => (
-              <ProjectCard
-                key={card.id}
-                $offset={offset}
-                $accent={card.accent}
-                onClick={offset === 0 ? undefined : () => goTo(index)}
-              >
-                <CardGlow $accent={card.accent} />
-                <CardInner>
-                  <CardBadge $accent={card.accent}>
-                    {formatIndex(index)}
-                  </CardBadge>
-                  <CardBody>
-                    <CardTitle>{card.name}</CardTitle>
-                    <CardDescription>{card.description}</CardDescription>
-                    <CardMeta>
-                      {card.tags.map((tag) => (
-                        <CardTag key={tag} $accent={card.accent}>
-                          {tag}
-                        </CardTag>
-                      ))}
-                    </CardMeta>
-                    <CardViewLink>
-                      view project{' '}
-                      <AccentArrow $color={card.accent}>→</AccentArrow>
-                    </CardViewLink>
-                  </CardBody>
-                </CardInner>
-              </ProjectCard>
-            ))}
-          </CardStage>
-        </StackWrap>
+        <CarouselZone ref={carouselZoneRef}>
+          <StackWrap $tiltX={tiltX} $tiltY={tiltY}>
+            <CardStage>
+              {spiralCards.map(({ delta, index, card }) => (
+                <ProjectCard
+                  key={card.id}
+                  $delta={delta}
+                  $accent={card.accent}
+                  onClick={delta === 0 ? undefined : () => goTo(index)}
+                >
+                  <CardGlow $accent={card.accent} />
+                  <CardInner>
+                    <CardBadge $accent={card.accent}>
+                      {formatIndex(index)}
+                    </CardBadge>
+                    <CardBody>
+                      <CardTitle>{card.name}</CardTitle>
+                      <CardDescription>{card.description}</CardDescription>
+                      <CardMeta>
+                        {card.tags.map((tag) => (
+                          <CardTag key={tag} $accent={card.accent}>
+                            {tag}
+                          </CardTag>
+                        ))}
+                      </CardMeta>
+                      <CardViewLink>
+                        view project{' '}
+                        <AccentArrow $color={card.accent}>→</AccentArrow>
+                      </CardViewLink>
+                    </CardBody>
+                  </CardInner>
+                </ProjectCard>
+              ))}
+            </CardStage>
+          </StackWrap>
 
-        <ScrollHintWrap>
-          <ScrollHintText>scroll or click to explore</ScrollHintText>
-          <ScrollArrow>▼</ScrollArrow>
-          <ScrollTicksRow>
-            {CARDS.map((card, index) => (
-              <ScrollTick
-                key={card.id}
-                $active={index === activeIndex}
-                $color={card.accent}
-              />
-            ))}
-          </ScrollTicksRow>
-        </ScrollHintWrap>
+          <ScrollHintWrap>
+            <ScrollHintText>scroll or click to explore</ScrollHintText>
+            <ScrollArrow>▼</ScrollArrow>
+            <ScrollTicksRow>
+              {CARDS.map((card, index) => (
+                <ScrollTick
+                  key={card.id}
+                  $active={index === activeIndex}
+                  $color={card.accent}
+                />
+              ))}
+            </ScrollTicksRow>
+          </ScrollHintWrap>
+        </CarouselZone>
       </MainRow>
 
       <BottomRow>
         <LeftCol>
-          <SidebarLabel>What are you looking for?</SidebarLabel>
-          <SidebarFilters>
+          <SidebarLabel
+            type="button"
+            aria-expanded={isFiltersOpen}
+            aria-controls="sidebar-filters"
+            onClick={() => setIsFiltersOpen((open) => !open)}
+          >
+            What are you looking for?
+            <SidebarChevron $open={isFiltersOpen}>▾</SidebarChevron>
+          </SidebarLabel>
+          <SidebarFilters id="sidebar-filters" $open={isFiltersOpen}>
             {CARDS.map((card, index) => (
               <SidebarFilter key={card.id}>
                 <SidebarLink

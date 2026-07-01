@@ -389,10 +389,26 @@ pnpm install
 ### Pre-Deployment Checklist
 
 - [ ] `pnpm lint` passes
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm format` runs clean
 - [ ] `pnpm test:run` passes
 - [ ] `pnpm build` succeeds
 - [ ] `pnpm preview` and manually test
 - [ ] No console errors in browser
+
+### Before Creating a PR (MANDATORY, see harness/GUARDRAILS.md)
+
+Run in order, every time, before opening a PR:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm format
+pnpm build
+```
+
+All four must be green. A failure here means CI will fail and the deploy
+will fail — fix it locally first, then re-run the full sequence.
 
 ---
 
