@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
+import { theme } from '@/shared/styles/theme'
 import {
   PageWrapper,
   HudCorner,
@@ -22,6 +23,7 @@ import {
   CardMeta,
   CardTag,
   CardViewLink,
+  CardViewRouterLink,
   AccentArrow,
   CardNav,
   NavArrow,
@@ -51,7 +53,16 @@ import {
   CopyrightText,
 } from './HomePage.styles'
 
-const CARDS = [
+interface ProjectCardData {
+  id: string
+  name: string
+  description: string
+  tags: string[]
+  accent: string
+  route?: string
+}
+
+const CARDS: ProjectCardData[] = [
   {
     id: 'star-field',
     name: 'Star Field',
@@ -99,6 +110,15 @@ const CARDS = [
       'Resilient React error boundaries with graceful fallback UI and logging.',
     tags: ['REACT', 'RESILIENCE', 'LOGGING'],
     accent: '#f87171',
+  },
+  {
+    id: 'photobook',
+    name: 'Photobook',
+    description:
+      'Shared community photo feed — upload, comment, and react in real time.',
+    tags: ['FIRESTORE', 'STORAGE', 'REALTIME'],
+    accent: theme.colors.success,
+    route: '/photobook',
   },
 ]
 
@@ -339,10 +359,20 @@ export const HomePage: React.FC = () => {
                           </CardTag>
                         ))}
                       </CardMeta>
-                      <CardViewLink>
-                        view project{' '}
-                        <AccentArrow $color={card.accent}>→</AccentArrow>
-                      </CardViewLink>
+                      {card.route ? (
+                        <CardViewRouterLink
+                          to={card.route}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          view project{' '}
+                          <AccentArrow $color={card.accent}>→</AccentArrow>
+                        </CardViewRouterLink>
+                      ) : (
+                        <CardViewLink>
+                          view project{' '}
+                          <AccentArrow $color={card.accent}>→</AccentArrow>
+                        </CardViewLink>
+                      )}
                     </CardBody>
                   </CardInner>
                 </ProjectCard>

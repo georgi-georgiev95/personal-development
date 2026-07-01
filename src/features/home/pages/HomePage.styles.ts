@@ -1,4 +1,5 @@
 import { styled } from '@linaria/react'
+import { Link } from 'react-router-dom'
 import { theme } from '@/shared/styles/theme'
 
 // ─── Layout ─────────────────────────────────────────────────────────────────
@@ -358,6 +359,16 @@ export const CardViewLink = styled.div`
   color: rgba(255, 255, 255, 0.8);
   font-size: 11px;
   letter-spacing: 0.1em;
+`
+
+export const CardViewRouterLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
 `
 
 export const AccentArrow = styled.span<{ $color: string }>`

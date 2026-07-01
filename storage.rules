@@ -8,6 +8,16 @@ service firebase.storage {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Photobook uploads live under the uploader's own uid-prefixed folder.
+    match /photobook/{userId}/{fileName} {
+      allow read: if true;
+      // Owner-only write/delete (path-based). Admin-initiated deletes from
+      // the CMS delete the Firestore doc (source of truth for the UI) and
+      // best-effort attempt this Storage delete, which fails silently for
+      // non-owners — see deletePhoto in src/entities/photobook.
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Default rules for other files
     match /{allPaths=**} {
       allow read, write: if request.auth != null;

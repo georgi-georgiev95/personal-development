@@ -1,6 +1,6 @@
 # personal-development
 
-A personal development playground — 3D graphics experiments, authentication, and interactive pages. Built with React, TypeScript, Vite, and Three.js.
+A personal development playground — 3D graphics experiments, authentication, a shared community photobook, and interactive pages. Built with React, TypeScript, Vite, and Three.js.
 
 ## Project Structure
 
@@ -14,11 +14,16 @@ src/
   features/         Feature-owned pages, components, hooks, and styles
     auth/
     home/
+    photobook/
   entities/         Business entities and services (user, experiment, etc.)
     user/
+    photobook/
+    admin/
   shared/           Cross-feature infra — config, styles, components, utils
     components/
     config/
+    di/             DI primitives (createToken, DIProvider, useInjectable) —
+                     React Context-based, piloted on the photobook feature
     styles/
     utils/
   test/             Test setup and global test utilities
