@@ -30,6 +30,13 @@ service cloud.firestore {
       allow delete: if request.auth != null &&
         (resource.data.authorUid == request.auth.uid || isAdmin());
 
+      match /reactions/{uid} {
+        allow read: if true;
+        // Doc id == uid enforces "one reaction per user" structurally.
+        allow create, delete: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+      }
+
       match /comments/{commentId} {
         allow read: if true;
         allow create: if request.auth != null &&

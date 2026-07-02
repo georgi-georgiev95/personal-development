@@ -59,13 +59,17 @@ export const CommentListItem: React.FC<CommentListItemProps> = ({
   }, [subscribeReaction, photoId, comment.id, currentUserUid])
 
   const canDelete = currentUserUid !== undefined && onDelete !== undefined
+  const isOwner =
+    currentUserUid !== undefined && comment.authorUid === currentUserUid
 
   return (
     <Row>
       <Avatar name={comment.authorName} size="sm" />
       <Bubble>
         <Header>
-          <AuthorName>{comment.authorName}</AuthorName>
+          <AuthorName $isOwner={isOwner}>
+            {isOwner ? 'You' : comment.authorName}
+          </AuthorName>
           <Actions>
             {currentUserUid ? (
               <IconButton

@@ -6,6 +6,7 @@ export interface Photo {
   caption: string
   createdAt: Date | null
   commentCount: number
+  reactionCount: number
 }
 
 export interface PhotoComment {

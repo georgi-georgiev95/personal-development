@@ -33,3 +33,9 @@ CODING_GUIDELINES.md
 *storybook.log
 storybook-static
 .claude/settings.local.json
+
+# Local design-sync tooling artifacts/cache
+.design-sync/
+.ds-sync/
+dist-ds-lib/
+ds-bundle/

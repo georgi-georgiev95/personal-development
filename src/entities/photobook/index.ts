@@ -7,6 +7,14 @@ export { deleteComment, DeleteCommentToken } from './deleteComment'
 export { subscribeReaction, SubscribeReactionToken } from './subscribeReaction'
 export { toggleReaction, ToggleReactionToken } from './toggleReaction'
 export {
+  subscribePhotoReaction,
+  SubscribePhotoReactionToken,
+} from './subscribePhotoReaction'
+export {
+  togglePhotoReaction,
+  TogglePhotoReactionToken,
+} from './togglePhotoReaction'
+export {
   PhotoServiceError,
   CommentServiceError,
   ReactionServiceError,

@@ -11,16 +11,20 @@ import {
   DeletePhotoToken,
   SubscribeCommentsToken,
   SubscribePhotosToken,
+  SubscribePhotoReactionToken,
   SubscribeReactionToken,
   ToggleReactionToken,
+  TogglePhotoReactionToken,
   UploadPhotoToken,
   addComment,
   deleteComment,
   deletePhoto,
   subscribeComments,
   subscribePhotos,
+  subscribePhotoReaction,
   subscribeReaction,
   toggleReaction,
+  togglePhotoReaction,
   uploadPhoto,
 } from '@/entities/photobook'
 import { AppRoot, AppContent, CanvasBackground } from './App.styles'
@@ -35,6 +39,8 @@ const diBindings: Binding<unknown>[] = [
   [DeleteCommentToken, deleteComment],
   [SubscribeReactionToken, subscribeReaction],
   [ToggleReactionToken, toggleReaction],
+  [SubscribePhotoReactionToken, subscribePhotoReaction],
+  [TogglePhotoReactionToken, togglePhotoReaction],
   [CheckIsAdminToken, checkIsAdmin],
 ]
 

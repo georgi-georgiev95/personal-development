@@ -49,6 +49,7 @@ describe('uploadPhoto', () => {
         imageURL: 'data:image/jpeg;base64,abc123',
         caption: 'A nice sunset',
         commentCount: 0,
+        reactionCount: 0,
       })
     )
   })

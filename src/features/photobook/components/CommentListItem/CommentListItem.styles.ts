@@ -21,10 +21,11 @@ export const Header = styled.div`
   gap: ${theme.spacing.sm};
 `
 
-export const AuthorName = styled.span`
+export const AuthorName = styled.span<{ $isOwner: boolean }>`
   font-size: ${theme.fontSizes.sm};
   font-weight: 600;
-  color: ${theme.colors.textInverse};
+  color: ${({ $isOwner }) =>
+    $isOwner ? theme.colors.primary : 'rgba(255, 255, 255, 0.5)'};
 `
 
 export const CommentText = styled.p`
