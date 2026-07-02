@@ -5,12 +5,11 @@ import {
   AddCommentToken,
   DeleteCommentToken,
   SubscribeCommentsToken,
-  SubscribePhotoReactionToken,
-  TogglePhotoReactionToken,
 } from '@/entities/photobook'
 import { useInjectable } from '@/shared/di'
 import { CommentForm } from '../CommentForm'
 import { CommentListItem } from '../CommentListItem'
+import { usePhotoLike } from '../../hooks/usePhotoLike'
 import {
   CommentsList,
   FullImage,
@@ -68,21 +67,18 @@ export const PhotoDetail: React.FC<PhotoDetailProps> = ({
   const subscribeComments = useInjectable(SubscribeCommentsToken)
   const addComment = useInjectable(AddCommentToken)
   const deleteComment = useInjectable(DeleteCommentToken)
-  const subscribePhotoReaction = useInjectable(SubscribePhotoReactionToken)
-  const togglePhotoReaction = useInjectable(TogglePhotoReactionToken)
   const [comments, setComments] = useState<PhotoComment[]>([])
   const [confirmingDeletePhoto, setConfirmingDeletePhoto] = useState(false)
-  const [liked, setLiked] = useState(false)
+  const {
+    liked,
+    pending: likePending,
+    toggleLike,
+  } = usePhotoLike(photo?.id ?? '', photo ? currentUserUid : undefined)
 
   useEffect(() => {
     if (!photo) return undefined
     return subscribeComments(photo.id, setComments)
   }, [subscribeComments, photo])
-
-  useEffect(() => {
-    if (!photo || !currentUserUid) return undefined
-    return subscribePhotoReaction(photo.id, currentUserUid, setLiked)
-  }, [subscribePhotoReaction, photo, currentUserUid])
 
   if (!photo) return null
 
@@ -96,11 +92,6 @@ export const PhotoDetail: React.FC<PhotoDetailProps> = ({
   const handleAddComment = async (text: string) => {
     if (!currentUserUid || !currentUserName) return
     await addComment(photo.id, currentUserUid, currentUserName, text)
-  }
-
-  const handleToggleLike = () => {
-    if (!currentUserUid) return
-    void togglePhotoReaction(photo.id, currentUserUid, liked)
   }
 
   return (
@@ -138,8 +129,9 @@ export const PhotoDetail: React.FC<PhotoDetailProps> = ({
               <LikeButton
                 type="button"
                 $liked={liked}
+                disabled={likePending}
                 aria-label={liked ? 'Unlike photo' : 'Like photo'}
-                onClick={handleToggleLike}
+                onClick={toggleLike}
               >
                 <HeartIcon filled={liked} />
                 {photo.reactionCount ?? 0}
