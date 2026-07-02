@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { theme } from '@/shared/styles/theme'
 
 export const PageWrapper = styled.div`
+  width: 100%;
   max-width: ${theme.layout.containerMaxWidth};
   margin: 0 auto;
   padding: ${theme.spacing.lg};

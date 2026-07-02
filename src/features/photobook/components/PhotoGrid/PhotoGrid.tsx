@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Photo } from '@/entities/photobook'
+import { Skeleton } from '@/shared/ui-kit'
 import { PhotoGridItem } from '../PhotoGridItem'
 import {
   EmptyState,
@@ -7,7 +8,28 @@ import {
   EmptyStateSubtitle,
   EmptyStateTitle,
   Grid,
+  SkeletonCard,
+  SkeletonMeta,
+  SkeletonMetaRow,
+  SkeletonThumbnailWrapper,
 } from './PhotoGrid.styles'
+
+const SKELETON_COUNT = 4
+
+const PhotoGridSkeletonItem: React.FC = () => (
+  <SkeletonCard>
+    <SkeletonThumbnailWrapper>
+      <Skeleton variant="rect" width="100%" height="100%" />
+    </SkeletonThumbnailWrapper>
+    <SkeletonMeta>
+      <Skeleton variant="text" width="70%" />
+      <SkeletonMetaRow>
+        <Skeleton variant="text" width="30%" />
+        <Skeleton variant="text" width="35%" />
+      </SkeletonMetaRow>
+    </SkeletonMeta>
+  </SkeletonCard>
+)
 
 const CameraIcon = () => (
   <svg
@@ -25,6 +47,7 @@ const CameraIcon = () => (
 
 interface PhotoGridProps {
   photos: Photo[]
+  loading?: boolean
   onSelect: (photo: Photo) => void
   currentUserUid?: string
   onDeletePhoto?: (photo: Photo) => Promise<void>
@@ -32,10 +55,21 @@ interface PhotoGridProps {
 
 export const PhotoGrid: React.FC<PhotoGridProps> = ({
   photos,
+  loading = false,
   onSelect,
   currentUserUid,
   onDeletePhoto,
 }) => {
+  if (loading) {
+    return (
+      <Grid>
+        {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+          <PhotoGridSkeletonItem key={index} />
+        ))}
+      </Grid>
+    )
+  }
+
   if (photos.length === 0) {
     return (
       <EmptyState>
