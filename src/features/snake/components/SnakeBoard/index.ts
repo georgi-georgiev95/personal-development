@@ -1,0 +1,1 @@
+export { SnakeBoard } from './SnakeBoard'
