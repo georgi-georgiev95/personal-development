@@ -23,6 +23,26 @@ You are an **AI coding assistant** for the Personal Development Playground proje
 - ✅ **Accessibility** — semantic HTML, ARIA labels when needed
 - ✅ **Feature-Sliced Design** — respect the architecture (entities → features → widgets → app)
 
+### 1b. Performance Budget (MANDATORY GATE)
+
+The initial page load has a hard budget, enforced by `pnpm perf` (run after
+`pnpm build`; budgets live in `scripts/check-perf-budget.js`):
+
+- Initial JS (entry + modulepreloaded chunks, gzipped) — heavy SDKs
+  (three.js, Firestore) must stay in lazy chunks.
+- Initial CSS (gzipped).
+- Largest async chunk (gzipped).
+
+Rules:
+
+- ❌ **Never ship an addition that fails `pnpm perf`** — if new code or a new
+  dependency slows the initial load, lazy-load it (dynamic import /
+  `React.lazy`) or drop it, and **notify the user** about what happened.
+- ❌ **Never raise a budget silently** — budget changes require the user's
+  explicit approval.
+- ✅ Decorative/below-the-fold code (3D scenes, modals, admin panels) loads
+  via `React.lazy`; Firestore access stays behind dynamic imports.
+
 ### 2. What You CAN Do
 
 - ✅ Read any file in the project
@@ -127,7 +147,9 @@ Before creating a PR, always run these in order and confirm each is green:
 pnpm lint
 pnpm typecheck
 pnpm format
+pnpm coverage
 pnpm build
+pnpm perf
 ```
 
 - ❌ **Never open a PR with a failing command above** — this is what causes

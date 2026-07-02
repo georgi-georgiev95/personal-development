@@ -1,6 +1,6 @@
 # personal-development
 
-A personal development playground — 3D graphics experiments, authentication, a shared community photobook, and interactive pages. Built with React, TypeScript, Vite, and Three.js.
+A personal development playground — 3D graphics experiments, authentication, and a community photobook. Built with React, TypeScript, Vite, Three.js, and Firebase.
 
 ## Project Structure
 
@@ -9,36 +9,79 @@ Feature-Sliced Design (FSD) — source is organized by ownership, not file type:
 ```text
 src/
   app/              App shell, global layout, and route definitions
-  pages/            Route-level compositions (for complex pages)
-  widgets/          Reusable composed UI blocks (e.g., ExperimentLayout)
+    PhotobookSection  Lazy route bundle: DI bindings + photobook pages
+  widgets/          Composed UI blocks that may use features/entities
+    navigation/       Top navigation bar (auth-aware)
+    experiment/       ExperimentLayout wrapper for 3D experiments
   features/         Feature-owned pages, components, hooks, and styles
-    auth/
-    home/
-    photobook/
-  entities/         Business entities and services (user, experiment, etc.)
-    user/
-    photobook/
-    admin/
-  shared/           Cross-feature infra — config, styles, components, utils
-    components/
-    config/
-    di/             DI primitives (createToken, DIProvider, useInjectable) —
-                     React Context-based, piloted on the photobook feature
-    styles/
-    utils/
+    auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
+    home/             Home page with the featured-project card
+    photobook/        Community photo feed — upload, comments, reactions, CMS
+  entities/         Business entities and services
+    user/             User profile service (Firestore)
+    photobook/        Photo/comment/reaction use cases (one file per use case)
+    admin/            checkIsAdmin (admins/{uid} collection)
+  shared/           Cross-feature infra — no imports from upper layers
+    components/       Reusable presentational components (StarFieldBackground, ErrorBoundary, PageSpinner, GlowingOrb)
+    ui-kit/           Design-system components (Button, Modal, Skeleton, Text, Avatar, ConfirmDialog, IconButton, Textarea)
+    config/           Firebase app/auth/db setup
+    di/               DI primitives (createToken, DIProvider, useInjectable)
+    styles/           Global reset + theme tokens
+    utils/            Utilities (authErrors, performanceMetrics, usePrefersReducedMotion)
   test/             Test setup and global test utilities
 ```
 
 ## Layer Responsibilities
 
-| Layer       | What belongs there                                                          |
-| ----------- | --------------------------------------------------------------------------- |
-| `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)              |
-| `pages/`    | Composed page layouts that wire together widgets and features               |
-| `widgets/`  | Reusable UI blocks that use entities/features under the hood                |
-| `features/` | Self-contained user-facing features (auth, home, experiments)               |
-| `entities/` | Business logic that doesn't belong to a single feature (user service, etc.) |
-| `shared/`   | Truly reusable infra — config, styles, global components, utility functions |
+| Layer       | What belongs there                                                           |
+| ----------- | ---------------------------------------------------------------------------- |
+| `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)               |
+| `widgets/`  | Reusable UI blocks that use entities/features under the hood (Navigation)    |
+| `features/` | Self-contained user-facing features (auth, home, photobook)                  |
+| `entities/` | Business logic that doesn't belong to a single feature (user service, etc.)  |
+| `shared/`   | Truly reusable infra — config, styles, ui-kit, components, utility functions |
+
+Import direction is one-way: `shared` → `entities` → `features` → `widgets` → `app`.
+`shared/` must never import from `features/` or `widgets/`.
+
+### Dependency Injection
+
+`src/shared/di/` provides a lightweight React-Context DI pattern
+(`createToken` / `DIProvider` / `useInjectable`), currently piloted on the
+photobook and admin entities. The provider is mounted in
+`src/app/PhotobookSection.tsx` — a lazy route — so the bound entities (and
+the Firestore SDK they import) stay out of the entry chunk.
+
+## Performance
+
+The app is aggressively code-split — the initial load ships only React, the
+router, Firebase Auth, and the app shell (~135 KB gzipped):
+
+- **three.js scenes** (`StarFieldBackground`) load via `React.lazy` after
+  first paint.
+- **Firestore** stays out of the entry chunk: photobook (with its DI
+  bindings), the profile modal, and auth-triggered profile writes all load
+  it lazily.
+- **Vendor chunking** in `vite.config.ts` keeps three.js / Firebase / React
+  in stable, cacheable chunks.
+
+Two tools keep it that way:
+
+- `pnpm perf` — performance budget gate (run after `pnpm build`). Fails if
+  the gzipped initial JS/CSS or the largest async chunk exceeds the budgets
+  in `scripts/check-perf-budget.js`. Part of the mandatory pre-PR gate.
+- `src/shared/utils/performanceMetrics.ts` — runtime web-vitals metrics
+  (TTFB, FCP, LCP, CLS, INP) plus `trackInteraction()` for custom
+  interaction timing. Logged to the console in dev, silent in prod (swap in
+  an analytics reporter in `src/main.tsx`).
+
+## Accessibility
+
+- Global `prefers-reduced-motion` support: CSS animations collapse and the
+  3D star field renders a static frame.
+- Skip-to-content link, focus-visible styles, labeled form controls, alert
+  live-regions for errors, and a focus-trapping modal with Escape-to-close.
+- Storybook has `@storybook/addon-a11y` enabled for component-level checks.
 
 ## Testing
 
@@ -47,7 +90,7 @@ src/
 - **Test:** entities, utilities, hooks, state management
 - **Don't test:** UI rendering, styling, Storybook stories, type definitions
 - Coverage scope: `src/entities/**`, `src/shared/utils/**`
-- Enforced via `npm run coverage` (fails if any metric drops below 100%)
+- Enforced via `pnpm coverage` (fails if any metric drops below 100%)
 
 ## Guidelines
 
@@ -58,3 +101,5 @@ src/
 - Prefer `@/*` imports over long relative paths.
 - No inline styles — use `.styles.ts` files with `@linaria/react`.
 - Strong typing everywhere — no `any`.
+- Heavy dependencies must not enter the initial chunk — lazy-load them and
+  verify with `pnpm build && pnpm perf`.

@@ -1,5 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/shared/config/firebase/firebase'
+import { db } from '@/shared/config/firebase/db'
 import { createToken } from '@/shared/di'
 import { AdminServiceError } from './errors'
 

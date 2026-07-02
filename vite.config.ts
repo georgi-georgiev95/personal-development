@@ -39,12 +39,19 @@ export default defineConfig({
       output: {
         // Split heavy third-party libraries into their own chunks so the
         // main bundle stays small and vendors can be cached independently.
+        // Function form so shared deps (scheduler, react-reconciler, fiber
+        // internals) land with their consumers instead of dragging lazy
+        // chunks into the entry's static import graph.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
           if (
             id.includes('@react-three') ||
             id.includes('postprocessing') ||
-            id.includes('leva')
+            id.includes('leva') ||
+            id.includes('react-reconciler') ||
+            id.includes('its-fine') ||
+            id.includes('zustand') ||
+            id.includes('suspend-react')
           ) {
             return 'three-helpers'
           }
@@ -58,6 +65,9 @@ export default defineConfig({
             return 'firebase-core'
           }
           if (id.includes('react-router')) return 'router-vendor'
+          if (id.includes('react') || id.includes('scheduler')) {
+            return 'react-vendor'
+          }
           return undefined
         },
       },

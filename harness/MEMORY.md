@@ -35,6 +35,7 @@
 ```
 src/
 ├── app/           # Application shell (App.tsx, routes)
+├── widgets/       # Composite UI widgets (navigation, experiment)
 ├── features/      # Feature modules (auth, home, photobook)
 ├── entities/      # Domain entities (user, photobook, admin)
 ├── shared/        # Shared code
@@ -43,12 +44,20 @@ src/
 │   ├── config/      # Configuration (Firebase)
 │   ├── di/          # Dependency injection primitives (see below)
 │   ├── styles/      # Global styles + theme
-│   └── utils/       # Utility functions
-├── widgets/       # Composite UI widgets
+│   └── utils/       # Utility functions (incl. performanceMetrics)
 └── test/          # Test configuration
 ```
 
 This follows **Feature-Sliced Design** principles: entities → features → widgets → app.
+`shared/` must never import from `features/` or `widgets/` (this is why
+Navigation lives in `widgets/`, not `shared/components/` — it uses auth).
+
+### Performance Conventions
+
+- Initial-load budget enforced by `pnpm perf` (see `scripts/check-perf-budget.js`
+  and GUARDRAILS.md §1b). three.js and Firestore must stay in lazy chunks.
+- Runtime metrics: `src/shared/utils/performanceMetrics.ts`
+  (TTFB/FCP/LCP/CLS/INP + `trackInteraction`), wired up in `src/main.tsx`.
 
 ### Dependency Injection
 
@@ -56,8 +65,11 @@ This follows **Feature-Sliced Design** principles: entities → features → wid
 (React Context — no class-based DI framework fits a hooks-only codebase):
 
 - `createToken<T>(description)` — creates a `Token<T>` (identity + phantom type).
-- `DIProvider` — mounted once at the app root (`src/app/App.tsx`), takes a
-  `bindings: [Token, implementation][]` array.
+- `DIProvider` — mounted once around the photobook subtree
+  (`src/app/PhotobookSection.tsx`, a lazy route), takes a
+  `bindings: [Token, implementation][]` array. It lives there rather than at
+  the app root so the photobook entities (and the Firestore SDK they import)
+  stay out of the entry chunk — see Performance Conventions above.
 - `useInjectable(token)` — resolves the bound implementation inside any
   component, avoiding prop drilling.
 

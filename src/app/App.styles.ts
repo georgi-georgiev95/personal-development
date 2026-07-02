@@ -19,6 +19,24 @@ export const CanvasBackground = styled.div`
   pointer-events: none;
 `
 
+export const SkipLink = styled.a`
+  position: absolute;
+  top: -100px;
+  left: ${theme.spacing.md};
+  z-index: ${theme.zIndex.nav};
+  padding: 10px 16px;
+  background: ${theme.colors.background};
+  color: ${theme.colors.heroText};
+  border: 1px solid ${theme.colors.primary};
+  border-radius: ${theme.borderRadius.sm};
+  font-size: ${theme.fontSizes.sm};
+  text-decoration: none;
+
+  &:focus-visible {
+    top: ${theme.spacing.md};
+  }
+`
+
 export const AppContent = styled.main`
   flex: 1;
   min-height: 0;

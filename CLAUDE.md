@@ -22,11 +22,18 @@ pnpm typecheck
 pnpm format
 pnpm coverage
 pnpm build
+pnpm perf
 ```
 
 If any command fails, fix the issue and re-run the full sequence — do not
-open the PR until all five pass. This exists because failing any of these
+open the PR until all six pass. This exists because failing any of these
 locally reliably means a failed CI check and a failed deploy.
+
+`pnpm perf` (after `pnpm build`) enforces the performance budget on the
+initial page load (gzipped entry JS/CSS; budgets in
+`scripts/check-perf-budget.js`). If it fails because of something you added,
+lazy-load it (dynamic import / `React.lazy`) or do not add it — and notify
+the user either way. Never raise a budget without explicit user approval.
 
 `pnpm coverage` must report 100% statements/branches/functions/lines. Per
 `TESTING.md`, coverage is enforced only on business logic (`src/entities/**`,

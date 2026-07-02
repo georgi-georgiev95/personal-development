@@ -11,11 +11,13 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores([
     'dist',
+    'dist-ds-lib',
     'coverage',
     '.design-sync',
     '.ds-sync',
-    'dist-ds-lib',
     'ds-bundle',
+    '.pnpm-store',
+    '.claude',
   ]),
   {
     files: ['**/*.{ts,tsx}'],

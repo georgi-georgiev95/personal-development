@@ -117,7 +117,7 @@ const RegisterPage: React.FC = () => {
         lastName.trim(),
         age
       )
-      navigate('/home')
+      navigate('/')
     } catch (err: unknown) {
       setError(getAuthErrorMessage(err))
     } finally {
@@ -181,13 +181,15 @@ const RegisterPage: React.FC = () => {
             <Eyebrow>// register</Eyebrow>
             <StyledTitle>Create account</StyledTitle>
           </TitleBlock>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
             <Row>
               <InputWrapper>
                 <InputIcon>{personIcon}</InputIcon>
                 <StyledInput
                   type="text"
+                  aria-label="First name"
+                  autoComplete="given-name"
                   placeholder="First name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
@@ -198,6 +200,8 @@ const RegisterPage: React.FC = () => {
                 <InputIcon>{personIcon}</InputIcon>
                 <StyledInput
                   type="text"
+                  aria-label="Last name"
+                  autoComplete="family-name"
                   placeholder="Last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
@@ -209,6 +213,8 @@ const RegisterPage: React.FC = () => {
               <InputIcon>{personIcon}</InputIcon>
               <StyledInput
                 type="text"
+                aria-label="Username"
+                autoComplete="username"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -217,6 +223,7 @@ const RegisterPage: React.FC = () => {
             </InputWrapper>
             <Row>
               <StyledSelect
+                aria-label="Day of birth"
                 value={day}
                 onChange={(e) => setDay(e.target.value)}
                 required
@@ -231,6 +238,7 @@ const RegisterPage: React.FC = () => {
                 ))}
               </StyledSelect>
               <StyledSelect
+                aria-label="Month of birth"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
                 required
@@ -245,6 +253,7 @@ const RegisterPage: React.FC = () => {
                 ))}
               </StyledSelect>
               <StyledSelect
+                aria-label="Year of birth"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
                 required
@@ -263,6 +272,8 @@ const RegisterPage: React.FC = () => {
               <InputIcon>{emailIcon}</InputIcon>
               <StyledInput
                 type="email"
+                aria-label="Email"
+                autoComplete="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -273,6 +284,8 @@ const RegisterPage: React.FC = () => {
               <InputIcon>{lockIcon}</InputIcon>
               <StyledInput
                 type="password"
+                aria-label="Password"
+                autoComplete="new-password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

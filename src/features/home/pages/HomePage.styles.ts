@@ -383,6 +383,12 @@ export const ChatInput = styled.input`
   letter-spacing: 0.02em;
   font-family: inherit;
 
+  &:focus-visible {
+    outline: 1px solid ${theme.colors.primary};
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
   &::placeholder {
     color: ${theme.colors.muted};
   }
