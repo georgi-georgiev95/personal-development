@@ -29,10 +29,18 @@ const PhotobookPage: React.FC = () => {
   const deletePhoto = useInjectable(DeletePhotoToken)
 
   const [photos, setPhotos] = useState<Photo[]>([])
+  const [photosLoading, setPhotosLoading] = useState(true)
   const [authorName, setAuthorName] = useState('')
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
 
-  useEffect(() => subscribePhotos(setPhotos), [subscribePhotos])
+  useEffect(
+    () =>
+      subscribePhotos((nextPhotos) => {
+        setPhotos(nextPhotos)
+        setPhotosLoading(false)
+      }),
+    [subscribePhotos]
+  )
 
   useEffect(() => {
     if (!user) return undefined
@@ -82,6 +90,7 @@ const PhotobookPage: React.FC = () => {
       )}
       <PhotoGrid
         photos={photos}
+        loading={photosLoading}
         onSelect={setSelectedPhoto}
         currentUserUid={user?.uid}
         onDeletePhoto={handleDeletePhoto}
