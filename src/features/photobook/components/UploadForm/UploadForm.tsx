@@ -1,12 +1,21 @@
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { Button, Textarea } from '@/shared/ui-kit'
-import { CaptionField, ErrorText, FileInput, Form } from './UploadForm.styles'
+import {
+  CaptionField,
+  ErrorText,
+  FileInput,
+  FileLabel,
+  FileName,
+  FilePicker,
+  Form,
+} from './UploadForm.styles'
 
 interface UploadFormProps {
   onUpload: (file: File, caption: string) => Promise<void>
 }
 
 export const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
+  const fileInputId = useId()
   const [file, setFile] = useState<File | null>(null)
   const [caption, setCaption] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -34,13 +43,17 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onUpload }) => {
 
   return (
     <Form onSubmit={handleSubmit}>
-      <FileInput
-        type="file"
-        accept="image/*"
-        aria-label="Choose a photo"
-        disabled={submitting}
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-      />
+      <FilePicker>
+        <FileInput
+          id={fileInputId}
+          type="file"
+          accept="image/*"
+          disabled={submitting}
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        <FileLabel htmlFor={fileInputId}>Choose photo</FileLabel>
+        <FileName>{file ? file.name : 'No file selected'}</FileName>
+      </FilePicker>
       <CaptionField>
         <Textarea
           placeholder="Add a caption (optional)"

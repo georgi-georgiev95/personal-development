@@ -13,30 +13,18 @@ vi.mock('firebase/firestore', () => {
   }
 })
 
-vi.mock('firebase/storage', () => {
-  const storage = { __type: 'storage' }
-  return {
-    getStorage: vi.fn(() => storage),
-    ref: vi.fn((_s: unknown, path: string) => ({ path })),
-    deleteObject: vi.fn(),
-  }
-})
-
 import { deletePhoto, DeletePhotoToken } from './deletePhoto'
 import { PhotoServiceError } from './errors'
 import { deleteDoc } from 'firebase/firestore'
-import { deleteObject } from 'firebase/storage'
 import type { Photo } from './types'
 
 const MockedDeleteDoc = vi.mocked(deleteDoc)
-const MockedDeleteObject = vi.mocked(deleteObject)
 
 const photo: Photo = {
   id: 'photo-1',
   authorUid: 'uid-1',
   authorName: 'Alice',
-  storagePath: 'photobook/uid-1/a.jpg',
-  imageURL: 'https://example.com/a.jpg',
+  imageURL: 'data:image/jpeg;base64,abc123',
   caption: '',
   createdAt: null,
   commentCount: 0,
@@ -54,23 +42,18 @@ describe('deletePhoto', () => {
     expect(MockedDeleteDoc).not.toHaveBeenCalled()
   })
 
-  it('deletes the Firestore doc and storage object when the requester is the owner', async () => {
+  it('deletes the Firestore doc when the requester is the owner', async () => {
     MockedDeleteDoc.mockResolvedValue(undefined)
-    MockedDeleteObject.mockResolvedValue(undefined)
 
     await deletePhoto(photo, 'uid-1', false)
 
     expect(MockedDeleteDoc).toHaveBeenCalledWith({
       path: ['photos', 'photo-1'],
     })
-    expect(MockedDeleteObject).toHaveBeenCalledWith({
-      path: 'photobook/uid-1/a.jpg',
-    })
   })
 
   it('deletes the Firestore doc when the requester is an admin but not the owner', async () => {
     MockedDeleteDoc.mockResolvedValue(undefined)
-    MockedDeleteObject.mockResolvedValue(undefined)
 
     await deletePhoto(photo, 'uid-2', true)
 
@@ -83,13 +66,6 @@ describe('deletePhoto', () => {
     await expect(deletePhoto(photo, 'uid-1', false)).rejects.toThrow(
       PhotoServiceError
     )
-  })
-
-  it('deletes the Firestore doc and does not throw even when deleteObject rejects', async () => {
-    MockedDeleteDoc.mockResolvedValue(undefined)
-    MockedDeleteObject.mockRejectedValue(new Error('Permission denied'))
-
-    await expect(deletePhoto(photo, 'uid-1', false)).resolves.toBeUndefined()
   })
 })
 

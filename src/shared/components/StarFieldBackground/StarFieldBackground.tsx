@@ -11,7 +11,6 @@ const SCROLL_SPEED = 0.4
 
 const STAR_COLOR_PRIMARY = theme.colors.starPrimary
 const STAR_COLOR_SECONDARY = theme.colors.starSecondary
-const STAR_COLOR_GLOW = theme.colors.starGlow
 
 const generateStarPositions = (): Float32Array => {
   const positions = new Float32Array(STAR_COUNT * 3)
@@ -43,7 +42,7 @@ const StarField = () => {
     () => [
       new THREE.MeshStandardMaterial({
         color: STAR_COLOR_PRIMARY,
-        emissive: STAR_COLOR_GLOW,
+        emissive: STAR_COLOR_PRIMARY,
         emissiveIntensity: 0.6,
         transparent: true,
         opacity: 0.9,

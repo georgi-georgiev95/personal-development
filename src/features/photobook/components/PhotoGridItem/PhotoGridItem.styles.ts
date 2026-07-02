@@ -5,16 +5,24 @@ export const Card = styled.button`
   display: flex;
   flex-direction: column;
   padding: 0;
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${theme.colors.cardBg};
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: ${theme.borderRadius.xl};
+  background: ${theme.colors.surface};
+  box-shadow: ${theme.boxShadow.card};
   overflow: hidden;
   cursor: pointer;
   text-align: left;
-  transition: transform ${theme.transition.fast};
+  transition:
+    transform ${theme.transition.fast},
+    border-color ${theme.transition.fast},
+    box-shadow ${theme.transition.fast};
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    border-color: ${theme.colors.starGlow};
+    box-shadow:
+      0 12px 28px -12px ${theme.colors.primary}59,
+      ${theme.boxShadow.card};
   }
 `
 

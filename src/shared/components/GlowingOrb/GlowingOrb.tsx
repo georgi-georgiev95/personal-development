@@ -20,7 +20,7 @@ const GlowingMesh = () => {
       <icosahedronGeometry args={[0.45, 1]} />
       <meshStandardMaterial
         color={theme.colors.starPrimary}
-        emissive={theme.colors.starGlow}
+        emissive={theme.colors.starPrimary}
         emissiveIntensity={0.7}
         wireframe
         transparent

@@ -1,27 +1,18 @@
 import type React from 'react'
-import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { CheckIsAdminToken } from '@/entities/admin'
-import { useInjectable } from '@/shared/di'
+import { PageSpinner } from '@/shared/components/PageSpinner'
 import { useAuth } from './useAuth'
+import { useIsAdmin } from './useIsAdmin'
 
 export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user, loading } = useAuth()
-  const checkIsAdmin = useInjectable(CheckIsAdminToken)
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const isAdmin = useIsAdmin()
 
-  useEffect(() => {
-    if (!user) return
-    checkIsAdmin(user.uid)
-      .then(setIsAdmin)
-      .catch(() => setIsAdmin(false))
-  }, [user, checkIsAdmin])
-
-  if (loading) return null
+  if (loading) return <PageSpinner />
   if (!user) return <Navigate to="/photobook" replace />
-  if (isAdmin === null) return null
+  if (isAdmin === null) return <PageSpinner />
   if (!isAdmin) return <Navigate to="/photobook" replace />
 
   return <>{children}</>

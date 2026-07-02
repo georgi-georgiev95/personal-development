@@ -2,7 +2,6 @@ export interface Photo {
   id: string
   authorUid: string
   authorName: string
-  storagePath: string
   imageURL: string
   caption: string
   createdAt: Date | null

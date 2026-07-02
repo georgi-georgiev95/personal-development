@@ -14,24 +14,17 @@ vi.mock('firebase/firestore', () => {
   }
 })
 
-vi.mock('firebase/storage', () => {
-  const storage = { __type: 'storage' }
-  return {
-    getStorage: vi.fn(() => storage),
-    ref: vi.fn((_s: unknown, path: string) => ({ path })),
-    uploadBytes: vi.fn(),
-    getDownloadURL: vi.fn(),
-  }
-})
+vi.mock('./compressImage', () => ({
+  compressImage: vi.fn(),
+}))
 
 import { uploadPhoto, UploadPhotoToken } from './uploadPhoto'
 import { PhotoServiceError } from './errors'
 import { addDoc } from 'firebase/firestore'
-import { getDownloadURL, uploadBytes } from 'firebase/storage'
+import { compressImage } from './compressImage'
 
 const MockedAddDoc = vi.mocked(addDoc)
-const MockedUploadBytes = vi.mocked(uploadBytes)
-const MockedGetDownloadURL = vi.mocked(getDownloadURL)
+const MockedCompressImage = vi.mocked(compressImage)
 
 const file = new File(['content'], 'sunset.jpg', { type: 'image/jpeg' })
 
@@ -40,65 +33,47 @@ describe('uploadPhoto', () => {
     vi.clearAllMocks()
   })
 
-  it('uploads the file to storage and creates a Firestore doc', async () => {
-    MockedUploadBytes.mockResolvedValue(undefined as never)
-    MockedGetDownloadURL.mockResolvedValue('https://example.com/sunset.jpg')
+  it('compresses the file and creates a Firestore doc with the resulting data URL', async () => {
+    MockedCompressImage.mockResolvedValue('data:image/jpeg;base64,abc123')
     MockedAddDoc.mockResolvedValue({ id: 'photo-1' } as never)
 
     const id = await uploadPhoto('uid-1', 'Alice', file, 'A nice sunset')
 
     expect(id).toBe('photo-1')
-    expect(MockedUploadBytes).toHaveBeenCalledTimes(1)
+    expect(MockedCompressImage).toHaveBeenCalledWith(file)
     expect(MockedAddDoc).toHaveBeenCalledWith(
       { path: ['photos'] },
       expect.objectContaining({
         authorUid: 'uid-1',
         authorName: 'Alice',
-        imageURL: 'https://example.com/sunset.jpg',
+        imageURL: 'data:image/jpeg;base64,abc123',
         caption: 'A nice sunset',
         commentCount: 0,
       })
     )
   })
 
-  it('defaults to a jpg extension when the file name has no extension', async () => {
-    MockedUploadBytes.mockResolvedValue(undefined as never)
-    MockedGetDownloadURL.mockResolvedValue('https://example.com/sunset')
-    MockedAddDoc.mockResolvedValue({ id: 'photo-1' } as never)
-    const fileWithoutExtension = new File(['content'], 'sunset', {
-      type: 'image/jpeg',
-    })
-
-    await uploadPhoto('uid-1', 'Alice', fileWithoutExtension, 'A nice sunset')
-
-    expect(MockedAddDoc).toHaveBeenCalledWith(
-      { path: ['photos'] },
-      expect.objectContaining({
-        storagePath: expect.stringMatching(/\.jpg$/),
-      })
+  it('throws PhotoServiceError when the compressed image still exceeds the size cap', async () => {
+    MockedCompressImage.mockResolvedValue(
+      `data:image/jpeg;base64,${'a'.repeat(900_001)}`
     )
-  })
-
-  it('throws PhotoServiceError when uploadBytes fails', async () => {
-    MockedUploadBytes.mockRejectedValue(new Error('Storage error'))
 
     await expect(
       uploadPhoto('uid-1', 'Alice', file, 'A nice sunset')
     ).rejects.toThrow(PhotoServiceError)
+    expect(MockedAddDoc).not.toHaveBeenCalled()
   })
 
-  it('throws PhotoServiceError when getDownloadURL fails', async () => {
-    MockedUploadBytes.mockResolvedValue(undefined as never)
-    MockedGetDownloadURL.mockRejectedValue(new Error('Storage error'))
+  it('throws PhotoServiceError when compressImage fails', async () => {
+    MockedCompressImage.mockRejectedValue(new Error('Canvas error'))
 
     await expect(
       uploadPhoto('uid-1', 'Alice', file, 'A nice sunset')
-    ).rejects.toThrow(PhotoServiceError)
+    ).rejects.toThrow('Canvas error')
   })
 
   it('throws PhotoServiceError when addDoc fails', async () => {
-    MockedUploadBytes.mockResolvedValue(undefined as never)
-    MockedGetDownloadURL.mockResolvedValue('https://example.com/sunset.jpg')
+    MockedCompressImage.mockResolvedValue('data:image/jpeg;base64,abc123')
     MockedAddDoc.mockRejectedValue(new Error('Firestore error'))
 
     await expect(

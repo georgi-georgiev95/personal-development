@@ -6,6 +6,8 @@ import { useInjectable } from '@/shared/di'
 import { ModerationPhotoList } from '../components/ModerationPhotoList'
 import { ModerationCommentList } from '../components/ModerationCommentList'
 import {
+  BackLink,
+  PageEyebrow,
   PageTitle,
   PageWrapper,
   Section,
@@ -30,7 +32,11 @@ const PhotobookCmsPage: React.FC = () => {
 
   return (
     <PageWrapper>
-      <PageTitle>Photobook CMS</PageTitle>
+      <BackLink to="/photobook">← Back to Photobook</BackLink>
+      <div>
+        <PageEyebrow>Moderation</PageEyebrow>
+        <PageTitle>Photobook CMS</PageTitle>
+      </div>
       <Section>
         <SectionTitle>Photos</SectionTitle>
         <ModerationPhotoList

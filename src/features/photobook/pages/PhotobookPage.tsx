@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/components/useAuth'
+import { useIsAdmin } from '@/features/auth/components/useIsAdmin'
 import { getUserProfile } from '@/entities/user'
 import type { Photo } from '@/entities/photobook'
 import {
@@ -11,10 +12,18 @@ import { useInjectable } from '@/shared/di'
 import { UploadForm } from '../components/UploadForm'
 import { PhotoGrid } from '../components/PhotoGrid'
 import { PhotoDetail } from '../components/PhotoDetail'
-import { PageSubtitle, PageTitle, PageWrapper } from './PhotobookPage.styles'
+import {
+  CmsLink,
+  PageEyebrow,
+  PageHeader,
+  PageSubtitle,
+  PageTitle,
+  PageWrapper,
+} from './PhotobookPage.styles'
 
 const PhotobookPage: React.FC = () => {
   const { user } = useAuth()
+  const isAdmin = useIsAdmin()
   const subscribePhotos = useInjectable(SubscribePhotosToken)
   const uploadPhoto = useInjectable(UploadPhotoToken)
   const deletePhoto = useInjectable(DeletePhotoToken)
@@ -56,12 +65,16 @@ const PhotobookPage: React.FC = () => {
 
   return (
     <PageWrapper>
-      <div>
-        <PageTitle>Photobook</PageTitle>
-        <PageSubtitle>
-          A shared space to upload photos, comment, and react together.
-        </PageSubtitle>
-      </div>
+      <PageHeader>
+        <div>
+          <PageEyebrow>Community</PageEyebrow>
+          <PageTitle>Photobook</PageTitle>
+          <PageSubtitle>
+            A shared space to upload photos, comment, and react together.
+          </PageSubtitle>
+        </div>
+        {isAdmin ? <CmsLink to="/photobook/cms">Manage CMS</CmsLink> : null}
+      </PageHeader>
       {user ? (
         <UploadForm onUpload={handleUpload} />
       ) : (

@@ -1,8 +1,11 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { db, storage } from '@/shared/config/firebase/firebase'
+import { db } from '@/shared/config/firebase/firebase'
 import { createToken } from '@/shared/di'
+import { compressImage } from './compressImage'
 import { PhotoServiceError } from './errors'
+
+// Firestore's per-document limit is 1 MiB; leave headroom for the other fields.
+const MAX_IMAGE_DATA_URL_LENGTH = 900_000
 
 export const uploadPhoto = async (
   uid: string,
@@ -10,19 +13,19 @@ export const uploadPhoto = async (
   file: File,
   caption: string
 ): Promise<string> => {
-  try {
-    const extension = file.name.includes('.')
-      ? file.name.split('.').pop()!
-      : 'jpg'
-    const storagePath = `photobook/${uid}/${crypto.randomUUID()}.${extension}`
-    const fileRef = ref(storage, storagePath)
-    await uploadBytes(fileRef, file)
-    const imageURL = await getDownloadURL(fileRef)
+  const imageURL = await compressImage(file)
 
+  if (imageURL.length > MAX_IMAGE_DATA_URL_LENGTH) {
+    throw new PhotoServiceError(
+      'Photo is too large even after compression — try a smaller image',
+      'PHOTO_TOO_LARGE'
+    )
+  }
+
+  try {
     const photoDoc = await addDoc(collection(db, 'photos'), {
       authorUid: uid,
       authorName,
-      storagePath,
       imageURL,
       caption,
       createdAt: serverTimestamp(),

@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
+import { PageSpinner } from '@/shared/components/PageSpinner'
 import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
 import { AdminRoute } from '@/features/auth/components/AdminRoute'
-import { RouteFallbackContainer, Spinner } from './routes.styles'
 
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
@@ -15,15 +15,9 @@ const PhotobookCmsPage = lazy(
   () => import('@/features/photobook/pages/PhotobookCmsPage')
 )
 
-const RouteFallback = () => (
-  <RouteFallbackContainer>
-    <Spinner />
-  </RouteFallbackContainer>
-)
-
 export const AppRoutes = () => (
   <ErrorBoundary>
-    <Suspense fallback={<RouteFallback />}>
+    <Suspense fallback={<PageSpinner />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route

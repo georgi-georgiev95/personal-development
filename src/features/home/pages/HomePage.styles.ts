@@ -10,21 +10,20 @@ export const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 24px;
-  height: calc(100vh - ${theme.layout.navHeight});
-  padding: ${theme.spacing.lg} 56px;
-  overflow: hidden;
+  gap: ${theme.spacing.md};
+  min-height: calc(100vh - ${theme.layout.navHeight});
+  padding: ${theme.spacing.md} 56px;
 
   @media (max-width: 1023px) {
-    height: calc(100vh - ${theme.layout.navHeightTablet});
+    min-height: calc(100vh - ${theme.layout.navHeightTablet});
     padding: ${theme.spacing.md} 40px;
-    gap: clamp(12px, 2.5vh, 40px);
+    gap: ${theme.spacing.md};
   }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    height: calc(100vh - ${theme.layout.navHeightMobile});
-    padding: 16px ${theme.spacing.md};
-    gap: clamp(8px, 2vh, 32px);
+    min-height: calc(100vh - ${theme.layout.navHeightMobile});
+    padding: ${theme.spacing.md} ${theme.spacing.md};
+    gap: ${theme.spacing.md};
   }
 `
 
@@ -46,19 +45,19 @@ export const HudCorner = styled.div<{ $corner: 'tl' | 'tr' | 'bl' | 'br' }>`
     $corner === 'tr' || $corner === 'br' ? '20px' : 'auto'};
   border-top: ${({ $corner }) =>
     $corner === 'tl' || $corner === 'tr'
-      ? '1px solid rgba(255, 255, 255, 0.25)'
+      ? `1px solid ${theme.colors.border}`
       : 'none'};
   border-bottom: ${({ $corner }) =>
     $corner === 'bl' || $corner === 'br'
-      ? '1px solid rgba(255, 255, 255, 0.25)'
+      ? `1px solid ${theme.colors.border}`
       : 'none'};
   border-left: ${({ $corner }) =>
     $corner === 'tl' || $corner === 'bl'
-      ? '1px solid rgba(255, 255, 255, 0.25)'
+      ? `1px solid ${theme.colors.border}`
       : 'none'};
   border-right: ${({ $corner }) =>
     $corner === 'tr' || $corner === 'br'
-      ? '1px solid rgba(255, 255, 255, 0.25)'
+      ? `1px solid ${theme.colors.border}`
       : 'none'};
 
   @media (max-width: ${theme.breakpoint.tablet}) {
@@ -66,45 +65,35 @@ export const HudCorner = styled.div<{ $corner: 'tl' | 'tr' | 'bl' | 'br' }>`
   }
 `
 
-// ─── Main row (headline + card stack + scroll hint) ─────────────────────────
+// ─── Main row (headline + feature card) ──────────────────────────────────────
 
 export const MainRow = styled.div`
-  position: relative;
   flex: 1;
-  min-height: 0;
-  perspective: 1400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${theme.spacing.xl};
+  flex-wrap: wrap;
+  padding: ${theme.spacing.md} 0;
 
   @media (max-width: 1023px) {
-    flex: 1;
-    min-height: 0;
-    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(2px, 1.2cqh, 24px);
-    container-type: size;
+    gap: ${theme.spacing.md};
+    padding: ${theme.spacing.sm} 0;
   }
 `
 
 // ─── Headline ────────────────────────────────────────────────────────────────
 
 export const HeadlineWrap = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
+  flex: 1 1 360px;
   max-width: 440px;
   text-align: left;
 
   @media (max-width: 1023px) {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
     max-width: 480px;
     text-align: center;
     margin: 0 auto;
-    flex: 0 0 auto;
   }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
@@ -113,31 +102,27 @@ export const HeadlineWrap = styled.div`
 `
 
 export const HeroLabel = styled.p`
-  margin: 0 0 16px;
+  margin: 0 0 ${theme.spacing.md};
   color: ${theme.colors.primary};
   font-size: ${theme.fontSizes.sm};
-  letter-spacing: 0.16em;
+  letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
   font-weight: 400;
-
-  @media (max-width: 1023px) {
-    margin: 0 0 clamp(2px, 1.6cqh, 10px);
-  }
 `
 
 export const HeroText = styled.div`
   color: ${theme.colors.text};
   font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.32;
+  letter-spacing: ${theme.letterSpacing.tight};
+  line-height: ${theme.lineHeight.relaxed};
   font-size: 36px;
 
   @media (max-width: 1023px) {
-    font-size: clamp(13px, min(4.2cqh, 6cqw), 28px);
+    font-size: 26px;
   }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: clamp(11px, min(4.2cqh, 6cqw), 21px);
+    font-size: 20px;
   }
 `
 
@@ -168,345 +153,136 @@ export const HeroCursor = styled.span`
 export const HeroPillsRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: ${theme.spacing.sm};
   flex-wrap: wrap;
-  margin-top: 28px;
+  margin-top: ${theme.spacing.md};
   justify-content: flex-start;
 
   @media (max-width: 1023px) {
     justify-content: center;
-    margin-top: clamp(4px, 2cqh, 20px);
   }
 `
 
 export const HeroPill = styled.span`
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.sm};
   padding: 5px 10px;
-  color: rgba(255, 255, 255, 0.55);
+  color: ${theme.colors.muted};
   font-size: ${theme.fontSizes.xs};
-  letter-spacing: 1px;
+  letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
 `
 
-// ─── Card stack ──────────────────────────────────────────────────────────────
+// ─── Feature card ────────────────────────────────────────────────────────────
 
-export const CarouselZone = styled.div`
-  position: absolute;
-  inset: 0;
+export const FeatureCardZone = styled.div`
+  flex: 0 1 400px;
+  display: flex;
+  justify-content: center;
 
   @media (max-width: 1023px) {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: clamp(2px, 1.6cqh, 28px);
+    flex: 1 1 auto;
+    width: 100%;
   }
 `
 
-export const StackWrap = styled.div<{ $tiltX: number; $tiltY: number }>`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(360px, 30vw);
-  height: min(480px, 100%);
-  overflow: hidden;
-  will-change: transform;
-  touch-action: none;
-  transform-style: preserve-3d;
-  transform: translate(-50%, -50%) rotateX(${({ $tiltX }) => $tiltX}deg)
-    rotateY(${({ $tiltY }) => $tiltY}deg);
-
-  @media (max-width: 1023px) {
-    position: relative;
-    top: auto;
-    left: auto;
-    margin: 0 auto;
-    flex: 0 0 auto;
-    width: min(300px, 78vw);
-    height: clamp(230px, 42cqh, 400px);
-    transform: rotateX(${({ $tiltX }) => $tiltX}deg)
-      rotateY(${({ $tiltY }) => $tiltY}deg);
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    width: min(248px, 72vw);
-    height: clamp(210px, 38cqh, 340px);
-  }
-`
-
-export const CardStage = styled.div`
+export const FeatureCard = styled.div<{ $accent: string }>`
   position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-`
-
-export const ProjectCard = styled.div<{ $delta: number; $accent: string }>`
-  --spiral-step: 92%;
-  position: absolute;
-  inset: 0;
+  width: min(400px, 100%);
   border-radius: ${theme.borderRadius.lg};
   overflow: hidden;
   background: ${theme.colors.surface};
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
-  cursor: ${({ $delta }) => ($delta === 0 ? 'default' : 'pointer')};
+  border: 1px solid ${theme.colors.border};
+  box-shadow: ${theme.boxShadow.card};
   transition:
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.6s ease;
-  transform: translateY(calc(var(--spiral-step) * ${({ $delta }) => $delta}))
-    rotateX(${({ $delta }) => $delta * -12}deg)
-    scale(${({ $delta }) => 1 - Math.abs($delta) * 0.1});
-  opacity: ${({ $delta }) => {
-    const distance = Math.abs($delta)
-    if (distance === 0) return 1
-    if (distance === 1) return 0.45
-    if (distance === 2) return 0.16
-    return 0
-  }};
-  z-index: ${({ $delta }) => 50 - Math.abs($delta) * 10};
-  pointer-events: ${({ $delta }) => ($delta === 0 ? 'auto' : 'none')};
+    transform ${theme.transition.normal},
+    box-shadow ${theme.transition.normal};
+
+  &:hover {
+    transform: translateY(-4px);
+  }
 `
 
 export const CardGlow = styled.div<{ $accent: string }>`
   position: absolute;
-  inset: 0 0 55% 0;
+  inset: 0 0 60% 0;
   background: linear-gradient(
     160deg,
     ${({ $accent }) => $accent}33,
-    #05070880 70%
+    ${theme.colors.background}00 70%
   );
+  pointer-events: none;
 `
 
 export const CardInner = styled.div`
-  position: absolute;
-  inset: 0;
-  padding: 26px;
+  position: relative;
+  padding: ${theme.spacing.lg};
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-
-  @media (max-width: 1023px) {
-    padding: 22px;
-  }
+  gap: ${theme.spacing.md};
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    padding: 18px;
+    padding: ${theme.spacing.md};
   }
 `
 
 export const CardBadge = styled.span<{ $accent: string }>`
   display: inline-block;
   color: ${({ $accent }) => $accent};
-  font-size: 12px;
-  letter-spacing: 0.14em;
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: ${theme.letterSpacing.wide};
+  text-transform: uppercase;
   font-weight: 600;
 `
 
-export const CardBody = styled.div``
+export const CardBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
+`
 
 export const CardTitle = styled.h2`
-  margin: 0 0 12px;
-  color: #ffffff;
+  margin: 0;
+  color: ${theme.colors.textInverse};
   font-weight: 700;
   letter-spacing: 0.01em;
-  font-size: 24px;
-
-  @media (max-width: 1023px) {
-    font-size: 21px;
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: 18px;
-  }
+  font-size: ${theme.fontSizes.xxl};
 `
 
 export const CardDescription = styled.p`
-  margin: 0 0 20px;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.55;
-  font-size: 13px;
-
-  @media (max-width: 1023px) {
-    font-size: 12.5px;
-  }
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    font-size: 11.5px;
-  }
+  margin: 0;
+  color: ${theme.colors.textSecondary};
+  line-height: ${theme.lineHeight.relaxed};
+  font-size: ${theme.fontSizes.sm};
 `
 
 export const CardMeta = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: ${theme.spacing.sm};
 `
 
 export const CardTag = styled.span<{ $accent: string }>`
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: ${theme.letterSpacing.wide};
   font-weight: 600;
   color: ${({ $accent }) => $accent};
-`
-
-export const CardViewLink = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  letter-spacing: 0.1em;
 `
 
 export const CardViewRouterLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.sm};
+  letter-spacing: ${theme.letterSpacing.wide};
   text-decoration: none;
+  margin-top: ${theme.spacing.xs};
 `
 
 export const AccentArrow = styled.span<{ $color: string }>`
   color: ${({ $color }) => $color};
-`
-
-// ─── Card pager (top right) ─────────────────────────────────────────────────
-
-export const CardNav = styled.div`
-  position: fixed;
-  top: 50px;
-  right: 40px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  z-index: 20;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 2px;
-  padding: 6px 12px;
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    top: 58px;
-    right: ${theme.spacing.md};
-  }
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    top: 50px;
-    right: ${theme.spacing.sm};
-    padding: 4px 10px;
-  }
-`
-
-export const NavArrow = styled.button`
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: ${theme.fontSizes.sm};
-  cursor: pointer;
-  font-family: inherit;
-  padding: 2px 6px;
-  letter-spacing: 1.32px;
-  transition: color ${theme.transition.fast};
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.95);
-  }
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.xs};
-    padding: 2px 4px;
-  }
-`
-
-export const NavCounter = styled.span`
-  color: rgba(255, 255, 255, 0.85);
-  font-size: ${theme.fontSizes.sm};
-  letter-spacing: 0.16em;
-  text-align: center;
-  font-weight: 400;
-  white-space: nowrap;
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.xs};
-    letter-spacing: 1.2px;
-  }
-`
-
-export const PagerTitle = styled.span`
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    display: none;
-  }
-`
-
-// ─── Scroll hint ─────────────────────────────────────────────────────────────
-
-export const ScrollHintWrap = styled.div`
-  position: absolute;
-  left: 50%;
-  top: calc(50% + min(240px, 40%) + 20px);
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 280px;
-
-  @media (max-width: 1023px) {
-    position: relative;
-    left: auto;
-    top: auto;
-    transform: none;
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
-    gap: clamp(2px, 1cqh, 8px);
-  }
-`
-
-export const ScrollHintText = styled.p`
-  margin: 0;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: ${theme.fontSizes.xs};
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-`
-
-export const ScrollArrow = styled.span`
-  color: rgba(255, 255, 255, 0.5);
-  font-size: ${theme.fontSizes.md};
-  animation: bounceDown 2s ease-in-out infinite;
-
-  @keyframes bounceDown {
-    0%,
-    100% {
-      transform: translateY(0px);
-      opacity: 0.35;
-    }
-    50% {
-      transform: translateY(6px);
-      opacity: 0.9;
-    }
-  }
-`
-
-export const ScrollTicksRow = styled.div`
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-`
-
-export const ScrollTick = styled.span<{ $active: boolean; $color: string }>`
-  width: ${({ $active }) => ($active ? '22px' : '12px')};
-  height: 2px;
-  border-radius: 1px;
-  background: ${({ $active, $color }) =>
-    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
-  transition: all 0.3s ease;
 `
 
 // ─── Bottom row (sidebar + chat / coordinates + copyright) ──────────────────
@@ -519,20 +295,20 @@ export const BottomRow = styled.div`
   @media (max-width: 1023px) {
     flex-direction: column;
     align-items: stretch;
-    gap: 28px;
+    gap: ${theme.spacing.lg};
   }
 `
 
 export const LeftCol = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: ${theme.spacing.md};
 `
 
 export const RightCol = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: ${theme.spacing.md};
   align-items: flex-end;
 
   @media (max-width: 1023px) {
@@ -540,114 +316,51 @@ export const RightCol = styled.div`
   }
 `
 
-export const SidebarLabel = styled.button`
+export const SidebarLabel = styled.p`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: ${theme.spacing.sm};
   margin: 0;
-  padding: 0;
-  background: none;
-  border: none;
-  font: inherit;
-  cursor: default;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  color: ${theme.colors.muted};
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
-
-  @media (max-width: 1023px) {
-    cursor: pointer;
-    width: 100%;
-    justify-content: space-between;
-  }
 `
 
-export const SidebarChevron = styled.span<{ $open: boolean }>`
-  display: none;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
-  transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
-  transition: transform 0.25s ease;
-
-  @media (max-width: 1023px) {
-    display: inline-block;
-  }
-`
-
-export const SidebarFilters = styled.ul<{ $open: boolean }>`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  @media (max-width: 1023px) {
-    overflow: hidden;
-    max-height: ${({ $open }) => ($open ? '360px' : '0px')};
-    opacity: ${({ $open }) => ($open ? 1 : 0)};
-    transition:
-      max-height 0.3s ease,
-      opacity 0.25s ease;
-  }
-`
-
-export const SidebarFilter = styled.li`
-  margin: 0;
-  padding: 0;
-`
-
-export const SidebarLink = styled.a<{ $active: boolean }>`
+export const SidebarLink = styled(Link)`
   margin: 0;
   padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 11px;
-  cursor: pointer;
+  gap: ${theme.spacing.sm};
+  color: ${theme.colors.textSecondary};
   text-decoration: none;
-  user-select: none;
 `
 
 export const SidebarLinkArrow = styled.span`
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.muted};
 `
 
-export const SidebarLinkIndex = styled.span<{
-  $active: boolean
-  $color: string
-}>`
-  font-size: 11px;
-  color: ${({ $active, $color }) =>
-    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
-  transition: color ${theme.transition.fast};
-`
-
-export const SidebarLinkTitle = styled.span<{
-  $active: boolean
-  $color: string
-}>`
-  font-size: 14px;
+export const SidebarLinkTitle = styled.span`
+  font-size: ${theme.fontSizes.lg};
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: ${({ $active, $color }) =>
-    $active ? $color : 'rgba(255, 255, 255, 0.4)'};
+  color: ${theme.colors.primary};
   transition: color ${theme.transition.fast};
 `
 
 export const ChatForm = styled.form`
-  margin-top: 10px;
+  margin-top: ${theme.spacing.sm};
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  padding: 10px 14px;
+  gap: ${theme.spacing.sm};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
   width: 300px;
   max-width: 340px;
-  background: rgba(255, 255, 255, 0.02);
+  background: ${theme.colors.surface};
 
   @media (max-width: 1023px) {
     width: 100%;
@@ -656,7 +369,7 @@ export const ChatForm = styled.form`
 
 export const ChatPrompt = styled.span`
   color: ${theme.colors.primary};
-  font-size: 13px;
+  font-size: ${theme.fontSizes.md};
 `
 
 export const ChatInput = styled.input`
@@ -665,21 +378,21 @@ export const ChatInput = styled.input`
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
-  font-size: 12px;
+  color: ${theme.colors.text};
+  font-size: ${theme.fontSizes.md};
   letter-spacing: 0.02em;
   font-family: inherit;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.35);
+    color: ${theme.colors.muted};
   }
 `
 
 export const ChatReply = styled.div`
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: ${theme.fontSizes.sm};
+  color: ${theme.colors.muted};
   max-width: 340px;
-  animation: fadeUp 0.3s ease;
+  animation: fadeUp ${theme.transition.normal};
 
   @keyframes fadeUp {
     from {
@@ -696,10 +409,10 @@ export const ChatReply = styled.div`
 export const Coordinates = styled.div`
   text-align: right;
   font-size: ${theme.fontSizes.xs};
-  letter-spacing: 0.12em;
+  letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 1.7;
+  color: ${theme.colors.muted};
+  line-height: ${theme.lineHeight.relaxed};
 
   @media (max-width: 1023px) {
     text-align: left;
@@ -713,5 +426,5 @@ export const Coordinates = styled.div`
 export const CopyrightText = styled.div`
   font-size: ${theme.fontSizes.sm};
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.4);
+  color: ${theme.colors.muted};
 `

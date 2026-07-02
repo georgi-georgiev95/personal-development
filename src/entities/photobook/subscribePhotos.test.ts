@@ -17,13 +17,10 @@ vi.mock('firebase/firestore', () => {
       field,
       direction,
     })),
+    limit: vi.fn((count: number) => ({ count })),
     onSnapshot: vi.fn(),
   }
 })
-
-vi.mock('firebase/storage', () => ({
-  getStorage: vi.fn(() => ({ __type: 'storage' })),
-}))
 
 import { subscribePhotos, SubscribePhotosToken } from './subscribePhotos'
 import { onSnapshot } from 'firebase/firestore'
@@ -50,7 +47,6 @@ describe('subscribePhotos', () => {
             data: () => ({
               authorUid: 'uid-1',
               authorName: 'Alice',
-              storagePath: 'photobook/uid-1/a.jpg',
               imageURL: 'https://example.com/a.jpg',
               caption: 'Hi',
               createdAt: { toDate: () => now },
@@ -70,7 +66,6 @@ describe('subscribePhotos', () => {
         id: 'photo-1',
         authorUid: 'uid-1',
         authorName: 'Alice',
-        storagePath: 'photobook/uid-1/a.jpg',
         imageURL: 'https://example.com/a.jpg',
         caption: 'Hi',
         createdAt: now,
@@ -78,6 +73,19 @@ describe('subscribePhotos', () => {
       },
     ])
     expect(result).toBe(unsubscribe)
+  })
+
+  it('limits the query to the most recent page of photos', () => {
+    const unsubscribe = vi.fn()
+    MockedOnSnapshot.mockImplementation((queryArg, callback) => {
+      ;(callback as (snapshot: { docs: never[] }) => void)({ docs: [] })
+      expect(
+        (queryArg as unknown as { clauses: { count: number }[] }).clauses
+      ).toContainEqual({ count: 24 })
+      return unsubscribe
+    })
+
+    subscribePhotos(vi.fn())
   })
 
   it('defaults createdAt to null when missing from the document data', () => {
@@ -94,7 +102,6 @@ describe('subscribePhotos', () => {
             data: () => ({
               authorUid: 'uid-1',
               authorName: 'Alice',
-              storagePath: 'photobook/uid-1/a.jpg',
               imageURL: 'https://example.com/a.jpg',
               caption: 'Hi',
               commentCount: 0,

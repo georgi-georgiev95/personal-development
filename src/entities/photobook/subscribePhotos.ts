@@ -1,5 +1,6 @@
 import {
   collection,
+  limit,
   onSnapshot,
   orderBy,
   query,
@@ -9,12 +10,15 @@ import { db } from '@/shared/config/firebase/firebase'
 import { createToken } from '@/shared/di'
 import type { Photo } from './types'
 
+const PHOTOS_PAGE_SIZE = 24
+
 export const subscribePhotos = (
   onChange: (photos: Photo[]) => void
 ): Unsubscribe => {
   const photosQuery = query(
     collection(db, 'photos'),
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    limit(PHOTOS_PAGE_SIZE)
   )
 
   return onSnapshot(photosQuery, (snapshot) => {
