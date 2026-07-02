@@ -49,17 +49,13 @@ export const UploaderName = styled.span<{ $isOwner: boolean }>`
     $isOwner ? theme.colors.primary : 'rgba(255, 255, 255, 0.5)'};
 `
 
-export const LikeButton = styled.button<{ $liked: boolean }>`
-  display: inline-flex;
+export const LikeActions = styled.div`
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: ${theme.borderRadius.full};
-  border: 1px solid
-    ${({ $liked }) => ($liked ? '#fb7185' : 'rgba(255, 255, 255, 0.6)')};
-  background: transparent;
-  color: ${({ $liked }) => ($liked ? '#fb7185' : theme.colors.textInverse)};
-  font-size: ${theme.fontSizes.sm};
-  cursor: pointer;
-  transition: border-color ${theme.transition.fast};
+  gap: ${theme.spacing.xs};
+`
+
+export const ReactionCount = styled.span`
+  font-size: ${theme.fontSizes.xs};
+  color: ${theme.colors.muted};
 `
