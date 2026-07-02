@@ -4,11 +4,11 @@ import { theme } from '@/shared/styles/theme'
 export const Form = styled.form`
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: ${theme.spacing.md};
   padding: ${theme.spacing.md};
   background: ${theme.colors.surface};
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.xl};
   box-shadow: ${theme.boxShadow.card};
   overflow: hidden;
@@ -20,11 +20,6 @@ export const Form = styled.form`
     height: 2px;
     background: ${theme.colors.gradient};
     opacity: 0.7;
-  }
-
-  @media (min-width: ${theme.breakpoint.tablet}) {
-    flex-direction: row;
-    align-items: flex-start;
   }
 `
 
@@ -40,51 +35,79 @@ export const FileInput = styled.input`
   border: 0;
 `
 
-export const FilePicker = styled.div`
+export const PhotoTile = styled.label<{ $hasPreview: boolean }>`
+  position: relative;
+  flex: 0 0 132px;
+  width: 132px;
+  min-height: 120px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: ${theme.spacing.sm};
-  flex-wrap: wrap;
-
-  @media (min-width: ${theme.breakpoint.tablet}) {
-    flex: 0 0 auto;
-    align-self: center;
-  }
+  justify-content: center;
+  gap: ${theme.spacing.xs};
+  border-radius: ${theme.borderRadius.lg};
+  cursor: pointer;
+  overflow: hidden;
+  background: ${({ $hasPreview }) =>
+    $hasPreview ? 'transparent' : 'rgba(45, 212, 191, 0.04)'};
+  border: ${({ $hasPreview }) =>
+    $hasPreview
+      ? `1px solid ${theme.colors.border}`
+      : '1px dashed rgba(45, 212, 191, 0.5)'};
 `
 
-export const FileLabel = styled.label`
+export const PhotoTilePreview = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`
+
+export const PhotoTileLabel = styled.span`
+  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.xs};
+  font-weight: 600;
+  text-align: center;
+`
+
+export const PhotoTilePlus = styled.span`
+  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.xl};
+  line-height: 1;
+`
+
+export const RemovePhotoButton = styled.button`
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: ${theme.spacing.sm} ${theme.spacing.lg};
-  border: 1px solid ${theme.colors.primary};
-  border-radius: ${theme.borderRadius.md};
-  color: ${theme.colors.primary};
+  border: none;
+  border-radius: ${theme.borderRadius.full};
+  background: rgba(3, 3, 4, 0.65);
+  color: ${theme.colors.text};
   font-size: ${theme.fontSizes.sm};
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  line-height: 1;
   cursor: pointer;
-  transition:
-    background ${theme.transition.fast},
-    transform ${theme.transition.fast};
-
-  &:hover {
-    background: ${theme.colors.primary}1a;
-    transform: translateY(-1px);
-  }
 `
 
-export const FileName = styled.span`
-  color: ${theme.colors.muted};
-  font-size: ${theme.fontSizes.xs};
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+export const FormColumn = styled.div`
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.sm};
 `
 
 export const CaptionField = styled.div`
   flex: 1;
+  display: flex;
+`
+
+export const UploadRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `
 
 export const ErrorText = styled.p`

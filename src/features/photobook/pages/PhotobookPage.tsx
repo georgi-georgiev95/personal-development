@@ -80,7 +80,12 @@ const PhotobookPage: React.FC = () => {
       ) : (
         <PageSubtitle>Sign in to upload a photo.</PageSubtitle>
       )}
-      <PhotoGrid photos={photos} onSelect={setSelectedPhoto} />
+      <PhotoGrid
+        photos={photos}
+        onSelect={setSelectedPhoto}
+        currentUserUid={user?.uid}
+        onDeletePhoto={handleDeletePhoto}
+      />
       <PhotoDetail
         photo={selectedPhoto}
         open={selectedPhoto !== null}

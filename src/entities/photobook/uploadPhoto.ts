@@ -30,6 +30,7 @@ export const uploadPhoto = async (
       caption,
       createdAt: serverTimestamp(),
       commentCount: 0,
+      reactionCount: 0,
     })
 
     return photoDoc.id

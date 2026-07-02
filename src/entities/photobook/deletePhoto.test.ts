@@ -28,6 +28,7 @@ const photo: Photo = {
   caption: '',
   createdAt: null,
   commentCount: 0,
+  reactionCount: 0,
 }
 
 describe('deletePhoto', () => {
