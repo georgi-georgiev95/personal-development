@@ -44,3 +44,36 @@ export const EmptyStateSubtitle = styled.p`
   color: ${theme.colors.muted};
   font-size: ${theme.fontSizes.sm};
 `
+
+export const SkeletonCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.xl};
+  background: ${theme.colors.surface};
+  box-shadow: ${theme.boxShadow.card};
+  overflow: hidden;
+`
+
+export const SkeletonThumbnailWrapper = styled.div`
+  width: 100%;
+  aspect-ratio: 4 / 5;
+
+  span {
+    width: 100%;
+    height: 100%;
+  }
+`
+
+export const SkeletonMeta = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.sm};
+`
+
+export const SkeletonMetaRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`
