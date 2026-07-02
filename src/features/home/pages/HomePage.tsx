@@ -40,22 +40,38 @@ import {
 interface ProjectCardData {
   id: string
   name: string
+  badge: string
   description: string
   tags: string[]
   accent: string
   route: string
+  cta: string
 }
 
-// Only Photobook is shown on the home page for now.
-const FEATURED_PROJECT: ProjectCardData = {
-  id: 'photobook',
-  name: 'Photobook',
-  description:
-    'Shared community photo feed — upload, comment, and react in real time.',
-  tags: ['FIRESTORE', 'STORAGE', 'REALTIME'],
-  accent: theme.colors.success,
-  route: '/photobook',
-}
+const PROJECTS: ProjectCardData[] = [
+  {
+    id: 'photobook',
+    name: 'Photobook',
+    badge: 'Featured project',
+    description:
+      'Shared community photo feed — upload, comment, and react in real time.',
+    tags: ['FIRESTORE', 'STORAGE', 'REALTIME'],
+    accent: theme.colors.success,
+    route: '/photobook',
+    cta: 'view project',
+  },
+  {
+    id: 'snake',
+    name: 'Snake',
+    badge: 'Mini game',
+    description:
+      'Neon snake on a canvas grid — steer with arrows or WASD, swipe on touch. It speeds up as you score.',
+    tags: ['CANVAS', 'GAME', 'TOUCH'],
+    accent: theme.colors.secondary,
+    route: '/snake',
+    cta: 'play game',
+  },
+]
 
 // Isolated so the once-per-second tick re-renders only this tiny component
 // instead of the whole page.
@@ -109,41 +125,41 @@ export const HomePage: React.FC = () => {
         </HeadlineWrap>
 
         <FeatureCardZone>
-          <FeatureCard $accent={FEATURED_PROJECT.accent}>
-            <CardGlow $accent={FEATURED_PROJECT.accent} />
-            <CardInner>
-              <CardBadge $accent={FEATURED_PROJECT.accent}>
-                Featured project
-              </CardBadge>
-              <CardBody>
-                <CardTitle>{FEATURED_PROJECT.name}</CardTitle>
-                <CardDescription>
-                  {FEATURED_PROJECT.description}
-                </CardDescription>
-                <CardMeta>
-                  {FEATURED_PROJECT.tags.map((tag) => (
-                    <CardTag key={tag} $accent={FEATURED_PROJECT.accent}>
-                      {tag}
-                    </CardTag>
-                  ))}
-                </CardMeta>
-                <CardViewRouterLink to={FEATURED_PROJECT.route}>
-                  view project{' '}
-                  <AccentArrow $color={FEATURED_PROJECT.accent}>→</AccentArrow>
-                </CardViewRouterLink>
-              </CardBody>
-            </CardInner>
-          </FeatureCard>
+          {PROJECTS.map((project) => (
+            <FeatureCard key={project.id} $accent={project.accent}>
+              <CardGlow $accent={project.accent} />
+              <CardInner>
+                <CardBadge $accent={project.accent}>{project.badge}</CardBadge>
+                <CardBody>
+                  <CardTitle>{project.name}</CardTitle>
+                  <CardDescription>{project.description}</CardDescription>
+                  <CardMeta>
+                    {project.tags.map((tag) => (
+                      <CardTag key={tag} $accent={project.accent}>
+                        {tag}
+                      </CardTag>
+                    ))}
+                  </CardMeta>
+                  <CardViewRouterLink to={project.route}>
+                    {project.cta}{' '}
+                    <AccentArrow $color={project.accent}>→</AccentArrow>
+                  </CardViewRouterLink>
+                </CardBody>
+              </CardInner>
+            </FeatureCard>
+          ))}
         </FeatureCardZone>
       </MainRow>
 
       <BottomRow>
         <LeftCol>
           <SidebarLabel>What are you looking for?</SidebarLabel>
-          <SidebarLink to={FEATURED_PROJECT.route}>
-            <SidebarLinkArrow>→</SidebarLinkArrow>
-            <SidebarLinkTitle>{FEATURED_PROJECT.name}</SidebarLinkTitle>
-          </SidebarLink>
+          {PROJECTS.map((project) => (
+            <SidebarLink key={project.id} to={project.route}>
+              <SidebarLinkArrow>→</SidebarLinkArrow>
+              <SidebarLinkTitle>{project.name}</SidebarLinkTitle>
+            </SidebarLink>
+          ))}
           <ChatForm onSubmit={handleChatSubmit}>
             <ChatPrompt>&gt;</ChatPrompt>
             <ChatInput

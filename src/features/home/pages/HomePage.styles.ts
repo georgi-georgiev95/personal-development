@@ -178,7 +178,9 @@ export const HeroPill = styled.span`
 export const FeatureCardZone = styled.div`
   flex: 0 1 400px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: ${theme.spacing.md};
 
   @media (max-width: 1023px) {
     flex: 1 1 auto;
