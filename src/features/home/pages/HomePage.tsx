@@ -57,15 +57,22 @@ const FEATURED_PROJECT: ProjectCardData = {
   route: '/photobook',
 }
 
-export const HomePage: React.FC = () => {
+// Isolated so the once-per-second tick re-renders only this tiny component
+// instead of the whole page.
+const LiveClock: React.FC = () => {
   const [clock, setClock] = useState(() => new Date())
-  const [chatValue, setChatValue] = useState('')
-  const [chatReply, setChatReply] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  return <>{clock.toTimeString().slice(0, 8)}</>
+}
+
+export const HomePage: React.FC = () => {
+  const [chatValue, setChatValue] = useState('')
+  const [chatReply, setChatReply] = useState<string | null>(null)
 
   const handleChatSubmit = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -78,8 +85,6 @@ export const HomePage: React.FC = () => {
     },
     [chatValue]
   )
-
-  const coordsTime = clock.toTimeString().slice(0, 8)
 
   return (
     <PageWrapper>
@@ -142,6 +147,7 @@ export const HomePage: React.FC = () => {
           <ChatForm onSubmit={handleChatSubmit}>
             <ChatPrompt>&gt;</ChatPrompt>
             <ChatInput
+              aria-label="Ask me anything"
               placeholder="ask me anything..."
               value={chatValue}
               onChange={(event) => setChatValue(event.target.value)}
@@ -153,7 +159,9 @@ export const HomePage: React.FC = () => {
         <RightCol>
           <Coordinates>
             <div>42.6977° N, 23.3219° E</div>
-            <div>{`Sofia, BG · ${coordsTime}`}</div>
+            <div>
+              Sofia, BG · <LiveClock />
+            </div>
           </Coordinates>
           <CopyrightText>
             Georgi Georgiev — all rights reserved 2026

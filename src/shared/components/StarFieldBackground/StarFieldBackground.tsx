@@ -1,7 +1,8 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { useRef, useMemo } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { theme } from '@/shared/styles/theme'
+import { usePrefersReducedMotion } from '@/shared/utils/usePrefersReducedMotion'
 
 const STAR_COUNT = 600
 const SPHERE_RADIUS = 0.03
@@ -29,9 +30,70 @@ const starScales = Array.from(
   () => 0.4 + Math.random() * 0.8
 )
 
-const StarField = () => {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+interface InstancedStarsProps {
+  starIndices: number[]
+  geometry: THREE.SphereGeometry
+  material: THREE.MeshStandardMaterial
+  animate: boolean
+}
 
+// One InstancedMesh per material renders all its stars in a single draw
+// call (2 total per frame, down from 600 with individual meshes).
+const InstancedStars = ({
+  starIndices,
+  geometry,
+  material,
+  animate,
+}: InstancedStarsProps) => {
+  const meshRef = useRef<THREE.InstancedMesh>(null)
+  const offsetRef = useRef(0)
+  const tempRef = useRef(new THREE.Object3D())
+  const invalidate = useThree((state) => state.invalidate)
+
+  const applyMatrices = (offset: number) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    const half = FIELD_HEIGHT / 2
+    const temp = tempRef.current
+    starIndices.forEach((starIndex, i) => {
+      const baseY = starPositions[starIndex * 3 + 1]
+      const wrapped =
+        ((((baseY - offset + half) % FIELD_HEIGHT) + FIELD_HEIGHT) %
+          FIELD_HEIGHT) -
+        half
+      temp.position.set(
+        starPositions[starIndex * 3],
+        wrapped,
+        starPositions[starIndex * 3 + 2]
+      )
+      temp.scale.setScalar(starScales[starIndex])
+      temp.updateMatrix()
+      mesh.setMatrixAt(i, temp.matrix)
+    })
+    mesh.instanceMatrix.needsUpdate = true
+  }
+
+  useEffect(() => {
+    applyMatrices(offsetRef.current)
+    invalidate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useFrame((_, delta) => {
+    if (!animate) return
+    offsetRef.current += delta * SCROLL_SPEED
+    applyMatrices(offsetRef.current)
+  })
+
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, material, starIndices.length]}
+    />
+  )
+}
+
+const Scene = ({ animate }: { animate: boolean }) => {
   const geometry = useMemo(
     () =>
       new THREE.SphereGeometry(SPHERE_RADIUS, SPHERE_SEGMENTS, SPHERE_SEGMENTS),
@@ -58,69 +120,54 @@ const StarField = () => {
     []
   )
 
-  const meshes = useMemo(() => {
-    return Array.from({ length: STAR_COUNT }, (_, i) => ({
-      position: new THREE.Vector3(
-        starPositions[i * 3],
-        starPositions[i * 3 + 1],
-        starPositions[i * 3 + 2]
-      ),
-      material: materials[i % 2],
-      scale: starScales[i],
-    }))
-  }, [materials])
-
-  useFrame((_, delta) => {
-    const halfHeight = FIELD_HEIGHT / 2
-    meshRefs.current.forEach((mesh) => {
-      if (!mesh) return
-      let y = mesh.position.y - delta * SCROLL_SPEED
-      if (y < -halfHeight) {
-        y += FIELD_HEIGHT
-      }
-      mesh.position.y = y
-    })
-  })
+  const [evenIndices, oddIndices] = useMemo(() => {
+    const even: number[] = []
+    const odd: number[] = []
+    for (let i = 0; i < STAR_COUNT; i++) {
+      ;(i % 2 === 0 ? even : odd).push(i)
+    }
+    return [even, odd]
+  }, [])
 
   return (
-    <group>
-      {meshes.map((star, i) => (
-        <mesh
-          key={i}
-          ref={(el) => {
-            meshRefs.current[i] = el
-          }}
-          position={star.position}
-          material={star.material}
-          scale={star.scale}
-          geometry={geometry}
-        />
-      ))}
-    </group>
+    <>
+      <ambientLight intensity={0.4} />
+      <pointLight
+        position={[5, 5, 5]}
+        intensity={0.8}
+        color={STAR_COLOR_PRIMARY}
+      />
+      <pointLight
+        position={[-5, -3, 3]}
+        intensity={0.4}
+        color={STAR_COLOR_SECONDARY}
+      />
+      <InstancedStars
+        starIndices={evenIndices}
+        geometry={geometry}
+        material={materials[0]}
+        animate={animate}
+      />
+      <InstancedStars
+        starIndices={oddIndices}
+        geometry={geometry}
+        material={materials[1]}
+        animate={animate}
+      />
+    </>
   )
 }
 
-const Scene = () => (
-  <>
-    <ambientLight intensity={0.4} />
-    <pointLight
-      position={[5, 5, 5]}
-      intensity={0.8}
-      color={STAR_COLOR_PRIMARY}
-    />
-    <pointLight
-      position={[-5, -3, 3]}
-      intensity={0.4}
-      color={STAR_COLOR_SECONDARY}
-    />
-    <StarField />
-  </>
-)
-
 export const StarFieldBackground: React.FC = () => {
+  const reducedMotion = usePrefersReducedMotion()
+
   return (
-    <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
-      <Scene />
+    <Canvas
+      camera={{ position: [0, 0, 8], fov: 60 }}
+      dpr={[1, 2]}
+      frameloop={reducedMotion ? 'demand' : 'always'}
+    >
+      <Scene animate={!reducedMotion} />
     </Canvas>
   )
 }

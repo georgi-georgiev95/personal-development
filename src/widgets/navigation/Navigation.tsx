@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/components/useAuth'
-import { ProfileModal } from '@/features/auth/components/ProfileModal'
+import { Skeleton } from '@/shared/ui-kit'
 import {
   Nav,
   NavLeft,
@@ -18,6 +18,21 @@ import {
   NavLink,
   NavButton,
 } from './Navigation.styles'
+
+// ProfileModal reaches Firestore through the user entity; loading it lazily
+// keeps that SDK out of the entry chunk for signed-out visitors.
+const ProfileModal = lazy(() =>
+  import('@/features/auth/components/ProfileModal').then((m) => ({
+    default: m.ProfileModal,
+  }))
+)
+
+const ProfileModalFallback = () => (
+  <>
+    <Skeleton variant="circle" width="26px" height="26px" />
+    <Skeleton variant="text" width="72px" />
+  </>
+)
 
 export const Navigation: React.FC = () => {
   const navigate = useNavigate()
@@ -54,7 +69,9 @@ export const Navigation: React.FC = () => {
         <NavAuthRow>
           {loading ? null : user ? (
             <NavUserRow>
-              <ProfileModal />
+              <Suspense fallback={<ProfileModalFallback />}>
+                <ProfileModal />
+              </Suspense>
               <NavButton onClick={handleSignOut}>Log out</NavButton>
             </NavUserRow>
           ) : (

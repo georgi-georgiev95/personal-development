@@ -3,17 +3,11 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 import { PageSpinner } from '@/shared/components/PageSpinner'
 import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
-import { AdminRoute } from '@/features/auth/components/AdminRoute'
 
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
-const PhotobookPage = lazy(
-  () => import('@/features/photobook/pages/PhotobookPage')
-)
-const PhotobookCmsPage = lazy(
-  () => import('@/features/photobook/pages/PhotobookCmsPage')
-)
+const PhotobookSection = lazy(() => import('./PhotobookSection'))
 
 export const AppRoutes = () => (
   <ErrorBoundary>
@@ -36,15 +30,7 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
-        <Route path="/photobook" element={<PhotobookPage />} />
-        <Route
-          path="/photobook/cms"
-          element={
-            <AdminRoute>
-              <PhotobookCmsPage />
-            </AdminRoute>
-          }
-        />
+        <Route path="/photobook/*" element={<PhotobookSection />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

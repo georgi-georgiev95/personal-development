@@ -3,7 +3,6 @@ import { auth } from '@/shared/config/firebase/auth'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { AuthContext, type AuthContextValue } from './AuthContext'
 import type { User } from 'firebase/auth'
-import { updateLastLogin } from '@/entities/user'
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -20,6 +19,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (firebaseUser && lastUid !== firebaseUser.uid) {
         lastUid = firebaseUser.uid
         try {
+          // Dynamic import keeps the Firestore SDK out of the entry chunk;
+          // it only loads once a signed-in user actually exists.
+          const { updateLastLogin } = await import('@/entities/user')
           await updateLastLogin(firebaseUser.uid)
         } catch (error) {
           console.error('Error updating last login:', error)

@@ -5,7 +5,7 @@ import {
   updateDoc,
   serverTimestamp,
 } from 'firebase/firestore'
-import { db } from '@/shared/config/firebase/firebase'
+import { db } from '@/shared/config/firebase/db'
 
 export interface UserProfile {
   uid: string

@@ -35,7 +35,8 @@ export const MutedHelper = () => (
 export const Truncated = () => (
   <Wrap>
     <Text as="span" truncate>
-      This is a very long line of text that should truncate instead of wrapping to the next line.
+      This is a very long line of text that should truncate instead of wrapping
+      to the next line.
     </Text>
   </Wrap>
 )

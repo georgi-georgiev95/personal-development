@@ -17,6 +17,15 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/shared/ui-kit/index.ts", "src/shared/ui-kit/**/*.ts", "src/shared/ui-kit/**/*.tsx"],
-  "exclude": ["src/shared/ui-kit/**/*.test.ts", "src/shared/ui-kit/**/*.test.tsx", "src/shared/ui-kit/**/*.stories.ts", "src/shared/ui-kit/**/*.stories.tsx"]
+  "include": [
+    "src/shared/ui-kit/index.ts",
+    "src/shared/ui-kit/**/*.ts",
+    "src/shared/ui-kit/**/*.tsx"
+  ],
+  "exclude": [
+    "src/shared/ui-kit/**/*.test.ts",
+    "src/shared/ui-kit/**/*.test.tsx",
+    "src/shared/ui-kit/**/*.stories.ts",
+    "src/shared/ui-kit/**/*.stories.tsx"
+  ]
 }

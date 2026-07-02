@@ -1,65 +1,35 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/components/AuthProvider'
-import { Navigation } from '@/shared/components/Navigation'
-import { StarFieldBackground } from '@/shared/components/StarFieldBackground'
-import { DIProvider, type Binding } from '@/shared/di'
-import { CheckIsAdminToken, checkIsAdmin } from '@/entities/admin'
-import {
-  AddCommentToken,
-  DeleteCommentToken,
-  DeletePhotoToken,
-  SubscribeCommentsToken,
-  SubscribePhotosToken,
-  SubscribePhotoReactionToken,
-  SubscribeReactionToken,
-  ToggleReactionToken,
-  TogglePhotoReactionToken,
-  UploadPhotoToken,
-  addComment,
-  deleteComment,
-  deletePhoto,
-  subscribeComments,
-  subscribePhotos,
-  subscribePhotoReaction,
-  subscribeReaction,
-  toggleReaction,
-  togglePhotoReaction,
-  uploadPhoto,
-} from '@/entities/photobook'
-import { AppRoot, AppContent, CanvasBackground } from './App.styles'
+import { Navigation } from '@/widgets/navigation'
+import { AppRoot, AppContent, CanvasBackground, SkipLink } from './App.styles'
 import { AppRoutes } from './routes'
 
-const diBindings: Binding<unknown>[] = [
-  [UploadPhotoToken, uploadPhoto],
-  [SubscribePhotosToken, subscribePhotos],
-  [DeletePhotoToken, deletePhoto],
-  [AddCommentToken, addComment],
-  [SubscribeCommentsToken, subscribeComments],
-  [DeleteCommentToken, deleteComment],
-  [SubscribeReactionToken, subscribeReaction],
-  [ToggleReactionToken, toggleReaction],
-  [SubscribePhotoReactionToken, subscribePhotoReaction],
-  [TogglePhotoReactionToken, togglePhotoReaction],
-  [CheckIsAdminToken, checkIsAdmin],
-]
+// three.js + react-three-fiber (~900KB) load after first paint instead of
+// blocking it — the star field is a decorative background. The photobook
+// DI bindings live in PhotobookSection (lazy) for the same reason: they
+// would drag the Firestore SDK into the entry chunk.
+const StarFieldBackground = lazy(
+  () => import('@/shared/components/StarFieldBackground/StarFieldBackground')
+)
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <DIProvider bindings={diBindings}>
-        <Router>
-          <AppRoot>
-            <CanvasBackground>
+      <Router>
+        <AppRoot>
+          <SkipLink href="#main-content">Skip to main content</SkipLink>
+          <CanvasBackground aria-hidden="true">
+            <Suspense fallback={null}>
               <StarFieldBackground />
-            </CanvasBackground>
-            <Navigation />
-            <AppContent>
-              <AppRoutes />
-            </AppContent>
-          </AppRoot>
-        </Router>
-      </DIProvider>
+            </Suspense>
+          </CanvasBackground>
+          <Navigation />
+          <AppContent id="main-content">
+            <AppRoutes />
+          </AppContent>
+        </AppRoot>
+      </Router>
     </AuthProvider>
   )
 }

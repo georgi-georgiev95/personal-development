@@ -1,5 +1,5 @@
 import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore'
-import { db } from '@/shared/config/firebase/firebase'
+import { db } from '@/shared/config/firebase/db'
 import { createToken } from '@/shared/di'
 
 export const subscribeReaction = (

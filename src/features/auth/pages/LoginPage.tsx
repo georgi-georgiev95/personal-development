@@ -56,7 +56,7 @@ const LoginPage: React.FC = () => {
     setLoading(true)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      navigate('/home')
+      navigate('/')
     } catch (err: unknown) {
       setError(getAuthErrorMessage(err))
     } finally {
@@ -72,7 +72,7 @@ const LoginPage: React.FC = () => {
             <Eyebrow>// login</Eyebrow>
             <StyledTitle>Login</StyledTitle>
           </TitleBlock>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+          {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
             <InputWrapper>
               <InputIcon>
@@ -92,6 +92,8 @@ const LoginPage: React.FC = () => {
               </InputIcon>
               <StyledInput
                 type="email"
+                aria-label="Email"
+                autoComplete="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -116,6 +118,8 @@ const LoginPage: React.FC = () => {
               </InputIcon>
               <StyledInput
                 type="password"
+                aria-label="Password"
+                autoComplete="current-password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

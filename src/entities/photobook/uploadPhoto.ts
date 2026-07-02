@@ -1,5 +1,5 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
-import { db } from '@/shared/config/firebase/firebase'
+import { db } from '@/shared/config/firebase/db'
 import { createToken } from '@/shared/di'
 import { compressImage } from './compressImage'
 import { PhotoServiceError } from './errors'
