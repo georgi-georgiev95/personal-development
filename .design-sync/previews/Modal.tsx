@@ -34,7 +34,9 @@ export const WithoutCloseButton = () => (
       <h2 style={{ margin: 0 }}>No close button</h2>
     </Modal.Header>
     <Modal.Content>
-      <p style={{ margin: 0 }}>This modal has the header close button hidden.</p>
+      <p style={{ margin: 0 }}>
+        This modal has the header close button hidden.
+      </p>
     </Modal.Content>
     <Modal.Footer>
       <Button variant="primary" onClick={() => {}}>

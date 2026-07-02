@@ -32,7 +32,7 @@ To feed the converter, a dedicated library build was added:
   real root `package.json` for this purpose; it isn't needed and would leak
   into the app's own tooling.
 - **`Auth/ProfileModal`** is excluded via `titleMap: {"Auth/ProfileModal":
-  null}` — it's an app feature component that happens to live under a
+null}` — it's an app feature component that happens to live under a
   `*.stories.ts` file storybook picks up, not part of the reusable ui-kit.
   If more app-only stories get added outside `src/shared/ui-kit/`, they'll
   need the same treatment (or scope stories to `src/shared/ui-kit/**` in a
@@ -46,14 +46,14 @@ To feed the converter, a dedicated library build was added:
   because the card HTML template hardcodes `body{background:#fff}` inline
   (later in document order than any linked stylesheet), so bundling the
   app's `reset.css` into `cssEntry` has no effect on card rendering. Any
-  *new* ui-kit component added later should be checked against a white
+  _new_ ui-kit component added later should be checked against a white
   background first; if it's illegible, copy the same `Wrap` pattern.
 - **`Modal` renders via `createPortal(..., document.body)`** — closed by
   default in both stories (interactive `useState`), so the generated
   preview (mirroring the story's initial closed state) is `[RENDER_THIN]`.
   Fixed via an owned preview (`.design-sync/previews/Modal.tsx`) that
   renders it with `open` hardcoded `true`, plus `cfg.overrides.Modal.cardMode:
-  "single"` for the portal/grid-overflow case. Storybook's own reference
+"single"` for the portal/grid-overflow case. Storybook's own reference
   screenshot for these stories only shows the trigger button (never
   auto-opened) — this is the "gated reference" case: graded `match` by
   judging the opened component alone, not by pixel-diffing against the
@@ -65,7 +65,7 @@ To feed the converter, a dedicated library build was added:
   wired via `cfg.extraFonts`. If the DS ever adds a second weight/style that
   visibly differs (currently one variable-ish file covers 400/600 the CDN
   served identically), re-fetch and widen the `font-weight` range.
-- **Storybook scans `src/**`** (`.storybook/main.ts` `stories` glob), so any
-  new `*.stories.*` file anywhere in the app becomes a sync candidate by
-  default — worth a periodic check that `titleMap` still excludes anything
+- **Storybook scans `src/**`** (`.storybook/main.ts` `stories`glob), so any
+new`_.stories._`file anywhere in the app becomes a sync candidate by
+default — worth a periodic check that`titleMap` still excludes anything
   non-ui-kit.
