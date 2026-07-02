@@ -35,12 +35,13 @@
 ```
 src/
 ├── app/           # Application shell (App.tsx, routes)
-├── features/      # Feature modules (auth, home)
-├── entities/      # Domain entities (user)
+├── features/      # Feature modules (auth, home, photobook)
+├── entities/      # Domain entities (user, photobook, admin)
 ├── shared/        # Shared code
 │   ├── components/  # Reusable React components
 │   ├── ui-kit/      # Design system components
 │   ├── config/      # Configuration (Firebase)
+│   ├── di/          # Dependency injection primitives (see below)
 │   ├── styles/      # Global styles + theme
 │   └── utils/       # Utility functions
 ├── widgets/       # Composite UI widgets
@@ -48,6 +49,23 @@ src/
 ```
 
 This follows **Feature-Sliced Design** principles: entities → features → widgets → app.
+
+### Dependency Injection
+
+`src/shared/di/` provides a lightweight, function-component-only DI pattern
+(React Context — no class-based DI framework fits a hooks-only codebase):
+
+- `createToken<T>(description)` — creates a `Token<T>` (identity + phantom type).
+- `DIProvider` — mounted once at the app root (`src/app/App.tsx`), takes a
+  `bindings: [Token, implementation][]` array.
+- `useInjectable(token)` — resolves the bound implementation inside any
+  component, avoiding prop drilling.
+
+Convention: one token per use-case function, defined **in the same file as
+the use case itself** (e.g. `src/entities/photobook/uploadPhoto.ts` exports
+both `uploadPhoto` and `UploadPhotoToken`). Currently piloted only on the
+`photobook`/`admin` entities — `entities/user` and the auth feature still use
+plain imports and are not yet migrated.
 
 ### Import Conventions
 
@@ -137,10 +155,21 @@ export { ComponentName } from './ComponentName'
 ## Firebase Configuration
 
 - **Auth**: `src/shared/config/firebase/auth.ts`
-- **Firestore**: `src/shared/config/firebase/firebase.ts`
+- **Firestore + Storage**: `src/shared/config/firebase/firebase.ts` (exports
+  `db` and `storage`)
 - **User Service**: `src/entities/user/userService.ts`
+- **Photobook Services**: `src/entities/photobook/` (one file per use case:
+  `uploadPhoto`, `subscribePhotos`, `deletePhoto`, `addComment`,
+  `subscribeComments`, `deleteComment`, `subscribeReaction`,
+  `toggleReaction`) — photos/comments/reactions are public-read, backing the
+  shared `/photobook` community feed
+- **Admin Service**: `src/entities/admin/checkIsAdmin.ts` — checks the
+  `admins/{uid}` Firestore collection (client-read-only, never
+  client-writable; admins are added manually via the Firebase console)
 
 Auth is **optional** — the app is fully public, auth is for future features.
+Reading the photobook feed is public; uploading/commenting/reacting requires
+sign-in.
 
 ## Known Patterns
 

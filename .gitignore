@@ -34,7 +34,7 @@ CODING_GUIDELINES.md
 storybook-static
 .claude/settings.local.json
 
-# design-sync
+# Local design-sync tooling artifacts/cache
 .design-sync/sb-reference/
 .design-sync/learnings/
 .design-sync/.cache/

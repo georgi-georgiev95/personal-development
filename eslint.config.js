@@ -9,7 +9,14 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    '.design-sync',
+    '.ds-sync',
+    'dist-ds-lib',
+    'ds-bundle',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

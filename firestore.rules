@@ -6,5 +6,54 @@ service cloud.firestore {
       // A user can read and write only their own profile document
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    match /admins/{uid} {
+      // Client can read (needed to check "am I admin") but never write —
+      // admin docs are added manually via the Firebase console only.
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /photos/{photoId} {
+      // Public read: the photobook is a shareable community gallery.
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.authorUid == request.auth.uid;
+      // Broad update: other authenticated users increment commentCount
+      // when they comment on someone else's photo.
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null &&
+        (resource.data.authorUid == request.auth.uid || isAdmin());
+
+      match /reactions/{uid} {
+        allow read: if true;
+        // Doc id == uid enforces "one reaction per user" structurally.
+        allow create, delete: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+      }
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null &&
+          request.resource.data.authorUid == request.auth.uid;
+        // Broad update: other authenticated users increment reactionCount
+        // when they react to someone else's comment.
+        allow update: if request.auth != null;
+        allow delete: if request.auth != null &&
+          (resource.data.authorUid == request.auth.uid || isAdmin());
+
+        match /reactions/{uid} {
+          allow read: if true;
+          // Doc id == uid enforces "one reaction per user" structurally.
+          allow create, delete: if request.auth != null && request.auth.uid == uid;
+          allow update: if false;
+        }
+      }
+    }
   }
 }
