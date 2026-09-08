@@ -1,6 +1,6 @@
 ---
 name: ui-kit
-description: 'Use when creating a new reusable UI-kit element in src/shared/ui-kit (for example: /ui-kit checkbox). Scaffolds a generic component with styles, stories, tests, and barrel exports.'
+description: 'Use when creating a new reusable UI-kit element in src/shared/ui-kit (for example: $ui-kit checkbox). Scaffolds a generic component with styles, stories, tests, and barrel exports.'
 ---
 
 # UI-kit Component Scaffolding Skill

@@ -19,10 +19,14 @@ Load task-specific guidance only when relevant:
 User instructions take precedence over harness guidelines when they conflict.
 Follow system and developer instructions above both.
 
+## Project-local skills
+
+Custom skills for this project are stored in `.agents/skills/` and are available by their `$` names: `$github-ticket`, `$tdd`, and `$ui-kit`.
+
 ## TDD Skill
 
-When the user invokes `/tdd`, or asks to implement a feature or fix a bug
-"using TDD", follow `.github/skills/tdd/SKILL.md` (RED → GREEN → REFACTOR).
+When the user invokes `$tdd`, or asks to implement a feature or fix a bug
+"using TDD", follow `.agents/skills/tdd/SKILL.md` (RED → GREEN → REFACTOR).
 It applies only to logic in scope for coverage (`src/entities/**` and
 `src/shared/utils/**` per `TESTING.md`), not UI.
 

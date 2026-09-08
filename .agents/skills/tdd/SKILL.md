@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: 'Enforce strict Test-Driven Development (RED -> GREEN -> REFACTOR) when implementing features or fixing bugs. Use whenever the user invokes /tdd, or asks to build/fix something "using TDD". Only applies to logic covered by CLAUDE.md''s 100% coverage scope (src/entities/** and src/shared/utils/**) per TESTING.md -- do not write tests for UI/components/stories.'
+description: 'Enforce strict Test-Driven Development (RED -> GREEN -> REFACTOR) when implementing features or fixing bugs. Use whenever the user invokes $tdd, or asks to build/fix something "using TDD". Only applies to logic covered by AGENTS.md''s 100% coverage scope (src/entities/** and src/shared/utils/**) per TESTING.md -- do not write tests for UI/components/stories.'
 ---
 
 # Test-Driven Development Skill
