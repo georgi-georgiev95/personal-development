@@ -1,0 +1,41 @@
+#!/bin/sh
+
+commit_message_file="$1"
+[ "$2" = "message" ] || exit 0
+
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+ticket_number="$(printf '%s\n' "$branch" | grep -Eio 'pd-[1-9][0-9]*' | head -n 1 | cut -d '-' -f 2)"
+
+if [ -z "$ticket_number" ]; then
+  printf '%s\n' "Commit blocked: branch '$branch' must include a ticket key such as PD-2." >&2
+  exit 1
+fi
+
+if ! repository="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"; then
+  printf '%s\n' 'Commit blocked: unable to identify the GitHub repository.' >&2
+  exit 1
+fi
+
+if ! issues_json="$(gh api --paginate --slurp "repos/$repository/issues?state=all&per_page=100")"; then
+  printf '%s\n' "Commit blocked: unable to retrieve GitHub issues for [PD-$ticket_number]." >&2
+  exit 1
+fi
+
+if ! ticket="$(printf '%s' "$issues_json" | jq -r --arg prefix "[PD-$ticket_number] " '[.[][] | select((has("pull_request") | not) and (.title | type == "string") and (.title | startswith($prefix))) | .title] | if length == 1 then .[0] else empty end')" || [ -z "$ticket" ]; then
+  printf '%s\n' "Commit blocked: unable to uniquely resolve [PD-$ticket_number] from GitHub issues." >&2
+  exit 1
+fi
+
+first_line="$(sed -n '1p' "$commit_message_file")"
+
+case "$first_line" in
+  "$ticket" | "$ticket | "* | \[PD-[0-9]*\]\ * ) exit 0 ;;
+esac
+
+[ -n "$first_line" ] || exit 0
+
+temporary_file="${commit_message_file}.pd-ticket"
+{
+  printf '%s | %s\n' "$ticket" "$first_line"
+  sed '1d' "$commit_message_file"
+} > "$temporary_file" && mv "$temporary_file" "$commit_message_file"
