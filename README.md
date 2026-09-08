@@ -92,6 +92,20 @@ Two tools keep it that way:
 - Coverage scope: `src/entities/**`, `src/shared/utils/**`
 - Enforced via `pnpm coverage` (fails if any metric drops below 100%)
 
+## Custom Agent Skills
+
+Project-specific Codex skills live in [`.agents/skills/`](.agents/skills/). They
+extend the agent with repeatable workflows and can grow as the project evolves.
+
+| Skill | Purpose | Use when |
+| ----- | ------- | -------- |
+| `$github-ticket` | Creates a GitHub issue with the next sequential `[PD-X]` title and a `Goal:` description. | A new numbered project ticket is needed. |
+| `$tdd` | Enforces the RED → GREEN → REFACTOR workflow for business logic and utility changes. | Implementing or fixing covered logic with test-driven development. |
+| `$ui-kit` | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports. | Adding a new component under `src/shared/ui-kit/`. |
+
+When adding a skill, create a directory under `.agents/skills/` with a
+`SKILL.md` file and add it to this table with its purpose and usage guidance.
+
 ## Guidelines
 
 - Put feature-specific code inside `src/features/<feature-name>/`.
