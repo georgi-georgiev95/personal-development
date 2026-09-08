@@ -1,6 +1,6 @@
 # Project Harness
 
-> **Universal AI Agent Context** — Tool-agnostic harness for Cursor, Copilot, Claude, and other AI coding assistants.
+> **Universal AI Agent Context** — Tool-agnostic harness for Codex, Cursor, Copilot, Claude, and other AI coding assistants.
 
 ## What is This?
 
@@ -8,7 +8,7 @@ This harness provides structured context that turns any AI coding assistant into
 
 ## Philosophy
 
-The harness is **tool-agnostic**. Whether you're using GitHub Copilot, Cursor, Claude Desktop, or any other AI assistant, these files provide:
+The harness is **tool-agnostic**. Whether you're using Codex, GitHub Copilot, Cursor, Claude, or another AI assistant, these files provide:
 
 1. **Persistent Memory** — What the agent should remember across sessions
 2. **Context Priority** — What information matters most
@@ -54,10 +54,13 @@ Not all files are equal. Load in this order:
 
 If you're configuring an AI tool:
 
-1. **Cursor**: Add `harness/**` to your workspace context settings
-2. **Copilot**: Reference harness files in `.github/copilot-instructions.md`
-3. **Claude Desktop**: Include harness directory in your project context
-4. **Custom agents**: Load harness files at session startup
+1. **Codex**: No manual setup is needed. Codex reads the repository-root
+   `AGENTS.md`, which loads the core harness and routes task-specific guidance.
+2. **Cursor**: Add `harness/**` to your workspace context settings
+3. **Copilot**: Reference harness files in `.github/copilot-instructions.md`
+4. **Claude**: Use the repository-root `CLAUDE.md` in Claude Code, or include
+   the harness directory in Claude Desktop project context
+5. **Custom agents**: Load harness files at session startup
 
 ## Maintenance
 
@@ -68,5 +71,6 @@ If you're configuring an AI tool:
 
 ---
 
-**Last Updated**: 2026-06-29  
-**Harness Version**: 1.0.0
+**Last Updated**: 2026-09-08
+
+**Harness Version**: 1.1.0

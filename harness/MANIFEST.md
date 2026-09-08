@@ -1,6 +1,6 @@
 # Harness Manifest
 
-> **Auto-generated index** of harness files for AI tools. Last updated: 2026-06-29
+> **Index** of harness files and integration entry points for AI tools. Last updated: 2026-09-08
 
 ## Load Priority Map
 
@@ -137,6 +137,12 @@ logs/ ──────────> Session-specific state (optional)
 
 ## AI Tool Integration Paths
 
+### Codex
+
+- Reads: repository-root `AGENTS.md`
+- Auto-loads: GUARDRAILS, CONTEXT, MEMORY via the instructions in `AGENTS.md`
+- On demand: SKILLS and TOOLS according to the current task
+
 ### GitHub Copilot
 
 Reads: `.github/copilot-instructions.md` → references `harness/`  
@@ -159,6 +165,8 @@ Loads: Via file system tools or API
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2026-06-29  
+**Version**: 1.1.0
+
+**Last Updated**: 2026-09-08
+
 **Spec**: [Harness Engineering Guide](https://harness-guide.com/)

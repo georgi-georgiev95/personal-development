@@ -27,6 +27,11 @@ harness/
 
 ## 🚀 Quick Start
 
+### For Codex
+
+**Already integrated.** The repository-root `AGENTS.md` is Codex's entry point.
+It loads the shared core harness and routes to task-specific skills and tools.
+
 ### For GitHub Copilot (Current Setup)
 
 **Already integrated!** Your `.github/copilot-instructions.md` now references the harness.
@@ -308,9 +313,10 @@ Expected: AI loads TOOLS.md, runs `pnpm test`
 
 Your harness is **tool-agnostic** and ready for:
 
+- ✅ Codex (already configured through `AGENTS.md`)
 - ✅ GitHub Copilot (already configured)
 - ✅ Cursor (add to workspace context)
-- ✅ Claude Desktop (load files at session start)
+- ✅ Claude Code (`CLAUDE.md`) and Claude Desktop (load files at session start)
 - ✅ Any future AI coding tools
 
 **Next steps**:
@@ -323,6 +329,10 @@ Your harness is **tool-agnostic** and ready for:
 
 ---
 
-**Created**: 2026-06-29  
-**Harness Version**: 1.0.0  
+**Created**: 2026-06-29
+
+**Last Updated**: 2026-09-08
+
+**Harness Version**: 1.1.0
+
 **Spec**: [Harness Engineering Guide](https://harness-guide.com/)

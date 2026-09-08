@@ -216,6 +216,13 @@ This harness is **tool-agnostic**, but different tools have different capabiliti
 - Can apply multi-file edits
 - Has semantic codebase search
 
+### Codex
+
+- Reads repository instructions from `AGENTS.md`
+- Can inspect and edit files and run commands with the available tools
+- Should use the shared harness as project context and adapt to active sandbox
+  and approval constraints
+
 ### Claude Desktop
 
 - Limited to file operations via tools
@@ -234,6 +241,8 @@ If you encounter something you cannot handle:
 
 ---
 
-**Last Updated**: 2026-06-29  
-**Version**: 1.0.0  
+**Last Updated**: 2026-09-08
+
+**Version**: 1.1.0
+
 **Compliance**: Mandatory for all AI agents

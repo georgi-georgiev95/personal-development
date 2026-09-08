@@ -20,6 +20,12 @@
 
 ## For Humans: Setup
 
+### Codex
+
+Already configured. Codex automatically discovers the repository-root
+`AGENTS.md`. That file instructs Codex to load the core harness files and to
+load `SKILLS.md` or `TOOLS.md` only when the task requires them.
+
 ### GitHub Copilot (VS Code)
 
 Already configured! Copilot reads `.github/copilot-instructions.md`, which references this harness.
@@ -106,10 +112,10 @@ Point your tool to load these files at session start:
 
 ## Token Budget Awareness
 
-| Context Window       | Harness Files | Source Code Budget |
-| -------------------- | ------------- | ------------------ |
-| 128K (GPT-4, Claude) | ~3,700 tokens | ~120K tokens       |
-| 32K (older models)   | ~3,700 tokens | ~25K tokens        |
+| Context Window     | Harness Files | Source Code Budget |
+| ------------------ | ------------- | ------------------ |
+| 128K               | ~3,700 tokens | ~120K tokens       |
+| 32K (older models) | ~3,700 tokens | ~25K tokens        |
 
 **Rule of thumb**: If your task needs >50K tokens of source code, break it into smaller tasks.
 
@@ -209,4 +215,4 @@ If you find yourself repeating instructions to the AI, add them to the harness:
 - Check [harness/CONTEXT.md](CONTEXT.md) for context assembly rules
 - Review [harness/README.md](README.md) for overview
 
-**Last Updated**: 2026-06-29
+**Last Updated**: 2026-09-08
