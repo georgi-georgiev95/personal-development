@@ -1,0 +1,6 @@
+interface:
+  display_name: "GitHub Ticket"
+  short_description: "Create PD tickets with a goal description"
+  default_prompt: "Use $github-ticket to create a new PD ticket."
+policy:
+  allow_implicit_invocation: false
