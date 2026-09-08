@@ -8,7 +8,6 @@ const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
 const PhotobookSection = lazy(() => import('./PhotobookSection'))
-const SnakeGamePage = lazy(() => import('@/features/snake/pages/SnakeGamePage'))
 
 export const AppRoutes = () => (
   <ErrorBoundary>
@@ -32,7 +31,6 @@ export const AppRoutes = () => (
           }
         />
         <Route path="/photobook/*" element={<PhotobookSection />} />
-        <Route path="/snake" element={<SnakeGamePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
