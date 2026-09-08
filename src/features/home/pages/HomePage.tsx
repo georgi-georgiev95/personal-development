@@ -60,17 +60,6 @@ const PROJECTS: ProjectCardData[] = [
     route: '/photobook',
     cta: 'view project',
   },
-  {
-    id: 'snake',
-    name: 'Snake',
-    badge: 'Mini game',
-    description:
-      'Neon snake on a canvas grid — steer with arrows or WASD, swipe on touch. It speeds up as you score.',
-    tags: ['CANVAS', 'GAME', 'TOUCH'],
-    accent: theme.colors.secondary,
-    route: '/snake',
-    cta: 'play game',
-  },
 ]
 
 // Isolated so the once-per-second tick re-renders only this tiny component
