@@ -104,6 +104,8 @@ extend the agent with repeatable workflows and can grow as the project evolves.
 | `$ui-kit` | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports. | Adding a new component under `src/shared/ui-kit/`. |
 | `$ponytail` | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity. | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution. |
 | `$add-new-skill` | Creates a project skill under `.agents/skills/` and registers it in this README. | Adding or importing a new custom agent skill. |
+| `$diagnosing-bugs` | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes. | Investigating unexpected behavior, failing checks, or regressions. |
+| `$pr-to-main` | Runs the complete pre-PR gate and creates a pull request from the current branch to `main`. | Opening a validated PR for the current branch. |
 
 When adding a skill, create a directory under `.agents/skills/` with a
 `SKILL.md` file and add it to this table with its purpose and usage guidance.
