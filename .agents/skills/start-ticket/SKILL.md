@@ -1,6 +1,6 @@
 ---
 name: start-ticket
-description: "Fetch a PD ticket from GitHub, sync develop, and create the correctly typed feature or bugfix branch. Use when starting work on a ticket such as PD-12."
+description: "Fetch a PD ticket from GitHub, sync main, and create the correctly typed feature or bugfix branch. Use when starting work on a ticket such as PD-12."
 ---
 
 # Start Ticket
@@ -46,7 +46,7 @@ Start implementation work for an existing GitHub ticket supplied as `$start-tick
    workflow. Then run these commands in order:
 
    ```bash
-   git ch develop
+   git ch main
    git pull
    git ch -b <type>/pd-n-<slug>
    ```
