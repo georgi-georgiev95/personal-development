@@ -100,8 +100,10 @@ extend the agent with repeatable workflows and can grow as the project evolves.
 | Skill | Purpose | Use when |
 | ----- | ------- | -------- |
 | `$github-ticket` | Creates a GitHub issue with the next sequential `[PD-X]` title and a `Goal:` description. | A new numbered project ticket is needed. |
+| `$start-ticket` | Fetches a `PD-N` GitHub ticket, syncs `develop`, and creates a typed `feature/` or `bugfix/` branch from its label. | Starting implementation work on an existing ticket. |
 | `$tdd` | Enforces the RED → GREEN → REFACTOR workflow for business logic and utility changes. | Implementing or fixing covered logic with test-driven development. |
 | `$ui-kit` | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports. | Adding a new component under `src/shared/ui-kit/`. |
+| `$code-review` | Reviews changes against project standards, the requested specification, and unnecessary complexity, producing actionable findings. | Reviewing a ticket, diff, branch, or working-tree change. |
 | `$ponytail` | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity. | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution. |
 | `$add-new-skill` | Creates a project skill under `.agents/skills/` and registers it in this README. | Adding or importing a new custom agent skill. |
 | `$diagnosing-bugs` | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes. | Investigating unexpected behavior, failing checks, or regressions. |
