@@ -24,6 +24,10 @@ const base = `
     cursor: not-allowed;
     transform: none;
   }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    min-height: 44px;
+  }
 `
 
 export const PrimaryButton = styled.button`

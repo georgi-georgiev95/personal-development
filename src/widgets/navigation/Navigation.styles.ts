@@ -27,6 +27,11 @@ export const NavLeft = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding-top: 6px;
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    padding-top: 11px;
+  }
 `
 
 export const NavStatusRow = styled.div`
@@ -181,5 +186,10 @@ export const NavButton = styled.button`
 
   &:hover {
     color: rgba(255, 255, 255, 0.75);
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    min-height: 44px;
+    padding: 10px 0;
   }
 `

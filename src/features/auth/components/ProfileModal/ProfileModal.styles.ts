@@ -159,6 +159,11 @@ export const TriggerButton = styled.button`
     outline: none;
     box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
   }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    min-height: 44px;
+    padding: 9px 0;
+  }
 `
 
 export const TriggerAvatar = styled.span`
