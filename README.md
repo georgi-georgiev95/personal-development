@@ -106,6 +106,7 @@ extend the agent with repeatable workflows and can grow as the project evolves.
 | `$code-review` | Reviews changes against project standards, the requested specification, and unnecessary complexity, producing actionable findings. | Reviewing a ticket, diff, branch, or working-tree change. |
 | `$ponytail` | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity. | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution. |
 | `$add-new-skill` | Creates a project skill under `.agents/skills/` and registers it in this README. | Adding or importing a new custom agent skill. |
+| `$codebase-design` | Improves module boundaries and interfaces so behavior is hidden behind small, testable APIs. | Designing or refactoring code structure, dependencies, or seams between modules. |
 | `$diagnosing-bugs` | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes. | Investigating unexpected behavior, failing checks, or regressions. |
 | `$pr-to-main` | Runs the complete pre-PR gate and creates a pull request from the current branch to `main`. | Opening a validated PR for the current branch. |
 
