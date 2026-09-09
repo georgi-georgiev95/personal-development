@@ -43,18 +43,24 @@ Start implementation work for an existing GitHub ticket supplied as `$start-tick
 6. Verify the target branch does not already exist locally or on `origin`.
    Stop instead of overwriting or silently reusing an existing branch.
 7. Verify the repository has the `git ch` checkout alias required by this
-   workflow. Then run these commands in order:
+   workflow. Then sync `main` and create the branch through GitHub's issue
+   development workflow so GitHub links the branch to the ticket. Use the
+   GitHub issue number found in step 2, not the `PD-N` sequence number. Run
+   these commands in order:
 
    ```bash
    git ch main
    git pull
-   git ch -b <type>/pd-n-<slug>
+   gh issue develop <github-issue-number> --base main --name <type>/pd-n-<slug> --checkout
    ```
 
    Do not replace `git pull` with a rebase or force operation. If any command
    fails, stop and report the command and error without claiming the branch was
-   created.
-8. Report the ticket title and URL, selected workflow label, and created branch.
+   created. After the command succeeds, verify the linked branch with
+   `gh issue develop --list <github-issue-number>`.
+8. Report the ticket title and URL, selected workflow label, created branch,
+   and that the branch is linked in the issue's Development section. The issue
+   normally remains open until its linked pull request is merged.
 
 Do not commit, push, or open a pull request as part of this skill. Do not
 silently infer a branch type when labels are missing or conflicting.
