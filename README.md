@@ -102,6 +102,8 @@ extend the agent with repeatable workflows and can grow as the project evolves.
 | `$github-ticket` | Creates a GitHub issue with the next sequential `[PD-X]` title and a `Goal:` description. | A new numbered project ticket is needed. |
 | `$tdd` | Enforces the RED → GREEN → REFACTOR workflow for business logic and utility changes. | Implementing or fixing covered logic with test-driven development. |
 | `$ui-kit` | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports. | Adding a new component under `src/shared/ui-kit/`. |
+| `$ponytail` | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity. | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution. |
+| `$add-new-skill` | Creates a project skill under `.agents/skills/` and registers it in this README. | Adding or importing a new custom agent skill. |
 
 When adding a skill, create a directory under `.agents/skills/` with a
 `SKILL.md` file and add it to this table with its purpose and usage guidance.
