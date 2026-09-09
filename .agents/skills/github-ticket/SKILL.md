@@ -31,10 +31,15 @@ collect any missing value in this order: name first, then description.
 
 After both values are provided:
 
-1. Check authentication in the agent terminal with `gh auth status -h github.com`.
-   If sandbox restrictions prevent authentication, use the available approval
-   mechanism to retry outside the sandbox. If authentication still fails, stop
-   and report the blocker; the user may need `gh auth login -h github.com`.
+1. Require `GH_TOKEN` from the process environment or the repository `.env`
+   file. If it is not already set, load only the repository `.env` value for
+   `GH_TOKEN` before running GitHub CLI commands; do not print, log, persist, or
+   include the token in issue content or command output. Run GitHub CLI commands
+   with that environment variable available so `gh` authenticates through the
+   token rather than its stored account session. Verify authentication with
+   `gh auth status -h github.com`. If `GH_TOKEN` is missing or invalid, stop and
+   report the blocker; do not fall back to `gh auth login` or a stored GitHub
+   credential.
 2. Determine the repository from the current directory with
    `gh repo view --json nameWithOwner`. Retrieve every open and closed issue as
    JSON, for example with `gh api --paginate --slurp
