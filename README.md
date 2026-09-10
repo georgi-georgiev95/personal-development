@@ -109,6 +109,7 @@ extend the agent with repeatable workflows and can grow as the project evolves.
 | `$prototype` | Builds a focused, disposable prototype and records the evidence and decision without prematurely making it production code. | Answering a UI, state-model, architecture, or technical-feasibility question. |
 | `$codebase-design` | Improves module boundaries and interfaces so behavior is hidden behind small, testable APIs. | Designing or refactoring code structure, dependencies, or seams between modules. |
 | `$diagnosing-bugs` | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes. | Investigating unexpected behavior, failing checks, or regressions. |
+| `$resolving-merge-conflicts` | Resolves Git merge or rebase conflicts using commit history and original intent, then verifies the resulting branch. | A merge, rebase, or cherry-pick has conflicts that need deliberate resolution. |
 | `$pr-to-main` | Runs the complete pre-PR gate and creates a pull request from the current branch to `main`. | Opening a validated PR for the current branch. |
 
 When adding a skill, create a directory under `.agents/skills/` with a
