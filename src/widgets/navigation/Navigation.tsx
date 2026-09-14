@@ -12,6 +12,7 @@ import {
   NavStatusRow,
   NavStatusDot,
   NavRight,
+  NavLinks,
   NavAuthRow,
   NavUserRow,
   NavSep,
@@ -66,6 +67,29 @@ export const Navigation: React.FC = () => {
         </NavStatusRow>
       </NavLeft>
       <NavRight>
+        <NavLinks aria-label="Primary navigation">
+          <NavLink
+            href="/projects"
+            $active={location.pathname.startsWith('/projects')}
+            onClick={(e) => handleClick(e, '/projects')}
+          >
+            Projects
+          </NavLink>
+          <NavLink
+            href="/about"
+            $active={location.pathname === '/about'}
+            onClick={(e) => handleClick(e, '/about')}
+          >
+            About
+          </NavLink>
+          <NavLink
+            href="/engineering"
+            $active={location.pathname === '/engineering'}
+            onClick={(e) => handleClick(e, '/engineering')}
+          >
+            Engineering
+          </NavLink>
+        </NavLinks>
         <NavAuthRow>
           {loading ? null : user ? (
             <NavUserRow>

@@ -126,6 +126,19 @@ export const HeroText = styled.div`
   }
 `
 
+export const HeroSummary = styled.p`
+  max-width: 390px;
+  margin: ${theme.spacing.md} 0 0;
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.md};
+  line-height: ${theme.lineHeight.relaxed};
+
+  @media (max-width: 1023px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+`
+
 export const HeroCursor = styled.span`
   display: inline-block;
   width: 9px;
@@ -171,6 +184,49 @@ export const HeroPill = styled.span`
   font-size: ${theme.fontSizes.xs};
   letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
+`
+
+export const HeroLinks = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${theme.spacing.sm} ${theme.spacing.md};
+  margin-top: ${theme.spacing.lg};
+`
+
+export const HeroLink = styled(Link)`
+  color: ${theme.colors.primary};
+  font-size: ${theme.fontSizes.sm};
+  font-weight: 600;
+  letter-spacing: ${theme.letterSpacing.wide};
+  text-decoration: none;
+
+  &:hover {
+    color: ${theme.colors.text};
+  }
+`
+
+export const ProfileLinks = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${theme.spacing.xs} ${theme.spacing.md};
+  margin-top: ${theme.spacing.md};
+`
+
+export const ProfileLink = styled.a`
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: 0.04em;
+  text-decoration: none;
+
+  &:hover {
+    color: ${theme.colors.primary};
+  }
+`
+
+export const ProfilePlaceholder = styled.span`
+  color: ${theme.colors.muted};
+  font-size: ${theme.fontSizes.xs};
+  letter-spacing: 0.04em;
 `
 
 // ─── Feature card ────────────────────────────────────────────────────────────
@@ -329,27 +385,49 @@ export const SidebarLabel = styled.p`
   text-transform: uppercase;
 `
 
-export const SidebarLink = styled(Link)`
+export const SearchHint = styled.p`
+  max-width: 330px;
   margin: 0;
-  padding: 0;
+  color: ${theme.colors.muted};
+  font-size: ${theme.fontSizes.sm};
+  line-height: ${theme.lineHeight.relaxed};
+`
+
+export const SearchResults = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${theme.spacing.xs};
+  max-width: 340px;
+`
+
+export const SearchResult = styled(Link)<{ $active: boolean }>`
   display: inline-flex;
   align-items: center;
   gap: ${theme.spacing.sm};
-  color: ${theme.colors.textSecondary};
+  padding: 4px 8px;
+  border: 1px solid
+    ${({ $active }) => ($active ? theme.colors.primary : 'transparent')};
+  color: ${theme.colors.primary};
   text-decoration: none;
+  background: ${({ $active }) =>
+    $active ? 'rgba(45, 212, 191, 0.08)' : 'transparent'};
 `
 
-export const SidebarLinkArrow = styled.span`
-  font-size: ${theme.fontSizes.sm};
+export const SearchResultArrow = styled.span`
   color: ${theme.colors.muted};
 `
 
-export const SidebarLinkTitle = styled.span`
+export const SearchResultTitle = styled.span`
   font-size: ${theme.fontSizes.lg};
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: ${theme.colors.primary};
-  transition: color ${theme.transition.fast};
+`
+
+export const SearchEmpty = styled.p`
+  margin: 0;
+  padding: 4px 8px;
+  color: ${theme.colors.muted};
+  font-size: ${theme.fontSizes.sm};
 `
 
 export const ChatForm = styled.form`

@@ -134,6 +134,16 @@ export const NavAuthRow = styled.div`
   gap: 18px;
 `
 
+export const NavLinks = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  @media (max-width: ${theme.breakpoint.tablet}) {
+    display: none;
+  }
+`
+
 export const NavUserRow = styled.div`
   display: flex;
   align-items: center;
