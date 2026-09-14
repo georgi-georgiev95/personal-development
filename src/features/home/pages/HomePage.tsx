@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { portfolioProjects } from '@/features/portfolio/data/projects'
 import { theme } from '@/shared/styles/theme'
 import {
   PageWrapper,
@@ -7,9 +9,15 @@ import {
   HeadlineWrap,
   HeroLabel,
   HeroText,
+  HeroSummary,
   HeroCursor,
   HeroPillsRow,
   HeroPill,
+  HeroLinks,
+  HeroLink,
+  ProfileLinks,
+  ProfileLink,
+  ProfilePlaceholder,
   FeatureCardZone,
   FeatureCard,
   CardGlow,
@@ -26,13 +34,15 @@ import {
   LeftCol,
   RightCol,
   SidebarLabel,
-  SidebarLink,
-  SidebarLinkArrow,
-  SidebarLinkTitle,
+  SearchHint,
+  SearchResults,
+  SearchResult,
+  SearchResultArrow,
+  SearchResultTitle,
+  SearchEmpty,
   ChatForm,
   ChatPrompt,
   ChatInput,
-  ChatReply,
   Coordinates,
   CopyrightText,
 } from './HomePage.styles'
@@ -48,19 +58,18 @@ interface ProjectCardData {
   cta: string
 }
 
-const PROJECTS: ProjectCardData[] = [
-  {
-    id: 'photobook',
-    name: 'Photobook',
-    badge: 'Featured project',
-    description:
-      'Shared community photo feed — upload, comment, and react in real time.',
-    tags: ['FIRESTORE', 'STORAGE', 'REALTIME'],
-    accent: theme.colors.success,
-    route: '/photobook',
-    cta: 'view project',
-  },
-]
+const PROJECTS: ProjectCardData[] = portfolioProjects.map((project) => ({
+  id: project.id,
+  name: project.title,
+  badge: project.status === 'complete' ? 'Featured project' : 'On the roadmap',
+  description: project.summary,
+  tags: project.technologies
+    .slice(0, 3)
+    .map((technology) => technology.toUpperCase()),
+  accent: theme.colors[project.accent],
+  route: project.route,
+  cta: project.status === 'complete' ? 'view project' : 'view roadmap',
+}))
 
 // Isolated so the once-per-second tick re-renders only this tiny component
 // instead of the whole page.
@@ -76,20 +85,68 @@ const LiveClock: React.FC = () => {
 }
 
 export const HomePage: React.FC = () => {
-  const [chatValue, setChatValue] = useState('')
-  const [chatReply, setChatReply] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const [searchValue, setSearchValue] = useState('')
+  const [activeResult, setActiveResult] = useState(0)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
-  const handleChatSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+  const searchResults = useMemo(() => {
+    const query = searchValue.trim().toLowerCase()
+    if (!query) return []
+
+    return portfolioProjects
+      .map((project) => ({
+        project,
+        searchableText: [
+          project.title,
+          project.summary,
+          project.description,
+          project.category,
+          ...project.technologies,
+          ...project.skills,
+          ...project.highlights,
+        ]
+          .join(' ')
+          .toLowerCase(),
+      }))
+      .filter(({ searchableText }) => searchableText.includes(query))
+      .slice(0, 5)
+      .map(({ project }) => project)
+  }, [searchValue])
+
+  useEffect(() => {
+    searchInputRef.current?.focus()
+  }, [])
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const project = searchResults[activeResult]
+    if (project) navigate(project.demoRoute ?? project.route)
+  }
+
+  const handleSearchKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (!searchResults.length) return
+
+    if (event.key === 'Enter') {
       event.preventDefault()
-      if (!chatValue.trim()) {
-        return
-      }
-      setChatReply('coming soon — an AI assistant trained on my projects.')
-      setChatValue('')
-    },
-    [chatValue]
-  )
+      const project = searchResults[activeResult]
+      if (project) navigate(project.demoRoute ?? project.route)
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActiveResult((current) => (current + 1) % searchResults.length)
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveResult(
+        (current) => (current - 1 + searchResults.length) % searchResults.length
+      )
+    }
+  }
 
   return (
     <PageWrapper>
@@ -102,19 +159,41 @@ export const HomePage: React.FC = () => {
         <HeadlineWrap>
           <HeroLabel>// about</HeroLabel>
           <HeroText>
-            Front-end engineer crafting interactive, three-dimensional
-            interfaces for the web
+            Front-end engineer in Varna building reliable interfaces for complex
+            products
             <HeroCursor />
           </HeroText>
+          <HeroSummary>
+            React, TypeScript, fintech experience, and AI-assisted engineering
+            in one evolving portfolio.
+          </HeroSummary>
           <HeroPillsRow>
             <HeroPill>React</HeroPill>
-            <HeroPill>Three.js</HeroPill>
-            <HeroPill>Firebase</HeroPill>
+            <HeroPill>TypeScript</HeroPill>
+            <HeroPill>Fintech</HeroPill>
           </HeroPillsRow>
+          <HeroLinks>
+            <HeroLink to="/projects">Explore projects →</HeroLink>
+            <HeroLink to="/engineering">Engineering details →</HeroLink>
+          </HeroLinks>
+          <ProfileLinks aria-label="Profile links">
+            <ProfileLink
+              href="https://github.com/georgi-georgiev95/personal-development"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub →
+            </ProfileLink>
+            <ProfilePlaceholder>CV available on request</ProfilePlaceholder>
+            <ProfilePlaceholder>
+              LinkedIn profile coming soon
+            </ProfilePlaceholder>
+            <ProfilePlaceholder>Contact details coming soon</ProfilePlaceholder>
+          </ProfileLinks>
         </HeadlineWrap>
 
         <FeatureCardZone>
-          {PROJECTS.map((project) => (
+          {PROJECTS.slice(0, 3).map((project) => (
             <FeatureCard key={project.id} $accent={project.accent}>
               <CardGlow $accent={project.accent} />
               <CardInner>
@@ -143,29 +222,61 @@ export const HomePage: React.FC = () => {
       <BottomRow>
         <LeftCol>
           <SidebarLabel>What are you looking for?</SidebarLabel>
-          {PROJECTS.map((project) => (
-            <SidebarLink key={project.id} to={project.route}>
-              <SidebarLinkArrow>→</SidebarLinkArrow>
-              <SidebarLinkTitle>{project.name}</SidebarLinkTitle>
-            </SidebarLink>
-          ))}
-          <ChatForm onSubmit={handleChatSubmit}>
+          {!searchValue && (
+            <SearchHint>
+              try to find what you are looking for by keyword
+            </SearchHint>
+          )}
+          {searchValue && (
+            <SearchResults id="project-search-results" role="listbox">
+              {searchResults.length ? (
+                searchResults.map((project, index) => (
+                  <SearchResult
+                    key={project.id}
+                    id={`project-result-${project.id}`}
+                    to={project.demoRoute ?? project.route}
+                    $active={index === activeResult}
+                    onMouseEnter={() => setActiveResult(index)}
+                    role="option"
+                    aria-selected={index === activeResult}
+                  >
+                    <SearchResultArrow>→</SearchResultArrow>
+                    <SearchResultTitle>{project.title}</SearchResultTitle>
+                  </SearchResult>
+                ))
+              ) : (
+                <SearchEmpty>nothing matches that keyword</SearchEmpty>
+              )}
+            </SearchResults>
+          )}
+          <ChatForm onSubmit={handleSearchSubmit}>
             <ChatPrompt>&gt;</ChatPrompt>
             <ChatInput
-              aria-label="Ask me anything"
-              placeholder="ask me anything..."
-              value={chatValue}
-              onChange={(event) => setChatValue(event.target.value)}
+              ref={searchInputRef}
+              aria-label="Search projects"
+              aria-controls="project-search-results"
+              aria-activedescendant={
+                searchResults[activeResult]
+                  ? `project-result-${searchResults[activeResult].id}`
+                  : undefined
+              }
+              placeholder="search projects..."
+              role="combobox"
+              value={searchValue}
+              onChange={(event) => {
+                setSearchValue(event.target.value)
+                setActiveResult(0)
+              }}
+              onKeyDown={handleSearchKeyDown}
             />
           </ChatForm>
-          {chatReply && <ChatReply>{`→ ${chatReply}`}</ChatReply>}
         </LeftCol>
 
         <RightCol>
           <Coordinates>
             <div>42.6977° N, 23.3219° E</div>
             <div>
-              Sofia, BG · <LiveClock />
+              Varna, BG · <LiveClock />
             </div>
           </Coordinates>
           <CopyrightText>

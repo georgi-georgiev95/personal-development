@@ -7,6 +7,16 @@ import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
+const ProjectsPage = lazy(
+  () => import('@/features/portfolio/pages/ProjectsPage')
+)
+const AboutPage = lazy(() => import('@/features/portfolio/pages/AboutPage'))
+const EngineeringPage = lazy(
+  () => import('@/features/portfolio/pages/EngineeringPage')
+)
+const ProjectDetailPage = lazy(
+  () => import('@/features/portfolio/pages/ProjectDetailPage')
+)
 const PhotobookSection = lazy(() => import('./PhotobookSection'))
 
 export const AppRoutes = () => (
@@ -30,6 +40,10 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
+        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="/projects/*" element={<ProjectsPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/engineering" element={<EngineeringPage />} />
         <Route path="/photobook/*" element={<PhotobookSection />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
