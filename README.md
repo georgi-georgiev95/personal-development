@@ -44,6 +44,9 @@ saved task-to-handoff workflows and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, billing, and production backend
 rollout are deferred.
 
+See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
+contract](docs/first-release-workflow.md) for the scope and acceptance rules.
+
 ## Layer Responsibilities
 
 | Layer       | What belongs there                                                           |
