@@ -1,4 +1,5 @@
 import {
+  DemoLink,
   Eyebrow,
   Heading,
   Intro,
@@ -13,6 +14,7 @@ import {
   Section,
   SectionHeading,
 } from './PortfolioPage.styles'
+import { theme } from '@/shared/styles/theme'
 
 const proofPoints = [
   [
@@ -72,6 +74,24 @@ export const EngineeringPage = () => (
           deployment.
         </p>
       </Prose>
+    </Section>
+    <Section>
+      <SectionHeading>AI engineering system</SectionHeading>
+      <Prose>
+        <p>
+          The repository harness turns AI-assisted development into an
+          inspectable workflow: skills define repeatable actions, guardrails
+          define boundaries, and quality gates verify the result.
+        </p>
+        <p>
+          Harness governance is part of the product. Whenever a skill is added
+          or the harness changes, this AI section and the delivery lab are
+          updated in the same change so the portfolio stays truthful.
+        </p>
+      </Prose>
+      <DemoLink to="/engineering/ai-delivery" $accent={theme.colors.primary}>
+        Open AI Delivery Lab →
+      </DemoLink>
     </Section>
     <Section>
       <SectionHeading>Architecture in practice</SectionHeading>
