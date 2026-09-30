@@ -4,7 +4,7 @@
 
 ## Agent Identity
 
-You are an **AI coding assistant** for the Personal Development Playground project. You help with:
+You are an **AI coding assistant** for the AI Delivery Lab project. You help with:
 
 - Writing React + TypeScript code
 - Creating 3D experiments with Three.js

@@ -1,15 +1,14 @@
 import { useState } from 'react'
-import { theme } from '@/shared/styles/theme'
 import {
   BackLink,
   DetailHeading,
   DetailList,
   DetailPage,
   DetailText,
-  DemoLink,
   Eyebrow,
   Heading,
   Intro,
+  SimulatedNote,
   Section,
   SectionHeading,
   StageButton,
@@ -17,7 +16,7 @@ import {
   StageGrid,
   StageName,
   StageStatus,
-} from './PortfolioPage.styles'
+} from './AIDeliveryLabPage.styles'
 
 type StageStatusValue = 'complete' | 'active' | 'pending'
 type ValidationStatus = 'passed' | 'pending'
@@ -150,9 +149,12 @@ export const AIDeliveryLabPage = () => {
 
   return (
     <DetailPage>
-      <BackLink to="/engineering">← back to engineering</BackLink>
+      <BackLink to="/">← AI Delivery Lab</BackLink>
       <Eyebrow>// ai delivery lab</Eyebrow>
       <Heading>Make the harness visible.</Heading>
+      <SimulatedNote>
+        Simulated demo · no automated work is performed
+      </SimulatedNote>
       <Intro>
         A deterministic walkthrough of how repository-aware AI assistance can
         move a task from intent to a verified handoff.
@@ -211,9 +213,6 @@ export const AIDeliveryLabPage = () => {
             <li key={control}>{control}</li>
           ))}
         </DetailList>
-        <DemoLink to="/engineering" $accent={theme.colors.primary}>
-          Read the engineering notes →
-        </DemoLink>
       </Section>
     </DetailPage>
   )

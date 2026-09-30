@@ -4,9 +4,9 @@
 
 ## Project Identity
 
-**Name**: Personal Development Playground  
-**Type**: React + TypeScript + Three.js showcase application  
-**Purpose**: Personal development experiments with 3D graphics, authentication, and interactive pages  
+**Name**: AI Delivery Lab
+**Type**: React + TypeScript product with a deterministic workflow demo
+**Purpose**: Help users move a task from intent through planning and implementation to a verified handoff
 **Target Platforms**: Desktop (≥1024px), Tablet (768-1023px), Mobile (<768px)
 
 ## Technology Stack
@@ -35,8 +35,8 @@
 ```
 src/
 ├── app/           # Application shell (App.tsx, routes)
-├── widgets/       # Composite UI widgets (navigation, experiment)
-├── features/      # Feature modules (auth, home, photobook)
+├── widgets/       # Composite UI widgets (navigation)
+├── features/      # Feature modules (auth, home, AI Delivery Lab, photobook)
 ├── entities/      # Domain entities (user, photobook, admin)
 ├── shared/        # Shared code
 │   ├── components/  # Reusable React components
@@ -179,9 +179,22 @@ export { ComponentName } from './ComponentName'
   `admins/{uid}` Firestore collection (client-read-only, never
   client-writable; admins are added manually via the Firebase console)
 
-Auth is **optional** — the app is fully public, auth is for future features.
-Reading the photobook feed is public; uploading/commenting/reacting requires
-sign-in.
+Auth is optional for browsing the AI Delivery Lab. Reading the photobook feed
+is public; uploading, commenting, and reacting require sign-in.
+
+### Current Product Direction
+
+- `/` is the AI Delivery Lab product entry; `/demo` is a deterministic
+  simulated walkthrough and performs no automated work.
+- `/login` and `/register` retain the existing sign-in flow. Old portfolio
+  routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.
+- Keep the existing auth/user services, Photobook, UI kit, Storybook, test
+  infrastructure, CI workflows, and performance budgets.
+- Follow-up work may add private saved task-to-handoff workflows and
+  AI-assisted planning. Automated coding, GitHub/CI-result ingestion, team
+  invitations, billing, and production backend rollout are deferred.
+- Photobook deletion, dependency removal, and visual redesign are outside the
+  current product cleanup.
 
 ## Known Patterns
 
@@ -240,5 +253,5 @@ pnpm format       # Prettier format
 
 ---
 
-**Last Updated**: 2026-06-29  
+**Last Updated**: 2026-09-30
 **Memory Version**: 1.0.0

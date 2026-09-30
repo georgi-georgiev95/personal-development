@@ -34,40 +34,6 @@ export const NavLeft = styled.div`
   }
 `
 
-export const NavStatusRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: ${theme.fontSizes.xs};
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
-
-  @media (max-width: ${theme.breakpoint.tablet}) {
-    display: none;
-  }
-`
-
-export const NavStatusDot = styled.span`
-  width: 6px;
-  height: 6px;
-  border-radius: ${theme.borderRadius.full};
-  background: ${theme.colors.success};
-  animation: navPulseDot 2s ease-in-out infinite;
-
-  @keyframes navPulseDot {
-    0%,
-    100% {
-      opacity: 1;
-      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
-    }
-    50% {
-      opacity: 0.6;
-      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0);
-    }
-  }
-`
-
 export const NavBrandLink = styled.a`
   display: inline-flex;
   align-items: center;
@@ -140,7 +106,11 @@ export const NavLinks = styled.div`
   gap: 18px;
 
   @media (max-width: ${theme.breakpoint.tablet}) {
-    display: none;
+    gap: ${theme.spacing.sm};
+  }
+
+  @media (max-width: ${theme.breakpoint.mobile}) {
+    gap: ${theme.spacing.xs};
   }
 `
 
