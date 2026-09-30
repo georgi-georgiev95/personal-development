@@ -17,7 +17,6 @@
 - **Build Tool**: Vite
 - **Package Manager**: pnpm
 - **Styling**: @linaria/react (zero-runtime CSS-in-JS)
-- **3D Graphics**: Three.js + @react-three/fiber + @react-three/drei
 - **Authentication**: Firebase Auth
 - **Database**: Firebase Firestore
 
@@ -54,7 +53,7 @@ Navigation lives in `widgets/`, not `shared/components/` — it uses auth).
 ### Performance Conventions
 
 - Initial-load budget enforced by `pnpm perf` (see `scripts/check-perf-budget.js`
-  and GUARDRAILS.md §1b). three.js and Firestore must stay in lazy chunks.
+  and GUARDRAILS.md §1b). Firestore must stay in lazy chunks.
 - Runtime metrics: `src/shared/utils/performanceMetrics.ts`
   (TTFB/FCP/LCP/CLS/INP + `trackInteraction`), wired up in `src/main.tsx`.
 
@@ -172,7 +171,7 @@ All routes wrapped with `ErrorBoundary` component.
 
 ### Debug Tools
 
-Gate development-only UI (Leva, debug panels) behind:
+Gate development-only debug panels behind:
 
 ```ts
 if (import.meta.env.DEV) {
@@ -198,9 +197,8 @@ pnpm format       # Prettier format
 ## Common Gotchas
 
 1. **Linaria requires build-time extraction** — changes to styles may need dev server restart
-2. **Three.js components need Canvas wrapper** — use `<Canvas>` from `@react-three/fiber`
-3. **Firebase emulator not set up** — currently using live Firebase services
-4. **No SSR** — Vite SPA mode only
+2. **Firebase emulator not set up** — currently using live Firebase services
+3. **No SSR** — Vite SPA mode only
 
 ## Decisions Log
 

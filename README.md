@@ -2,6 +2,10 @@
 
 AI Delivery Lab is a product for turning a task into a clear plan, focused implementation, and verified handoff. This repository contains its public product entry, a deterministic simulated demo, and the retained authentication and engineering foundation.
 
+## Package manager
+
+Use pnpm 10 or newer. Install dependencies with `pnpm install --frozen-lockfile`.
+
 ## Project Structure
 
 Feature-Sliced Design (FSD) — source is organized by ownership, not file type:
@@ -18,7 +22,7 @@ src/
   entities/         Business entities and services
     user/             User profile service (Firestore)
   shared/           Cross-feature infra — no imports from upper layers
-    components/       Reusable presentational components (StarFieldBackground, ErrorBoundary, PageSpinner, GlowingOrb)
+    components/       Reusable presentational components (ErrorBoundary, PageSpinner)
     ui-kit/           Design-system components (Button, Modal, Skeleton, Text, Avatar, ConfirmDialog, IconButton, Textarea)
     config/           Firebase app/auth/db setup
     styles/           Global reset + theme tokens
@@ -55,15 +59,12 @@ Import direction is one-way: `shared` → `entities` → `features` → `widgets
 
 ## Performance
 
-The app is aggressively code-split — the initial load ships only React, the
-router, Firebase Auth, and the app shell (~135 KB gzipped):
+The app is code-split so Firebase services stay out of the initial load:
 
-- **three.js scenes** (`StarFieldBackground`) load via `React.lazy` after
-  first paint.
 - **Firestore** stays out of the entry chunk: the profile modal and
   auth-triggered profile writes load it lazily.
-- **Vendor chunking** in `vite.config.ts` keeps three.js / Firebase / React
-  in stable, cacheable chunks.
+- **Vendor chunking** in `vite.config.ts` keeps Firebase / React in stable,
+  cacheable chunks.
 
 Two tools keep it that way:
 
@@ -77,8 +78,7 @@ Two tools keep it that way:
 
 ## Accessibility
 
-- Global `prefers-reduced-motion` support: CSS animations collapse and the
-  3D star field renders a static frame.
+- Global `prefers-reduced-motion` support: CSS animations collapse.
 - Skip-to-content link, focus-visible styles, labeled form controls, alert
   live-regions for errors, and a focus-trapping modal with Escape-to-close.
 - Storybook has `@storybook/addon-a11y` enabled for component-level checks.

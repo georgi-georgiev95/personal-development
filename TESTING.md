@@ -2,7 +2,7 @@
 
 ## Coverage Rule
 
-**100% coverage is enforced** on business logic and utility code. The coverage check runs with `npm run coverage` and will fail if any metric drops below 100%.
+**100% coverage is enforced** on business logic and utility code. The coverage check runs with `pnpm coverage` and will fail if any metric drops below 100%.
 
 ## What to Test
 
@@ -43,6 +43,6 @@ Other directories (features, widgets, app, shared/components) are excluded from 
 ## Commands
 
 ```bash
-npm run coverage    # run tests with coverage enforcement
-npm run test:run    # run tests without coverage (faster feedback loop)
+pnpm coverage      # run tests with coverage enforcement
+pnpm test:run      # run tests without coverage (faster feedback loop)
 ```
