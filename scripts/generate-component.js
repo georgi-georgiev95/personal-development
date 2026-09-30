@@ -4,8 +4,8 @@
  * Widget Generator for MVVM + Functional DI + @linaria/react Architecture
  *
  * Usage:
- *   npm run generate:widget <WidgetName>
- *   npm run generate:widget <WidgetName> --path=features/dashboard
+ *   pnpm generate <WidgetName>
+ *   pnpm generate <WidgetName> --path=features/dashboard
  *
  * What it generates:
  *   <WidgetName>/
@@ -39,9 +39,7 @@ const customPath = pathArg ? pathArg.replace('--path=', '') : 'components'
 
 if (!widgetName) {
   console.error('❌ Please provide a widget name')
-  console.log(
-    'Usage: npm run generate:widget <WidgetName> [--path=<relative-src-path>]'
-  )
+  console.log('Usage: pnpm generate <WidgetName> [--path=<relative-src-path>]')
   process.exit(1)
 }
 

@@ -1,8 +1,8 @@
-# Copilot / AI Agent Instructions — Personal Development Playground
+# Copilot / AI Agent Instructions — AI Delivery Lab
 
 ## What This App Is
 
-A **personal development playground** — a showcase app with 3D graphics experiments, authentication, and interactive pages. Built with React, TypeScript, Vite, and Three.js.
+An AI Delivery Lab product with a deterministic workflow demo and optional authentication. Built with React, TypeScript, and Vite.
 
 **Target platforms:** Desktop (>=1024px), Tablet (768-1023px), Mobile (<768px).
 
@@ -19,7 +19,7 @@ src/
 │   └── routes.styles.ts
 ├── features/               # Feature modules
 │   ├── auth/               # Authentication (Login, Register, AuthProvider)
-│   └── home/               # Home page with 3D experiments
+│   └── home/               # AI Delivery Lab product entry
 ├── shared/                 # Shared code
 │   ├── components/         # Reusable components (Navigation, ErrorBoundary)
 │   ├── config/             # Firebase config
@@ -85,19 +85,19 @@ import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 3. Every page/component is responsive
 4. Use `@/` path aliases for all imports
 5. Wrap routes with `ErrorBoundary`
-6. Gate debug tools (Leva) behind `import.meta.env.DEV`
+6. Gate development-only debug tools behind `import.meta.env.DEV`
 
 ---
 
 ## Build & Dev Commands
 
 ```bash
-npm run dev          # Vite dev server
-npm run build        # tsc + Vite build
-npm run test         # Vitest watch
-npm run test:run     # Vitest single run
-npm run lint         # ESLint
-npm run format       # Prettier
+pnpm dev             # Vite dev server
+pnpm build           # tsc + Vite build
+pnpm test            # Vitest watch
+pnpm test:run        # Vitest single run
+pnpm lint            # ESLint
+pnpm format          # Prettier
 ```
 
 ---
@@ -108,7 +108,7 @@ npm run format       # Prettier
 - `AuthProvider` + `AuthContext` — provides `{ user, loading, signOut }`
 - `useAuth()` — consume auth state in components
 - `userService.ts` — Firestore CRUD for user profiles
-- Auth is **optional** — playground is fully public
+- Auth is optional; the product entry and demo are public
 
 ## Routing
 

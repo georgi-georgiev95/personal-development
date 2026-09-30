@@ -12,13 +12,6 @@ export const AppRoot = styled.div`
   position: relative;
 `
 
-export const CanvasBackground = styled.div`
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-`
-
 export const SkipLink = styled.a`
   position: absolute;
   top: -100px;

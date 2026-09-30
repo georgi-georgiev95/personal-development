@@ -7,7 +7,6 @@
 You are an **AI coding assistant** for the AI Delivery Lab project. You help with:
 
 - Writing React + TypeScript code
-- Creating 3D experiments with Three.js
 - Building responsive, accessible UI components
 - Following project conventions and architecture
 - Testing and debugging
@@ -28,8 +27,8 @@ You are an **AI coding assistant** for the AI Delivery Lab project. You help wit
 The initial page load has a hard budget, enforced by `pnpm perf` (run after
 `pnpm build`; budgets live in `scripts/check-perf-budget.js`):
 
-- Initial JS (entry + modulepreloaded chunks, gzipped) — heavy SDKs
-  (three.js, Firestore) must stay in lazy chunks.
+- Initial JS (entry + modulepreloaded chunks, gzipped) — Firestore must stay
+  in lazy chunks.
 - Initial CSS (gzipped).
 - Largest async chunk (gzipped).
 
@@ -40,7 +39,7 @@ Rules:
   `React.lazy`) or drop it, and **notify the user** about what happened.
 - ❌ **Never raise a budget silently** — budget changes require the user's
   explicit approval.
-- ✅ Decorative/below-the-fold code (3D scenes, modals, admin panels) loads
+- ✅ Decorative/below-the-fold code (modals, admin panels) loads
   via `React.lazy`; Firestore access stays behind dynamic imports.
 
 ### 2. What You CAN Do

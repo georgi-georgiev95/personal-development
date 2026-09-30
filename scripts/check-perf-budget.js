@@ -19,8 +19,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { resolve, join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 
-// Budgets in gzipped kilobytes. Baseline (2026-07-02): initial JS ~137 KB,
-// initial CSS ~3 KB, largest async chunk (three.js) ~236 KB.
+// Budgets in gzipped kilobytes.
 const BUDGETS = {
   initialJsGzipKb: 170,
   initialCssGzipKb: 12,

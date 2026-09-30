@@ -30,34 +30,11 @@ export default defineConfig({
     },
   },
   build: {
-    // The `three` core library is a single ~720 kB module graph that cannot be
-    // sub-split via chunking; every other vendor is broken out below and sits
-    // well under the default limit. Set the threshold just above three's
-    // irreducible size so genuine regressions still surface.
-    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        // Split heavy third-party libraries into their own chunks so the
-        // main bundle stays small and vendors can be cached independently.
-        // Function form so shared deps (scheduler, react-reconciler, fiber
-        // internals) land with their consumers instead of dragging lazy
-        // chunks into the entry's static import graph.
+        // Keep Firebase and core UI vendors in cacheable chunks.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
-          if (
-            id.includes('@react-three') ||
-            id.includes('postprocessing') ||
-            id.includes('leva') ||
-            id.includes('react-reconciler') ||
-            id.includes('its-fine') ||
-            id.includes('zustand') ||
-            id.includes('suspend-react')
-          ) {
-            return 'three-helpers'
-          }
-          if (id.includes('/three/') || id.includes('three-stdlib')) {
-            return 'three-core'
-          }
           if (id.includes('firebase') || id.includes('@firebase')) {
             if (id.includes('firestore')) return 'firebase-firestore'
             if (id.includes('auth')) return 'firebase-auth'
