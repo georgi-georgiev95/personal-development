@@ -9,8 +9,6 @@ import {
   NavBrandPrefix,
   NavBrandName,
   NavCursor,
-  NavStatusRow,
-  NavStatusDot,
   NavRight,
   NavLinks,
   NavAuthRow,
@@ -58,36 +56,25 @@ export const Navigation: React.FC = () => {
       <NavLeft>
         <NavBrandLink href="/" onClick={(e) => handleClick(e, '/')}>
           <NavBrandPrefix>~/</NavBrandPrefix>
-          <NavBrandName>georgi-georgiev</NavBrandName>
+          <NavBrandName>AI Delivery Lab</NavBrandName>
           <NavCursor />
         </NavBrandLink>
-        <NavStatusRow>
-          <NavStatusDot />
-          status: online
-        </NavStatusRow>
       </NavLeft>
       <NavRight>
         <NavLinks aria-label="Primary navigation">
           <NavLink
-            href="/projects"
-            $active={location.pathname.startsWith('/projects')}
-            onClick={(e) => handleClick(e, '/projects')}
+            href="/"
+            $active={location.pathname === '/'}
+            onClick={(e) => handleClick(e, '/')}
           >
-            Projects
+            Product
           </NavLink>
           <NavLink
-            href="/about"
-            $active={location.pathname === '/about'}
-            onClick={(e) => handleClick(e, '/about')}
+            href="/demo"
+            $active={location.pathname === '/demo'}
+            onClick={(e) => handleClick(e, '/demo')}
           >
-            About
-          </NavLink>
-          <NavLink
-            href="/engineering"
-            $active={location.pathname === '/engineering'}
-            onClick={(e) => handleClick(e, '/engineering')}
-          >
-            Engineering
+            Demo
           </NavLink>
         </NavLinks>
         <NavAuthRow>

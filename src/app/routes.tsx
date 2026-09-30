@@ -7,18 +7,8 @@ import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
-const ProjectsPage = lazy(
-  () => import('@/features/portfolio/pages/ProjectsPage')
-)
-const AboutPage = lazy(() => import('@/features/portfolio/pages/AboutPage'))
-const EngineeringPage = lazy(
-  () => import('@/features/portfolio/pages/EngineeringPage')
-)
 const AIDeliveryLabPage = lazy(
-  () => import('@/features/portfolio/pages/AIDeliveryLabPage')
-)
-const ProjectDetailPage = lazy(
-  () => import('@/features/portfolio/pages/ProjectDetailPage')
+  () => import('@/features/ai-delivery-lab/pages/AIDeliveryLabPage')
 )
 const PhotobookSection = lazy(() => import('./PhotobookSection'))
 
@@ -43,14 +33,15 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
-        <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-        <Route path="/projects/*" element={<ProjectsPage />} />
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/demo" element={<AIDeliveryLabPage />} />
+        {/* Keep the old demo URL working while retired portfolio URLs return home. */}
         <Route
           path="/engineering/ai-delivery"
-          element={<AIDeliveryLabPage />}
+          element={<Navigate to="/demo" replace />}
         />
-        <Route path="/engineering" element={<EngineeringPage />} />
+        <Route path="/projects/*" element={<Navigate to="/" replace />} />
+        <Route path="/about" element={<Navigate to="/" replace />} />
+        <Route path="/engineering/*" element={<Navigate to="/" replace />} />
         <Route path="/photobook/*" element={<PhotobookSection />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

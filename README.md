@@ -1,6 +1,6 @@
 # personal-development
 
-A personal development playground — 3D graphics experiments, authentication, and a community photobook. Built with React, TypeScript, Vite, Three.js, and Firebase.
+AI Delivery Lab is a product for turning a task into a clear plan, focused implementation, and verified handoff. This repository contains its public product entry, a deterministic simulated demo, and the retained authentication and engineering foundation.
 
 ## Project Structure
 
@@ -12,10 +12,10 @@ src/
     PhotobookSection  Lazy route bundle: DI bindings + photobook pages
   widgets/          Composed UI blocks that may use features/entities
     navigation/       Top navigation bar (auth-aware)
-    experiment/       ExperimentLayout wrapper for 3D experiments
   features/         Feature-owned pages, components, hooks, and styles
     auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
-    home/             Home page with the featured-project card
+    home/             AI Delivery Lab product entry
+    ai-delivery-lab/  Deterministic simulated workflow demo
     photobook/        Community photo feed — upload, comments, reactions, CMS
   entities/         Business entities and services
     user/             User profile service (Firestore)
@@ -30,6 +30,21 @@ src/
     utils/            Utilities (authErrors, performanceMetrics, usePrefersReducedMotion)
   test/             Test setup and global test utilities
 ```
+
+The product entry is `/`, the simulated walkthrough is `/demo`, and sign-in
+remains available at `/login` and `/register`. Previous portfolio URLs return
+to the product entry; the former `/engineering/ai-delivery` demo URL forwards
+to `/demo`.
+
+## Retained foundation and follow-up
+
+The app keeps Firebase authentication and user services, the Photobook feature,
+the shared UI kit, Storybook, test infrastructure, GitHub Actions workflows,
+and the existing performance budgets. Follow-up product work can add private
+saved task-to-handoff workflows and AI-assisted planning. Automated coding,
+GitHub/CI-result ingestion, team invitations, billing, and production backend
+rollout are deferred. Photobook deletion, dependency removal, and visual
+redesign are separate work.
 
 ## Layer Responsibilities
 
@@ -97,25 +112,25 @@ Two tools keep it that way:
 Project-specific Codex skills live in [`.agents/skills/`](.agents/skills/). They
 extend the agent with repeatable workflows and can grow as the project evolves.
 
-| Skill | Purpose | Use when |
-| ----- | ------- | -------- |
-| `$github-ticket` | Creates a GitHub issue with the next sequential `[PD-X]` title and a `Goal:` description. | A new numbered project ticket is needed. |
-| `$start-ticket` | Fetches a `PD-N` GitHub ticket, syncs `develop`, and creates a typed `feature/` or `bugfix/` branch from its label. | Starting implementation work on an existing ticket. |
-| `$tdd` | Enforces the RED → GREEN → REFACTOR workflow for business logic and utility changes. | Implementing or fixing covered logic with test-driven development. |
-| `$ui-kit` | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports. | Adding a new component under `src/shared/ui-kit/`. |
-| `$code-review` | Reviews changes against project standards, the requested specification, and unnecessary complexity, producing actionable findings. | Reviewing a ticket, diff, branch, or working-tree change. |
-| `$ponytail` | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity. | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution. |
-| `$add-new-skill` | Creates a project skill under `.agents/skills/` and registers it in this README. | Adding or importing a new custom agent skill. |
-| `$to-spec` | Turns an approved idea or conversation into an implementation-ready specification with scope, behavior, constraints, and acceptance criteria. | An idea or approved request needs to be made clear before implementation. |
-| `$to-tickets` | Decomposes a specification or plan into small, dependency-ordered implementation tickets with explicit blocking relationships. | A specification or plan needs to be split into independently implementable work. |
-| `$domain-modeling` | Defines shared domain vocabulary, challenges ambiguous concepts and edge cases, and records important decisions in a glossary or ADR. | A feature or system needs clearer business concepts, rules, or terminology before implementation. |
-| `$codifying-standards` | Turns repeated review findings into one canonical repository rule, keeping conventions discoverable without duplicating them across documents. | Review feedback or team decisions reveal a convention that should become durable repository guidance. |
-| `$handoff` | Records task state, decisions, files, validation, blockers, and next steps so another agent or future session can continue safely. | Work is being paused, transferred, or resumed and the current context needs to be preserved. |
-| `$prototype` | Builds a focused, disposable prototype and records the evidence and decision without prematurely making it production code. | Answering a UI, state-model, architecture, or technical-feasibility question. |
-| `$codebase-design` | Improves module boundaries and interfaces so behavior is hidden behind small, testable APIs. | Designing or refactoring code structure, dependencies, or seams between modules. |
-| `$diagnosing-bugs` | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes. | Investigating unexpected behavior, failing checks, or regressions. |
-| `$resolving-merge-conflicts` | Resolves Git merge or rebase conflicts using commit history and original intent, then verifies the resulting branch. | A merge, rebase, or cherry-pick has conflicts that need deliberate resolution. |
-| `$pr-to-main` | Runs the complete pre-PR gate and creates a pull request from the current branch to `main`. | Opening a validated PR for the current branch. |
+| Skill                        | Purpose                                                                                                                                        | Use when                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `$github-ticket`             | Creates a GitHub issue with the next sequential `[PD-X]` title and a `Goal:` description.                                                      | A new numbered project ticket is needed.                                                              |
+| `$start-ticket`              | Fetches a `PD-N` GitHub ticket, syncs `main`, and creates a typed `feature/` or `bugfix/` branch from its label.                               | Starting implementation work on an existing ticket.                                                   |
+| `$tdd`                       | Enforces the RED → GREEN → REFACTOR workflow for business logic and utility changes.                                                           | Implementing or fixing covered logic with test-driven development.                                    |
+| `$ui-kit`                    | Scaffolds a reusable UI-kit component with Linaria styles, stories, tests, and exports.                                                        | Adding a new component under `src/shared/ui-kit/`.                                                    |
+| `$code-review`               | Reviews changes against project standards, the requested specification, and unnecessary complexity, producing actionable findings.             | Reviewing a ticket, diff, branch, or working-tree change.                                             |
+| `$ponytail`                  | Applies a minimal, YAGNI-first approach to coding tasks with configurable intensity.                                                           | Simplifying, refactoring, reviewing, or implementing code with the shortest working solution.         |
+| `$add-new-skill`             | Creates a project skill under `.agents/skills/` and registers it in this README.                                                               | Adding or importing a new custom agent skill.                                                         |
+| `$to-spec`                   | Turns an approved idea or conversation into an implementation-ready specification with scope, behavior, constraints, and acceptance criteria.  | An idea or approved request needs to be made clear before implementation.                             |
+| `$to-tickets`                | Decomposes a specification or plan into small, dependency-ordered implementation tickets with explicit blocking relationships.                 | A specification or plan needs to be split into independently implementable work.                      |
+| `$domain-modeling`           | Defines shared domain vocabulary, challenges ambiguous concepts and edge cases, and records important decisions in a glossary or ADR.          | A feature or system needs clearer business concepts, rules, or terminology before implementation.     |
+| `$codifying-standards`       | Turns repeated review findings into one canonical repository rule, keeping conventions discoverable without duplicating them across documents. | Review feedback or team decisions reveal a convention that should become durable repository guidance. |
+| `$handoff`                   | Records task state, decisions, files, validation, blockers, and next steps so another agent or future session can continue safely.             | Work is being paused, transferred, or resumed and the current context needs to be preserved.          |
+| `$prototype`                 | Builds a focused, disposable prototype and records the evidence and decision without prematurely making it production code.                    | Answering a UI, state-model, architecture, or technical-feasibility question.                         |
+| `$codebase-design`           | Improves module boundaries and interfaces so behavior is hidden behind small, testable APIs.                                                   | Designing or refactoring code structure, dependencies, or seams between modules.                      |
+| `$diagnosing-bugs`           | Uses an evidence-first workflow to reproduce bugs and performance regressions, identify root causes, and verify minimal fixes.                 | Investigating unexpected behavior, failing checks, or regressions.                                    |
+| `$resolving-merge-conflicts` | Resolves Git merge or rebase conflicts using commit history and original intent, then verifies the resulting branch.                           | A merge, rebase, or cherry-pick has conflicts that need deliberate resolution.                        |
+| `$pr-to-main`                | Runs the complete pre-PR gate and creates a pull request from the current branch to `main`.                                                    | Opening a validated PR for the current branch.                                                        |
 
 When adding a skill, create a directory under `.agents/skills/` with a
 `SKILL.md` file and add it to this table with its purpose and usage guidance.
