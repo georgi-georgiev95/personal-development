@@ -9,23 +9,18 @@ Feature-Sliced Design (FSD) — source is organized by ownership, not file type:
 ```text
 src/
   app/              App shell, global layout, and route definitions
-    PhotobookSection  Lazy route bundle: DI bindings + photobook pages
   widgets/          Composed UI blocks that may use features/entities
     navigation/       Top navigation bar (auth-aware)
   features/         Feature-owned pages, components, hooks, and styles
     auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
     home/             AI Delivery Lab product entry
     ai-delivery-lab/  Deterministic simulated workflow demo
-    photobook/        Community photo feed — upload, comments, reactions, CMS
   entities/         Business entities and services
     user/             User profile service (Firestore)
-    photobook/        Photo/comment/reaction use cases (one file per use case)
-    admin/            checkIsAdmin (admins/{uid} collection)
   shared/           Cross-feature infra — no imports from upper layers
     components/       Reusable presentational components (StarFieldBackground, ErrorBoundary, PageSpinner, GlowingOrb)
     ui-kit/           Design-system components (Button, Modal, Skeleton, Text, Avatar, ConfirmDialog, IconButton, Textarea)
     config/           Firebase app/auth/db setup
-    di/               DI primitives (createToken, DIProvider, useInjectable)
     styles/           Global reset + theme tokens
     utils/            Utilities (authErrors, performanceMetrics, usePrefersReducedMotion)
   test/             Test setup and global test utilities
@@ -38,13 +33,12 @@ to `/demo`.
 
 ## Retained foundation and follow-up
 
-The app keeps Firebase authentication and user services, the Photobook feature,
-the shared UI kit, Storybook, test infrastructure, GitHub Actions workflows,
-and the existing performance budgets. Follow-up product work can add private
+The app keeps Firebase authentication and user services, the shared UI kit,
+Storybook, test infrastructure, GitHub Actions workflows, and the existing
+performance budgets. Follow-up product work can add private
 saved task-to-handoff workflows and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, billing, and production backend
-rollout are deferred. Photobook deletion, dependency removal, and visual
-redesign are separate work.
+rollout are deferred.
 
 ## Layer Responsibilities
 
@@ -52,20 +46,12 @@ redesign are separate work.
 | ----------- | ---------------------------------------------------------------------------- |
 | `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)               |
 | `widgets/`  | Reusable UI blocks that use entities/features under the hood (Navigation)    |
-| `features/` | Self-contained user-facing features (auth, home, photobook)                  |
+| `features/` | Self-contained user-facing features (auth, home, AI Delivery Lab)            |
 | `entities/` | Business logic that doesn't belong to a single feature (user service, etc.)  |
 | `shared/`   | Truly reusable infra — config, styles, ui-kit, components, utility functions |
 
 Import direction is one-way: `shared` → `entities` → `features` → `widgets` → `app`.
 `shared/` must never import from `features/` or `widgets/`.
-
-### Dependency Injection
-
-`src/shared/di/` provides a lightweight React-Context DI pattern
-(`createToken` / `DIProvider` / `useInjectable`), currently piloted on the
-photobook and admin entities. The provider is mounted in
-`src/app/PhotobookSection.tsx` — a lazy route — so the bound entities (and
-the Firestore SDK they import) stay out of the entry chunk.
 
 ## Performance
 
@@ -74,9 +60,8 @@ router, Firebase Auth, and the app shell (~135 KB gzipped):
 
 - **three.js scenes** (`StarFieldBackground`) load via `React.lazy` after
   first paint.
-- **Firestore** stays out of the entry chunk: photobook (with its DI
-  bindings), the profile modal, and auth-triggered profile writes all load
-  it lazily.
+- **Firestore** stays out of the entry chunk: the profile modal and
+  auth-triggered profile writes load it lazily.
 - **Vendor chunking** in `vite.config.ts` keeps three.js / Firebase / React
   in stable, cacheable chunks.
 

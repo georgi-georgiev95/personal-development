@@ -36,13 +36,12 @@
 src/
 ├── app/           # Application shell (App.tsx, routes)
 ├── widgets/       # Composite UI widgets (navigation)
-├── features/      # Feature modules (auth, home, AI Delivery Lab, photobook)
-├── entities/      # Domain entities (user, photobook, admin)
+├── features/      # Feature modules (auth, home, AI Delivery Lab)
+├── entities/      # Domain entities (user)
 ├── shared/        # Shared code
 │   ├── components/  # Reusable React components
 │   ├── ui-kit/      # Design system components
 │   ├── config/      # Configuration (Firebase)
-│   ├── di/          # Dependency injection primitives (see below)
 │   ├── styles/      # Global styles + theme
 │   └── utils/       # Utility functions (incl. performanceMetrics)
 └── test/          # Test configuration
@@ -58,26 +57,6 @@ Navigation lives in `widgets/`, not `shared/components/` — it uses auth).
   and GUARDRAILS.md §1b). three.js and Firestore must stay in lazy chunks.
 - Runtime metrics: `src/shared/utils/performanceMetrics.ts`
   (TTFB/FCP/LCP/CLS/INP + `trackInteraction`), wired up in `src/main.tsx`.
-
-### Dependency Injection
-
-`src/shared/di/` provides a lightweight, function-component-only DI pattern
-(React Context — no class-based DI framework fits a hooks-only codebase):
-
-- `createToken<T>(description)` — creates a `Token<T>` (identity + phantom type).
-- `DIProvider` — mounted once around the photobook subtree
-  (`src/app/PhotobookSection.tsx`, a lazy route), takes a
-  `bindings: [Token, implementation][]` array. It lives there rather than at
-  the app root so the photobook entities (and the Firestore SDK they import)
-  stay out of the entry chunk — see Performance Conventions above.
-- `useInjectable(token)` — resolves the bound implementation inside any
-  component, avoiding prop drilling.
-
-Convention: one token per use-case function, defined **in the same file as
-the use case itself** (e.g. `src/entities/photobook/uploadPhoto.ts` exports
-both `uploadPhoto` and `UploadPhotoToken`). Currently piloted only on the
-`photobook`/`admin` entities — `entities/user` and the auth feature still use
-plain imports and are not yet migrated.
 
 ### Import Conventions
 
@@ -167,20 +146,11 @@ export { ComponentName } from './ComponentName'
 ## Firebase Configuration
 
 - **Auth**: `src/shared/config/firebase/auth.ts`
-- **Firestore + Storage**: `src/shared/config/firebase/firebase.ts` (exports
-  `db` and `storage`)
+- **Firestore**: `src/shared/config/firebase/db.ts`
 - **User Service**: `src/entities/user/userService.ts`
-- **Photobook Services**: `src/entities/photobook/` (one file per use case:
-  `uploadPhoto`, `subscribePhotos`, `deletePhoto`, `addComment`,
-  `subscribeComments`, `deleteComment`, `subscribeReaction`,
-  `toggleReaction`) — photos/comments/reactions are public-read, backing the
-  shared `/photobook` community feed
-- **Admin Service**: `src/entities/admin/checkIsAdmin.ts` — checks the
-  `admins/{uid}` Firestore collection (client-read-only, never
-  client-writable; admins are added manually via the Firebase console)
 
-Auth is optional for browsing the AI Delivery Lab. Reading the photobook feed
-is public; uploading, commenting, and reacting require sign-in.
+Auth is optional for browsing the AI Delivery Lab. Sign-in enables account
+registration and profile management.
 
 ### Current Product Direction
 
@@ -188,13 +158,11 @@ is public; uploading, commenting, and reacting require sign-in.
   simulated walkthrough and performs no automated work.
 - `/login` and `/register` retain the existing sign-in flow. Old portfolio
   routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.
-- Keep the existing auth/user services, Photobook, UI kit, Storybook, test
-  infrastructure, CI workflows, and performance budgets.
+- Keep the existing auth/user services, UI kit, Storybook, test infrastructure,
+  CI workflows, and performance budgets.
 - Follow-up work may add private saved task-to-handoff workflows and
   AI-assisted planning. Automated coding, GitHub/CI-result ingestion, team
   invitations, billing, and production backend rollout are deferred.
-- Photobook deletion, dependency removal, and visual redesign are outside the
-  current product cleanup.
 
 ## Known Patterns
 

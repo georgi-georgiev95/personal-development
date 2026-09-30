@@ -6,9 +6,7 @@ import { AppRoot, AppContent, CanvasBackground, SkipLink } from './App.styles'
 import { AppRoutes } from './routes'
 
 // three.js + react-three-fiber (~900KB) load after first paint instead of
-// blocking it — the star field is a decorative background. The photobook
-// DI bindings live in PhotobookSection (lazy) for the same reason: they
-// would drag the Firestore SDK into the entry chunk.
+// blocking it — the star field is a decorative background.
 const StarFieldBackground = lazy(
   () => import('@/shared/components/StarFieldBackground/StarFieldBackground')
 )

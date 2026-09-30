@@ -1,1 +1,0 @@
-export { PhotoDetail } from './PhotoDetail'

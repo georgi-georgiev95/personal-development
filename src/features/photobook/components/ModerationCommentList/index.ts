@@ -1,1 +1,0 @@
-export { ModerationCommentList } from './ModerationCommentList'
