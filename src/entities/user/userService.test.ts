@@ -19,10 +19,6 @@ vi.mock('firebase/firestore', () => {
   }
 })
 
-vi.mock('firebase/storage', () => ({
-  getStorage: vi.fn(() => ({ __type: 'storage' })),
-}))
-
 import { UserServiceError } from './userService'
 import {
   createUserProfile,

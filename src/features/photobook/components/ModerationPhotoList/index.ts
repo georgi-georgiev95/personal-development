@@ -1,1 +1,0 @@
-export { ModerationPhotoList } from './ModerationPhotoList'

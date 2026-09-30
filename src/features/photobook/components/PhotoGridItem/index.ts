@@ -1,1 +1,0 @@
-export { PhotoGridItem } from './PhotoGridItem'

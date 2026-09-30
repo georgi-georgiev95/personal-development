@@ -10,7 +10,6 @@ const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
 const AIDeliveryLabPage = lazy(
   () => import('@/features/ai-delivery-lab/pages/AIDeliveryLabPage')
 )
-const PhotobookSection = lazy(() => import('./PhotobookSection'))
 
 export const AppRoutes = () => (
   <ErrorBoundary>
@@ -42,7 +41,6 @@ export const AppRoutes = () => (
         <Route path="/projects/*" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<Navigate to="/" replace />} />
         <Route path="/engineering/*" element={<Navigate to="/" replace />} />
-        <Route path="/photobook/*" element={<PhotobookSection />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
