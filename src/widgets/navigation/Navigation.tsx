@@ -80,9 +80,12 @@ export const Navigation: React.FC = () => {
         <NavAuthRow>
           {loading ? null : user ? (
             <NavUserRow>
-              <Suspense fallback={<ProfileModalFallback />}>
-                <ProfileModal />
-              </Suspense>
+              {location.pathname !== '/demo' &&
+                location.pathname !== '/engineering/ai-delivery' && (
+                  <Suspense fallback={<ProfileModalFallback />}>
+                    <ProfileModal />
+                  </Suspense>
+                )}
               <NavButton onClick={handleSignOut}>Log out</NavButton>
             </NavUserRow>
           ) : (

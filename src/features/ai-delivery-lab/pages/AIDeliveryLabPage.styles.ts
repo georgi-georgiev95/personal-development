@@ -73,6 +73,28 @@ export const SectionHeading = styled.h2`
   font-size: ${theme.fontSizes.xl};
 `
 
+export const ResetButton = styled.button`
+  display: block;
+  margin: ${theme.spacing.md} 0;
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.sm};
+  color: ${theme.colors.text};
+  background: ${theme.colors.surface};
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: ${theme.colors.primary};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary};
+    outline-offset: 2px;
+  }
+`
+
 export const DetailText = styled.p`
   margin: 0;
   color: ${theme.colors.textSecondary};
