@@ -71,7 +71,7 @@ export const Navigation: React.FC = () => {
           </NavLink>
           <NavLink
             href="/demo"
-            $active={location.pathname === '/demo'}
+            $active={location.pathname.startsWith('/demo')}
             onClick={(e) => handleClick(e, '/demo')}
           >
             Demo
@@ -80,7 +80,7 @@ export const Navigation: React.FC = () => {
         <NavAuthRow>
           {loading ? null : user ? (
             <NavUserRow>
-              {location.pathname !== '/demo' &&
+              {!location.pathname.startsWith('/demo') &&
                 location.pathname !== '/engineering/ai-delivery' && (
                   <Suspense fallback={<ProfileModalFallback />}>
                     <ProfileModal />

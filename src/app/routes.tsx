@@ -32,7 +32,7 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
-        <Route path="/demo" element={<AIDeliveryLabPage />} />
+        <Route path="/demo/*" element={<AIDeliveryLabPage />} />
         {/* Keep the old demo URL working while retired portfolio URLs return home. */}
         <Route
           path="/engineering/ai-delivery"
