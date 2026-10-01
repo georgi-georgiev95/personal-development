@@ -1,4 +1,3 @@
-import React from 'react'
 import { AvatarImage, AvatarInitials, AvatarRoot } from './Avatar.styles'
 
 export type AvatarSize = 'sm' | 'md' | 'lg'
@@ -18,17 +17,14 @@ const getInitials = (name: string): string =>
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('')
 
-export const Avatar: React.FC<AvatarProps> = ({
-  src,
-  name,
-  size = 'md',
-  className,
-}) => (
-  <AvatarRoot $size={size} className={className}>
-    {src ? (
-      <AvatarImage src={src} alt={name} />
-    ) : (
-      <AvatarInitials>{getInitials(name)}</AvatarInitials>
-    )}
-  </AvatarRoot>
-)
+export function Avatar({ src, name, size = 'md', className }: AvatarProps) {
+  return (
+    <AvatarRoot $size={size} className={className}>
+      {src ? (
+        <AvatarImage src={src} alt={name} />
+      ) : (
+        <AvatarInitials>{getInitials(name)}</AvatarInitials>
+      )}
+    </AvatarRoot>
+  )
+}

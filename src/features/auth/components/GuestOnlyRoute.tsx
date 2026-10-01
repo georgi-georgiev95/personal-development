@@ -1,10 +1,12 @@
-import type React from 'react'
+import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 
-export const GuestOnlyRoute: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+interface GuestOnlyRouteProps {
+  children: ReactNode
+}
+
+export function GuestOnlyRoute({ children }: GuestOnlyRouteProps) {
   const { user, loading } = useAuth()
 
   if (loading) return null

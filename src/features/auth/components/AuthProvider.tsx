@@ -1,13 +1,16 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { auth } from '@/shared/config/firebase/auth'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { AuthContext, type AuthContextValue } from './AuthContext'
 import type { User } from 'firebase/auth'
 import { useLocation } from 'react-router-dom'
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const { pathname } = useLocation()
   const lastUid = useRef<string | null>(null)
   const [user, setUser] = useState<User | null>(null)

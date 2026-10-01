@@ -1,25 +1,46 @@
-import React from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 import { IconButtonRoot } from './IconButton.styles'
 
 export type IconButtonVariant = 'default' | 'danger'
 
-interface IconButtonProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  'aria-label'
-> {
+interface IconButtonProps {
   variant?: IconButtonVariant
   active?: boolean
   'aria-label': string
+  type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
+  onClick?: MouseEventHandler<HTMLButtonElement>
+  children?: ReactNode
+  className?: string
+  id?: string
+  title?: string
 }
 
-export const IconButton: React.FC<IconButtonProps> = ({
+export function IconButton({
   variant = 'default',
   active = false,
   type = 'button',
+  disabled,
+  onClick,
   children,
-  ...rest
-}) => (
-  <IconButtonRoot $variant={variant} $active={active} type={type} {...rest}>
-    {children}
-  </IconButtonRoot>
-)
+  className,
+  id,
+  title,
+  'aria-label': ariaLabel,
+}: IconButtonProps) {
+  return (
+    <IconButtonRoot
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      className={className}
+      id={id}
+      title={title}
+      aria-label={ariaLabel}
+      $variant={variant}
+      $active={active}
+    >
+      {children}
+    </IconButtonRoot>
+  )
+}

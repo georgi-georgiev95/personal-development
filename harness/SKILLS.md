@@ -44,11 +44,11 @@ node scripts/generate-component.js ComponentName
 import { Container } from './ComponentName.styles'
 
 interface ComponentNameProps {
-  // props
+  title: string
 }
 
-export function ComponentName({ }: ComponentNameProps) {
-  return <Container>Content</Container>
+export function ComponentName({ title }: ComponentNameProps) {
+  return <Container>{title}</Container>
 }
 
 // ComponentName.styles.ts

@@ -1,6 +1,6 @@
 ---
 name: start-ticket
-description: "Fetch a PD ticket from GitHub, sync main, and create the correctly typed feature or bugfix branch. Use when starting work on a ticket such as PD-12."
+description: 'Fetch a PD ticket from GitHub, sync main, and create the correctly typed feature or bugfix branch. Use when starting work on a ticket such as PD-12.'
 ---
 
 # Start Ticket
@@ -16,7 +16,7 @@ Start implementation work for an existing GitHub ticket supplied as `$start-tick
 2. Determine the repository with `gh repo view --json nameWithOwner` and search
    all open and closed issues for the exact title prefix `[PD-N]` (for example,
    with `gh api --paginate --slurp
-   'repos/OWNER/REPO/issues?state=all&per_page=100'`). Filter out records with
+'repos/OWNER/REPO/issues?state=all&per_page=100'`). Filter out records with
    a `pull_request` field, then match titles exactly against
    `^\[PD-N\](?:\s|$)` and require exactly one match. Use that issue's
    GitHub number to fetch its complete `number,title,url,labels,state` data.
@@ -32,6 +32,7 @@ Start implementation work for an existing GitHub ticket supplied as `$start-tick
    Match labels case-insensitively. If neither label is present, both are
    present, or a different label is intended, stop and report the ambiguity;
    do not create a branch.
+
 4. Build a short, lowercase slug from the ticket title: remove a leading
    `[PD-N]` prefix, convert runs of non-alphanumeric characters to `-`, trim
    leading/trailing hyphens, and cap it at a practical branch-name length. The
@@ -58,6 +59,7 @@ Start implementation work for an existing GitHub ticket supplied as `$start-tick
    fails, stop and report the command and error without claiming the branch was
    created. After the command succeeds, verify the linked branch with
    `gh issue develop --list <github-issue-number>`.
+
 8. Report the ticket title and URL, selected workflow label, created branch,
    and that the branch is linked in the issue's Development section. The issue
    normally remains open until its linked pull request is merged.

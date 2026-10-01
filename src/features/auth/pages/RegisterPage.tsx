@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
 import { useNavigate } from 'react-router-dom'
@@ -42,7 +43,7 @@ const currentYear = new Date().getFullYear()
 const YEARS = Array.from({ length: 100 }, (_, i) => currentYear - i)
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
-const RegisterPage: React.FC = () => {
+export function RegisterPage() {
   const navigate = useNavigate()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -95,7 +96,7 @@ const RegisterPage: React.FC = () => {
     return true
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
 

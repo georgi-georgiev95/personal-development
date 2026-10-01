@@ -1,4 +1,4 @@
-import React from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 import { TextRoot } from './Text.styles'
 
 export type TextSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -14,17 +14,23 @@ export type TextAlign = 'left' | 'center' | 'right'
 
 type TextElement = 'p' | 'span' | 'strong' | 'em' | 'label' | 'small' | 'div'
 
-interface TextProps extends React.HTMLAttributes<HTMLElement> {
+interface TextProps {
   as?: TextElement
   size?: TextSize
   tone?: TextTone
   weight?: TextWeight
   align?: TextAlign
   truncate?: boolean
-  children?: React.ReactNode
+  children?: ReactNode
+  id?: string
+  className?: string
+  title?: string
+  role?: string
+  onClick?: MouseEventHandler<HTMLElement>
+  'aria-label'?: string
 }
 
-export const Text: React.FC<TextProps> = ({
+export function Text({
   as = 'p',
   size = 'md',
   tone = 'default',
@@ -32,8 +38,13 @@ export const Text: React.FC<TextProps> = ({
   align = 'left',
   truncate = false,
   children,
-  ...rest
-}) => {
+  id,
+  className,
+  title,
+  role,
+  onClick,
+  'aria-label': ariaLabel,
+}: TextProps) {
   return (
     <TextRoot
       as={as}
@@ -42,7 +53,12 @@ export const Text: React.FC<TextProps> = ({
       data-weight={weight}
       data-align={align}
       data-truncate={truncate}
-      {...rest}
+      id={id}
+      className={className}
+      title={title}
+      role={role}
+      onClick={onClick}
+      aria-label={ariaLabel}
     >
       {children}
     </TextRoot>

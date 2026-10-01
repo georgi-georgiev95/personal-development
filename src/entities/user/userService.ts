@@ -6,6 +6,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/shared/config/firebase/db'
+import { applyUpdate } from '@/shared/utils/objectMutations'
 
 export interface UserProfile {
   uid: string
@@ -72,11 +73,10 @@ export const getUserProfile = async (
 
     if (userSnap.exists()) {
       const data = userSnap.data()
-      return {
-        ...data,
+      return applyUpdate(data as UserProfile, {
         createdAt: data.createdAt?.toDate() || null,
         lastLogin: data.lastLogin?.toDate() || null,
-      } as UserProfile
+      })
     }
     return null
   } catch (error) {

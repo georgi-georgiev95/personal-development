@@ -1,11 +1,10 @@
-import React from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/components/AuthProvider'
 import { Navigation } from '@/widgets/navigation'
 import { AppRoot, AppContent, SkipLink } from './App.styles'
 import { AppRoutes } from './routes'
 
-const App: React.FC = () => {
+export function App() {
   return (
     <Router>
       <AuthProvider>

@@ -5,8 +5,9 @@ import userEvent from '@testing-library/user-event'
 const mockUpdateUserProfile = vi.fn()
 const mockGetUserProfile = vi.fn()
 vi.mock('@/entities/user', () => ({
-  updateUserProfile: (...args: unknown[]) => mockUpdateUserProfile(...args),
-  getUserProfile: (...args: unknown[]) => mockGetUserProfile(...args),
+  updateUserProfile: (uid: string, data: unknown) =>
+    mockUpdateUserProfile(uid, data),
+  getUserProfile: (uid: string) => mockGetUserProfile(uid),
 }))
 
 const mockUseAuth = vi.fn()

@@ -1,6 +1,6 @@
 ---
 name: codebase-design
-description: "Improve module boundaries and interfaces so behavior is hidden behind small, testable APIs. Use when designing or refactoring code structure, dependencies, or seams between modules."
+description: 'Improve module boundaries and interfaces so behavior is hidden behind small, testable APIs. Use when designing or refactoring code structure, dependencies, or seams between modules.'
 ---
 
 # Codebase Design

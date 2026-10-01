@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Overlay,
   Dialog,
-  Header,
+  Header as HeaderRoot,
   CloseButton,
-  Content,
-  Footer,
+  Content as ContentRoot,
+  Footer as FooterRoot,
 } from './Modal.styles'
 
 const FOCUSABLE_SELECTOR =
@@ -18,29 +19,25 @@ interface ModalBaseProps {
   label?: string
   className?: string
   showCloseButton?: boolean
-  children?: React.ReactNode
+  children?: ReactNode
 }
 
-interface ModalComposition {
-  Header: React.FC<React.HTMLAttributes<HTMLDivElement>>
-  Content: React.FC<React.HTMLAttributes<HTMLDivElement>>
-  Footer: React.FC<React.HTMLAttributes<HTMLDivElement>>
+interface ModalSectionProps {
+  children?: ReactNode
 }
 
-type ModalComponent = React.FC<ModalBaseProps> & ModalComposition
-
-const Modal: ModalComponent = ({
+export function Modal({
   open,
   onOpenChange,
   label,
   className,
   showCloseButton = true,
   children,
-}) => {
+}: ModalBaseProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
 
   const handleOverlayClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: MouseEvent<HTMLDivElement>) => {
       if (e.target === e.currentTarget) onOpenChange?.(false)
     },
     [onOpenChange]
@@ -132,23 +129,18 @@ const Modal: ModalComponent = ({
   )
 }
 
-const ModalHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
-  children,
-  ...rest
-}) => <Header {...rest}>{children}</Header>
+// Keep the existing Modal.Header/Content/Footer API while using named functions.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Modal {
+  export function Header({ children }: ModalSectionProps) {
+    return <HeaderRoot>{children}</HeaderRoot>
+  }
 
-const ModalContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
-  children,
-  ...rest
-}) => <Content {...rest}>{children}</Content>
+  export function Content({ children }: ModalSectionProps) {
+    return <ContentRoot>{children}</ContentRoot>
+  }
 
-const ModalFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
-  children,
-  ...rest
-}) => <Footer {...rest}>{children}</Footer>
-
-Modal.Header = ModalHeader
-Modal.Content = ModalContent
-Modal.Footer = ModalFooter
-
-export { Modal }
+  export function Footer({ children }: ModalSectionProps) {
+    return <FooterRoot>{children}</FooterRoot>
+  }
+}

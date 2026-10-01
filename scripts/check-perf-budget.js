@@ -45,15 +45,15 @@ const gzipKb = (assetPath) => {
 }
 
 const collect = (regex) =>
-  [...indexHtml.matchAll(regex)]
+  Array.from(indexHtml.matchAll(regex))
     .map((match) => match[1])
     .filter((href) => href.startsWith('/assets/'))
     .map((href) => href.slice(1))
 
-const initialJs = [
-  ...collect(/<script[^>]+src="([^"]+)"/g),
-  ...collect(/<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g),
-]
+const initialJs = [].concat(
+  collect(/<script[^>]+src="([^"]+)"/g),
+  collect(/<link[^>]+rel="modulepreload"[^>]+href="([^"]+)"/g)
+)
 const initialCss = collect(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)
 
 const sum = (paths) => paths.reduce((total, p) => total + gzipKb(p), 0)

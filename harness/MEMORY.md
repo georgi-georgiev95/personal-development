@@ -119,6 +119,12 @@ export const Container = styled.div`
 
 ## Component Structure
 
+### React Component Conventions
+
+- Declare new and refactored components as named function declarations. Type and destructure props in the parameter, for example `export function ComponentName({ title }: ComponentNameProps) { ... }`.
+- Do not use `React.FC`, `React.FunctionComponent`, or `React.createElement`; write JSX in function components.
+- Do not add class components. Keep the existing `ErrorBoundary` class only because React's built-in error boundary API requires a class; do not use it as a component pattern.
+
 ```ts
 // 1. Imports
 import { styled } from '@linaria/react'

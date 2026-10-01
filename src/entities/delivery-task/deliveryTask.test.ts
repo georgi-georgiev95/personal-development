@@ -1,3 +1,4 @@
+import { applyUpdate } from '@/shared/utils/objectMutations'
 import { describe, expect, it } from 'vitest'
 import {
   completeDeliveryTaskStage,
@@ -139,7 +140,7 @@ describe('delivery task stage transitions', () => {
 
   it('keeps handoff closed even if presented as the current stage', () => {
     const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
-    const handoff = { ...task, stage: 'handoff' as const }
+    const handoff = applyUpdate(task, { stage: 'handoff' })
 
     expect(() => completeDeliveryTaskStage(handoff, 'handoff')).toThrowError(
       new DeliveryTaskStageError(

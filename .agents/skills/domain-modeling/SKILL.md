@@ -47,9 +47,9 @@ Use this structure unless the user requests another format:
 
 ## Glossary
 
-| Term | Definition | Kind | Lifecycle or invariants |
-| ---- | ---------- | ---- | ----------------------- |
-| ...  | ...        | entity / value object / event / command / policy | ... |
+| Term | Definition | Kind                                             | Lifecycle or invariants |
+| ---- | ---------- | ------------------------------------------------ | ----------------------- |
+| ...  | ...        | entity / value object / event / command / policy | ...                     |
 
 ## Relationships and rules
 
