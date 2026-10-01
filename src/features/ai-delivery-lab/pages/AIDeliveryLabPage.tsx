@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
+  completeDeliveryTaskStage,
   createDeliveryTask,
+  reopenDeliveryTaskStage,
   updateDeliveryTask,
   type DeliveryTask,
+  type DeliveryStage,
   type DeliveryTaskInput,
 } from '@/entities/delivery-task'
 import {
@@ -269,6 +272,30 @@ export const AIDeliveryLabPage = () => {
     )
     return updated
   }
+  const completeStage = (
+    id: string,
+    stage: DeliveryStage
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = completeDeliveryTaskStage(task, stage)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
+  const reopenStage = (
+    id: string,
+    stage: DeliveryStage
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = reopenDeliveryTaskStage(task, stage)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
 
   return (
     <Routes>
@@ -280,7 +307,14 @@ export const AIDeliveryLabPage = () => {
       />
       <Route
         path="tasks/:taskId"
-        element={<TaskDetailRoute tasks={tasks} onSave={saveTask} />}
+        element={
+          <TaskDetailRoute
+            tasks={tasks}
+            onSave={saveTask}
+            onCompleteStage={completeStage}
+            onReopenStage={reopenStage}
+          />
+        }
       />
       <Route path="*" element={<UnknownTaskPage />} />
     </Routes>

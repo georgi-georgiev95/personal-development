@@ -136,3 +136,39 @@ export const Stage = styled.p`
   font-size: ${theme.fontSizes.sm};
   text-transform: capitalize;
 `
+
+export const StageProgress = styled.ol`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: ${theme.spacing.sm};
+  margin: 0;
+  padding: 0;
+  list-style: none;
+`
+
+export const StageChoice = styled.button<{ $selected: boolean }>`
+  display: grid;
+  width: 100%;
+  gap: ${theme.spacing.xs};
+  padding: ${theme.spacing.sm};
+  border: 1px solid
+    ${({ $selected }) =>
+      $selected ? theme.colors.primary : theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  color: ${theme.colors.text};
+  background: ${theme.colors.surface};
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary};
+    outline-offset: 2px;
+  }
+`
+
+export const StageActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${theme.spacing.sm};
+`

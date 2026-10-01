@@ -1,6 +1,15 @@
 export {
   createDeliveryTask,
+  completeDeliveryTaskStage,
   DeliveryTaskInputError,
+  DeliveryTaskStageError,
+  getDeliveryStageBlocker,
+  reopenDeliveryTaskStage,
   updateDeliveryTask,
 } from './deliveryTask'
-export type { DeliveryTask, DeliveryTaskInput } from './deliveryTask'
+export { DELIVERY_STAGES } from './deliveryTask'
+export type {
+  DeliveryStage,
+  DeliveryTask,
+  DeliveryTaskInput,
+} from './deliveryTask'
