@@ -1,4 +1,17 @@
 import { useState } from 'react'
+import { Route, Routes, useNavigate } from 'react-router-dom'
+import {
+  createDeliveryTask,
+  updateDeliveryTask,
+  type DeliveryTask,
+  type DeliveryTaskInput,
+} from '@/entities/delivery-task'
+import {
+  TaskCreatePage,
+  TaskDetailRoute,
+  TaskListPage,
+  UnknownTaskPage,
+} from './TaskWorkspace'
 import {
   BackLink,
   DetailHeading,
@@ -22,7 +35,7 @@ import {
 type StageStatusValue = 'complete' | 'active' | 'pending'
 type ValidationStatus = 'passed' | 'pending'
 
-interface DeliveryTask {
+interface MockDeliveryTask {
   title: string
   goal: string
 }
@@ -58,7 +71,7 @@ interface WorkflowStage {
   validationResults: ValidationResult[]
 }
 
-const mockTask: DeliveryTask = {
+const mockTask: MockDeliveryTask = {
   title: 'Present the AI engineering harness with an AI Delivery Lab',
   goal: 'Make the repository workflow and its quality controls inspectable.',
 }
@@ -142,7 +155,8 @@ const harnessControls = [
   'Quality gates make the final result measurable.',
 ]
 
-export const AIDeliveryLabPage = () => {
+const DemoWalkthrough = () => {
+  const navigate = useNavigate()
   const [selectedStageId, setSelectedStageId] = useState('implementation')
   const selectedStage =
     workflowStages.find((stage) => stage.id === selectedStageId) ??
@@ -214,6 +228,17 @@ export const AIDeliveryLabPage = () => {
       </Section>
 
       <Section>
+        <SectionHeading>Demo tasks</SectionHeading>
+        <DetailText>
+          Create tasks, browse their details, and record a simple goal in this
+          temporary demo workspace.
+        </DetailText>
+        <ResetButton type="button" onClick={() => navigate('/demo/tasks')}>
+          Browse demo tasks
+        </ResetButton>
+      </Section>
+
+      <Section>
         <SectionHeading>Harness controls</SectionHeading>
         <DetailList>
           {harnessControls.map((control) => (
@@ -222,6 +247,43 @@ export const AIDeliveryLabPage = () => {
         </DetailList>
       </Section>
     </DetailPage>
+  )
+}
+
+export const AIDeliveryLabPage = () => {
+  const [tasks, setTasks] = useState<DeliveryTask[]>([])
+  const createTask = (input: DeliveryTaskInput): DeliveryTask => {
+    const task = createDeliveryTask(input)
+    setTasks((current) => [task, ...current])
+    return task
+  }
+  const saveTask = (
+    id: string,
+    input: DeliveryTaskInput
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = updateDeliveryTask(task, input)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
+
+  return (
+    <Routes>
+      <Route index element={<DemoWalkthrough />} />
+      <Route path="tasks" element={<TaskListPage tasks={tasks} />} />
+      <Route
+        path="tasks/new"
+        element={<TaskCreatePage onCreate={createTask} />}
+      />
+      <Route
+        path="tasks/:taskId"
+        element={<TaskDetailRoute tasks={tasks} onSave={saveTask} />}
+      />
+      <Route path="*" element={<UnknownTaskPage />} />
+    </Routes>
   )
 }
 
