@@ -257,7 +257,7 @@ export const AIDeliveryLabPage = () => {
   const [tasks, setTasks] = useState<DeliveryTask[]>([])
   const createTask = (input: DeliveryTaskInput): DeliveryTask => {
     const task = createDeliveryTask(input)
-    setTasks((current) => [task, ...current])
+    setTasks((current) => [task].concat(current))
     return task
   }
   const saveTask = (

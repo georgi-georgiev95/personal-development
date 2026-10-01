@@ -49,9 +49,11 @@ Goal:
 [one outcome-focused paragraph]
 
 In scope:
+
 - ...
 
 Acceptance criteria:
+
 - [ ] ...
 
 Dependencies: None
@@ -63,9 +65,11 @@ Goal:
 [one outcome-focused paragraph]
 
 In scope:
+
 - ...
 
 Acceptance criteria:
+
 - [ ] ...
 
 Dependencies: Blocks on T1

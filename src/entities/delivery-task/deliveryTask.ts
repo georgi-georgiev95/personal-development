@@ -1,3 +1,10 @@
+import {
+  applyUpdate,
+  replaceItemCur,
+  replaceMany,
+  replaceWithin,
+} from '@/shared/utils/objectMutations'
+
 export interface DeliveryTaskInput {
   title: string
   goal: string
@@ -53,9 +60,11 @@ const normalizeInput = ({
 }
 
 export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
+  const normalized = normalizeInput(input)
   const now = new Date().toISOString()
   return {
-    ...normalizeInput(input),
+    title: normalized.title,
+    goal: normalized.goal,
     id: crypto.randomUUID(),
     stage: 'discovery',
     createdAt: now,
@@ -70,12 +79,14 @@ export const updateDeliveryTask = (
   const normalized = normalizeInput(input)
   const intentChanged =
     normalized.title !== task.title || normalized.goal !== task.goal
-  return {
-    ...task,
-    ...normalized,
-    ...(intentChanged ? { stage: 'discovery' as const } : {}),
-    updatedAt: new Date().toISOString(),
-  }
+  const updated = replaceMany(task, {
+    title: () => normalized.title,
+    goal: () => normalized.goal,
+    updatedAt: () => new Date().toISOString(),
+  })
+  return intentChanged
+    ? replaceWithin(updated, 'stage', () => 'discovery' as const)
+    : updated
 }
 
 export const getDeliveryStageBlocker = (
@@ -107,8 +118,10 @@ export const completeDeliveryTaskStage = (
   const blocker = getDeliveryStageBlocker(stage)
   if (blocker) throw new DeliveryTaskStageError(blocker)
   // Handoff is the final entry in the fixed workflow sequence.
-  const nextStage = DELIVERY_STAGES[DELIVERY_STAGES.indexOf(stage) + 1]!
-  return { ...task, stage: nextStage, updatedAt: new Date().toISOString() }
+  const updated = replaceItemCur(task, 'stage', (current) => {
+    return DELIVERY_STAGES[DELIVERY_STAGES.indexOf(current.stage) + 1]!
+  })
+  return applyUpdate(updated, { updatedAt: new Date().toISOString() })
 }
 
 export const reopenDeliveryTaskStage = (
@@ -118,5 +131,5 @@ export const reopenDeliveryTaskStage = (
   if (DELIVERY_STAGES.indexOf(stage) >= DELIVERY_STAGES.indexOf(task.stage)) {
     throw new DeliveryTaskStageError('Only a completed stage can be reopened.')
   }
-  return { ...task, stage, updatedAt: new Date().toISOString() }
+  return applyUpdate(task, { stage, updatedAt: new Date().toISOString() })
 }

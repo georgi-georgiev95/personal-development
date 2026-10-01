@@ -86,11 +86,7 @@ export function create${widgetName}ViewModel(
 ): ${widgetName}VM {
   const store = createViewModelStore<${widgetName}State>(initialState)
 
-  return {
-    ...store,
-    // Add business logic methods below
-    // Example: eventBus.emit('${widgetName.toLowerCase()}:action', { ... })
-  }
+  return Object.assign({}, store)
 }
 `,
 
@@ -123,20 +119,20 @@ export const WidgetTitle = styled.h2\`
 \`
 `,
 
-  view: `import React, { useEffect, useState } from 'react'
+  view: `import { useEffect, useState } from 'react'
 import { useViewModel } from '@/core/hooks'
 import { TOKENS } from '@/core/di'
 import type { ${widgetName}VM } from './${widgetName}.viewmodel'
 import type { ${widgetName}State, ${widgetName}Props } from './${widgetName}.types'
 import { Container, WidgetTitle } from './${widgetName}.styles'
 
-export const ${widgetName}: React.FC<${widgetName}Props> = (_props) => {
+export function ${widgetName}({}: ${widgetName}Props) {
   const vm = useViewModel<${widgetName}VM>(TOKENS.${widgetName}ViewModel)
   const [state, setLocalState] = useState<${widgetName}State>(vm.getState())
 
   useEffect(() => {
     const unsubscribe = vm.subscribe(() => {
-      setLocalState({ ...vm.getState() })
+      setLocalState(Object.assign({}, vm.getState()))
     })
     return () => {
       unsubscribe()

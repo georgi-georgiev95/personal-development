@@ -35,6 +35,7 @@ against `main` in the repository’s GitHub remote.
    when that work is within the user’s request, then rerun the complete
    sequence from the beginning. Never increase a performance budget to make
    `pnpm perf` pass without explicit user approval.
+
 5. Push the current branch to `origin` with its upstream configured if needed.
    Do not force-push.
 6. Create one PR with `gh pr create --base main --head <current-branch>` and a

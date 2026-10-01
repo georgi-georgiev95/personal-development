@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { getUserProfile, updateUserProfile } from '@/entities/user'
 import type { UserProfile } from '@/entities/user'
+import { applyUpdate } from '@/shared/utils/objectMutations'
 import { Modal, Button, Skeleton } from '@/shared/ui-kit'
 import {
   AvatarBadge,
@@ -45,7 +46,7 @@ const emptySnapshot: ProfileFormSnapshot = {
   age: '',
 }
 
-const ProfileModal: React.FC = () => {
+export function ProfileModal() {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -166,13 +167,12 @@ const ProfileModal: React.FC = () => {
       })
       setProfile((prev) =>
         prev
-          ? {
-              ...prev,
+          ? applyUpdate(prev, {
               firstName: firstName.trim(),
               lastName: lastName.trim(),
               username: username.trim(),
               age: age ? Number(age) : null,
-            }
+            })
           : prev
       )
       setInitialSnapshot(makeSnapshot(firstName, lastName, username, age))
@@ -320,5 +320,3 @@ const ProfileModal: React.FC = () => {
     </>
   )
 }
-
-export { ProfileModal }

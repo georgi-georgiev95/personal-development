@@ -1,3 +1,5 @@
+import { applyUpdate } from '@/shared/utils/objectMutations'
+
 /**
  * Lightweight web-vitals style metrics, built on the native
  * PerformanceObserver API (no external dependency).
@@ -91,7 +93,17 @@ const observe = (
     const observer = new PerformanceObserver((list) =>
       callback(list.getEntries())
     )
-    observer.observe({ type, buffered: true, ...options })
+    observer.observe(
+      applyUpdate<ObserverInit>(
+        { type, buffered: true },
+        {
+          type: options.type ?? type,
+          buffered: options.buffered ?? true,
+          entryTypes: options.entryTypes,
+          durationThreshold: options.durationThreshold,
+        }
+      )
+    )
     return observer
   } catch {
     return null

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +21,7 @@ import {
   FormContent,
 } from './LoginPage.styled'
 
-const LoginPage: React.FC = () => {
+export function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,7 +48,7 @@ const LoginPage: React.FC = () => {
     return true
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
 

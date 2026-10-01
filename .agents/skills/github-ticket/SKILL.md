@@ -1,6 +1,6 @@
 ---
 name: github-ticket
-description: "Interactively create a GitHub issue with the next sequential [PD-X] title prefix and a goal description. Use when the user asks to create a numbered PD ticket."
+description: 'Interactively create a GitHub issue with the next sequential [PD-X] title prefix and a goal description. Use when the user asks to create a numbered PD ticket.'
 ---
 
 # GitHub Ticket
@@ -43,7 +43,7 @@ After both values are provided:
 2. Determine the repository from the current directory with
    `gh repo view --json nameWithOwner`. Retrieve every open and closed issue as
    JSON, for example with `gh api --paginate --slurp
-   'repos/OWNER/REPO/issues?state=all&per_page=100'`. Exclude records with a
+'repos/OWNER/REPO/issues?state=all&per_page=100'`. Exclude records with a
    `pull_request` field, because that endpoint also returns pull requests.
 3. Parse the issue-title JSON inside the agent using its code runtime. Require
    successful retrieval, valid JSON, complete pagination, and string titles.

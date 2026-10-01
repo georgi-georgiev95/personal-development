@@ -1,4 +1,3 @@
-import React from 'react'
 import { Modal } from '../Modal'
 import { Button } from '../Button'
 import {
@@ -17,7 +16,7 @@ interface ConfirmDialogProps {
   destructive?: boolean
 }
 
-export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+export function ConfirmDialog({
   open,
   onOpenChange,
   title,
@@ -25,7 +24,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmLabel = 'Confirm',
   onConfirm,
   destructive = false,
-}) => {
+}: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm()
     onOpenChange(false)

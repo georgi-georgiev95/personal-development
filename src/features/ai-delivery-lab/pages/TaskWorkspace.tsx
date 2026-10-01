@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   DELIVERY_STAGES,
@@ -187,10 +187,14 @@ export const TaskDetailRoute = ({
   onReopenStage,
 }: TaskDetailRouteProps) => {
   const { taskId = '' } = useParams()
+  const task = useMemo(
+    () => tasks.find((item) => item.id === taskId),
+    [tasks, taskId]
+  )
   return (
     <TaskDetailPage
       key={taskId}
-      task={tasks.find((item) => item.id === taskId)}
+      task={task}
       onSave={onSave}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}

@@ -33,7 +33,7 @@ const ProfileModalFallback = () => (
   </>
 )
 
-export const Navigation: React.FC = () => {
+export function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, loading, signOut } = useAuth()
