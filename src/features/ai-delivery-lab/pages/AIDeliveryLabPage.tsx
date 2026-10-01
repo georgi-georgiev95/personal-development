@@ -8,6 +8,7 @@ import {
   Eyebrow,
   Heading,
   Intro,
+  ResetButton,
   SimulatedNote,
   Section,
   SectionHeading,
@@ -165,6 +166,12 @@ export const AIDeliveryLabPage = () => {
         <DetailText>
           <strong>{mockTask.title}</strong> — {mockTask.goal}
         </DetailText>
+        <ResetButton
+          type="button"
+          onClick={() => setSelectedStageId('implementation')}
+        >
+          Reset example
+        </ResetButton>
         <StageGrid aria-label="AI delivery workflow">
           {workflowStages.map((stage) => (
             <StageButton

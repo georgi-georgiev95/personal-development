@@ -7,8 +7,8 @@ import { AppRoutes } from './routes'
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <AppRoot>
           <SkipLink href="#main-content">Skip to main content</SkipLink>
           <Navigation />
@@ -16,8 +16,8 @@ const App: React.FC = () => {
             <AppRoutes />
           </AppContent>
         </AppRoot>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 
