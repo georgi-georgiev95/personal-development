@@ -1,9 +1,12 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  DELIVERY_STAGES,
   DeliveryTaskInputError,
+  getDeliveryStageBlocker,
   type DeliveryTask,
   type DeliveryTaskInput,
+  type DeliveryStage,
 } from '@/entities/delivery-task'
 import { Button, Textarea } from '@/shared/ui-kit'
 import {
@@ -16,6 +19,9 @@ import {
   Heading,
   Notice,
   Stage,
+  StageActions,
+  StageChoice,
+  StageProgress,
   TaskCard,
   TaskForm,
   TaskLink,
@@ -36,6 +42,8 @@ interface TaskCreatePageProps {
 interface TaskDetailPageProps {
   task: DeliveryTask | undefined
   onSave: (id: string, input: DeliveryTaskInput) => DeliveryTask | null
+  onCompleteStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
+  onReopenStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
 }
 
 interface TaskDetailRouteProps extends Omit<TaskDetailPageProps, 'task'> {
@@ -172,37 +180,71 @@ export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
   )
 }
 
-export const TaskDetailRoute = ({ tasks, onSave }: TaskDetailRouteProps) => {
+export const TaskDetailRoute = ({
+  tasks,
+  onSave,
+  onCompleteStage,
+  onReopenStage,
+}: TaskDetailRouteProps) => {
   const { taskId = '' } = useParams()
   return (
     <TaskDetailPage
       key={taskId}
       task={tasks.find((item) => item.id === taskId)}
       onSave={onSave}
+      onCompleteStage={onCompleteStage}
+      onReopenStage={onReopenStage}
     />
   )
 }
 
-const TaskDetailPage = ({ task, onSave }: TaskDetailPageProps) => {
+const TaskDetailPage = ({
+  task,
+  onSave,
+  onCompleteStage,
+  onReopenStage,
+}: TaskDetailPageProps) => {
   const navigate = useNavigate()
   const submitting = useRef(false)
   const [title, setTitle] = useState(task?.title ?? '')
   const [goal, setGoal] = useState(task?.goal ?? '')
   const [error, setError] = useState<DeliveryTaskInputError | null>(null)
   const [saved, setSaved] = useState(false)
+  const [selectedStage, setSelectedStage] = useState<DeliveryStage>(
+    task?.stage ?? 'discovery'
+  )
 
   if (!task) return <UnknownTaskPage />
+
+  const selectStage = (stage: DeliveryStage) => {
+    setSelectedStage(stage)
+  }
+
+  const updateStage = (update: DeliveryTask | null) => {
+    if (update) setSelectedStage(update.stage)
+  }
+  const currentStageIndex = DELIVERY_STAGES.indexOf(task.stage)
+  const selectedStageIndex = DELIVERY_STAGES.indexOf(selectedStage)
+  const selectedStageStatus =
+    selectedStageIndex < currentStageIndex
+      ? 'completed'
+      : selectedStageIndex === currentStageIndex
+        ? 'current'
+        : 'pending'
+  const stageBlocker = getDeliveryStageBlocker(selectedStage)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (submitting.current) return
     submitting.current = true
     try {
-      if (!onSave(task.id, { title, goal })) {
+      const updated = onSave(task.id, { title, goal })
+      if (!updated) {
         navigate('/demo/tasks')
         return
       }
       submitting.current = false
+      setSelectedStage(updated.stage)
       setSaved(true)
       setError(null)
     } catch (caught) {
@@ -218,6 +260,63 @@ const TaskDetailPage = ({ task, onSave }: TaskDetailPageProps) => {
       <PageHeading title={task.title} />
       <Content>
         <Stage>Current stage: {task.stage}</Stage>
+        <StageProgress aria-label="Task delivery stages">
+          {DELIVERY_STAGES.map((stage) => {
+            const stageIndex = DELIVERY_STAGES.indexOf(stage)
+            const status =
+              stageIndex < currentStageIndex
+                ? 'completed'
+                : stageIndex === currentStageIndex
+                  ? 'current'
+                  : 'pending'
+            return (
+              <li key={stage}>
+                <StageChoice
+                  type="button"
+                  $selected={selectedStage === stage}
+                  aria-current={selectedStage === stage ? 'step' : undefined}
+                  onClick={() => selectStage(stage)}
+                >
+                  <span>{stage[0].toUpperCase() + stage.slice(1)}</span>
+                  <span>{status}</span>
+                </StageChoice>
+              </li>
+            )
+          })}
+        </StageProgress>
+        <section aria-label={`${selectedStage} stage details`}>
+          <Stage>
+            {selectedStageStatus} stage: {selectedStage}
+          </Stage>
+          {selectedStageStatus === 'current' && stageBlocker && (
+            <TaskMeta role="note">{stageBlocker}</TaskMeta>
+          )}
+          {selectedStageStatus === 'pending' && (
+            <TaskMeta role="note">Complete earlier stages first.</TaskMeta>
+          )}
+          <StageActions>
+            {selectedStageStatus === 'current' && (
+              <Button
+                disabled={Boolean(stageBlocker)}
+                onClick={() =>
+                  updateStage(onCompleteStage(task.id, selectedStage))
+                }
+              >
+                Complete stage
+              </Button>
+            )}
+            {selectedStageStatus === 'completed' && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  updateStage(onReopenStage(task.id, selectedStage))
+                }
+              >
+                Reopen stage
+              </Button>
+            )}
+          </StageActions>
+        </section>
         <TaskMeta>Created {new Date(task.createdAt).toLocaleString()}</TaskMeta>
         <TaskForm onSubmit={handleSubmit}>
           <Field>
