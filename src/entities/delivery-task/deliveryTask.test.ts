@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import {
   completeDeliveryTaskStage,
   createDeliveryTask,
+  DeliveryArtifactInputError,
   DeliveryTaskInputError,
   DeliveryTaskStageError,
   getDeliveryStageBlocker,
   reopenDeliveryTaskStage,
+  saveDeliveryArtifact,
   updateDeliveryTask,
 } from './deliveryTask'
 
@@ -69,6 +71,72 @@ describe('updateDeliveryTask', () => {
     expect(
       updateDeliveryTask(inPlanning, { title: 'First', goal: 'Goal' }).stage
     ).toBe('planning')
+  })
+
+  it('advances the task intent revision only when its intent changes', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+
+    expect(
+      updateDeliveryTask(task, { title: 'First', goal: 'Goal' }).intentRevision
+    ).toBe(task.intentRevision)
+    expect(
+      updateDeliveryTask(task, { title: 'Changed', goal: 'Goal' })
+        .intentRevision
+    ).toBe(task.intentRevision + 1)
+  })
+})
+
+describe('saveDeliveryArtifact', () => {
+  it('stores plain text only on its task and stage and advances revisions', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+    const content = '<script>alert("hello")</script>\nNotes'
+    const first = saveDeliveryArtifact(task, 'discovery', content)
+    const next = saveDeliveryArtifact(first, 'discovery', 'Updated notes')
+
+    expect(first.artifacts.discovery).toMatchObject({
+      stage: 'discovery',
+      kind: 'discovery-notes',
+      content,
+      source: 'manual',
+      revision: 1,
+      taskRevision: task.intentRevision,
+    })
+    expect(next.artifacts.discovery).toMatchObject({
+      content: 'Updated notes',
+      revision: 2,
+    })
+    expect(next.artifacts.planning).toBeUndefined()
+    expect(task.artifacts.discovery).toBeUndefined()
+  })
+
+  it('rejects blank content and does not advance an unchanged note', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+    const saved = saveDeliveryArtifact(task, 'planning', 'Plan')
+
+    expect(() => saveDeliveryArtifact(task, 'planning', '  \n')).toThrowError(
+      new DeliveryArtifactInputError('Enter some notes before saving.')
+    )
+    expect(saveDeliveryArtifact(saved, 'planning', 'Plan')).toBe(saved)
+  })
+
+  it('marks an artifact against the task intent revision it was saved for', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+    const note = saveDeliveryArtifact(task, 'review', 'Looks good')
+    const revisedTask = updateDeliveryTask(note, {
+      title: 'First',
+      goal: 'Changed goal',
+    })
+    const refreshedNote = saveDeliveryArtifact(
+      revisedTask,
+      'review',
+      'Looks good'
+    )
+
+    expect(revisedTask.artifacts.review?.taskRevision).toBe(task.intentRevision)
+    expect(refreshedNote.artifacts.review?.taskRevision).toBe(
+      revisedTask.intentRevision
+    )
+    expect(refreshedNote.artifacts.review?.revision).toBe(2)
   })
 })
 

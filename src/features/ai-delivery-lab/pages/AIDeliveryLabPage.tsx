@@ -4,9 +4,11 @@ import {
   completeDeliveryTaskStage,
   createDeliveryTask,
   reopenDeliveryTaskStage,
+  saveDeliveryArtifact,
   updateDeliveryTask,
   type DeliveryTask,
   type DeliveryStage,
+  type DeliveryArtifactStage,
   type DeliveryTaskInput,
 } from '@/entities/delivery-task'
 import {
@@ -272,6 +274,19 @@ export const AIDeliveryLabPage = () => {
     )
     return updated
   }
+  const saveArtifact = (
+    id: string,
+    stage: DeliveryArtifactStage,
+    content: string
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = saveDeliveryArtifact(task, stage, content)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
   const completeStage = (
     id: string,
     stage: DeliveryStage
@@ -311,6 +326,7 @@ export const AIDeliveryLabPage = () => {
           <TaskDetailRoute
             tasks={tasks}
             onSave={saveTask}
+            onSaveArtifact={saveArtifact}
             onCompleteStage={completeStage}
             onReopenStage={reopenStage}
           />

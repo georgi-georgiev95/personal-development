@@ -21,9 +21,34 @@ export const DELIVERY_STAGES = [
 
 export type DeliveryStage = (typeof DELIVERY_STAGES)[number]
 
+export type DeliveryArtifactStage =
+  | 'discovery'
+  | 'planning'
+  | 'implementation'
+  | 'review'
+
+export type DeliveryArtifactKind =
+  | 'discovery-notes'
+  | 'plan'
+  | 'implementation-notes'
+  | 'review-notes'
+
+export interface DeliveryArtifact {
+  stage: DeliveryArtifactStage
+  kind: DeliveryArtifactKind
+  content: string
+  source: 'manual'
+  revision: number
+  taskRevision: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface DeliveryTask extends DeliveryTaskInput {
   id: string
   stage: DeliveryStage
+  intentRevision: number
+  artifacts: Partial<Record<DeliveryArtifactStage, DeliveryArtifact>>
   createdAt: string
   updatedAt: string
 }
@@ -42,6 +67,13 @@ export class DeliveryTaskStageError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'DeliveryTaskStageError'
+  }
+}
+
+export class DeliveryArtifactInputError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DeliveryArtifactInputError'
   }
 }
 
@@ -67,6 +99,8 @@ export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
     goal: normalized.goal,
     id: crypto.randomUUID(),
     stage: 'discovery',
+    intentRevision: 1,
+    artifacts: {},
     createdAt: now,
     updatedAt: now,
   }
@@ -82,11 +116,53 @@ export const updateDeliveryTask = (
   const updated = replaceMany(task, {
     title: () => normalized.title,
     goal: () => normalized.goal,
+    intentRevision: () => task.intentRevision + Number(intentChanged),
     updatedAt: () => new Date().toISOString(),
   })
   return intentChanged
     ? replaceWithin(updated, 'stage', () => 'discovery' as const)
     : updated
+}
+
+const ARTIFACT_KINDS: Record<DeliveryArtifactStage, DeliveryArtifactKind> = {
+  discovery: 'discovery-notes',
+  planning: 'plan',
+  implementation: 'implementation-notes',
+  review: 'review-notes',
+}
+
+export const saveDeliveryArtifact = (
+  task: DeliveryTask,
+  stage: DeliveryArtifactStage,
+  content: string
+): DeliveryTask => {
+  if (!content.trim()) {
+    throw new DeliveryArtifactInputError('Enter some notes before saving.')
+  }
+
+  const previous = task.artifacts[stage]
+  if (
+    previous?.content === content &&
+    previous.taskRevision === task.intentRevision
+  ) {
+    return task
+  }
+
+  const now = new Date().toISOString()
+  const artifact: DeliveryArtifact = {
+    stage,
+    kind: ARTIFACT_KINDS[stage],
+    content,
+    source: 'manual',
+    revision: (previous?.revision ?? 0) + 1,
+    taskRevision: task.intentRevision,
+    createdAt: previous?.createdAt ?? now,
+    updatedAt: now,
+  }
+  return applyUpdate(task, {
+    artifacts: replaceWithin(task.artifacts, stage, () => artifact),
+    updatedAt: now,
+  })
 }
 
 export const getDeliveryStageBlocker = (

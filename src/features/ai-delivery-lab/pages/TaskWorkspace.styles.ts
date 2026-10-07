@@ -55,6 +55,36 @@ export const Content = styled.section`
   margin-top: ${theme.spacing.xl};
 `
 
+export const ArtifactPanel = styled.section`
+  display: grid;
+  gap: ${theme.spacing.md};
+  padding: ${theme.spacing.md};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  background: ${theme.colors.surface};
+
+  h2 {
+    margin: 0;
+    color: ${theme.colors.text};
+    font-size: ${theme.fontSizes.lg};
+  }
+`
+
+export const ArtifactContent = styled.p`
+  margin: 0;
+  color: ${theme.colors.text};
+  line-height: ${theme.lineHeight.relaxed};
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+`
+
+export const ArtifactMeta = styled.p`
+  margin: 0;
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.xs};
+  line-height: ${theme.lineHeight.relaxed};
+`
+
 export const TaskList = styled.ul`
   display: grid;
   gap: ${theme.spacing.md};
