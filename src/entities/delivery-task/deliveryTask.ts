@@ -33,6 +33,40 @@ export type DeliveryArtifactKind =
   | 'implementation-notes'
   | 'review-notes'
 
+export const REQUIRED_VALIDATION_CHECKS = [
+  { id: 'typecheck', name: 'Typecheck' },
+  { id: 'lint', name: 'Lint' },
+  { id: 'coverage', name: 'Coverage' },
+  { id: 'build-performance', name: 'Build and performance' },
+] as const
+
+export type DeliveryValidationCheckId =
+  (typeof REQUIRED_VALIDATION_CHECKS)[number]['id']
+export type DeliveryValidationStatus = 'pending' | 'passed' | 'failed'
+export type DeliveryValidationSource = 'manual' | 'ci' | 'demo'
+type UserValidationSource = Exclude<DeliveryValidationSource, 'demo'>
+
+export interface DeliveryValidationEvidence {
+  status: Exclude<DeliveryValidationStatus, 'pending'>
+  note: string
+  source: DeliveryValidationSource
+  recordedAt: string
+  taskRevision: number
+  workRevision: number
+  revision: number
+}
+
+export interface DeliveryValidationCheck {
+  id: DeliveryValidationCheckId
+  name: string
+  required: true
+  status: DeliveryValidationStatus
+  evidence?: DeliveryValidationEvidence
+  history: DeliveryValidationEvidence[]
+  revision: number
+  updatedAt: string
+}
+
 export interface DeliveryArtifact {
   stage: DeliveryArtifactStage
   kind: DeliveryArtifactKind
@@ -48,7 +82,10 @@ export interface DeliveryTask extends DeliveryTaskInput {
   id: string
   stage: DeliveryStage
   intentRevision: number
+  revision: number
+  workRevision: number
   artifacts: Partial<Record<DeliveryArtifactStage, DeliveryArtifact>>
+  validationChecks: DeliveryValidationCheck[]
   createdAt: string
   updatedAt: string
 }
@@ -77,6 +114,13 @@ export class DeliveryArtifactInputError extends Error {
   }
 }
 
+export class DeliveryValidationInputError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DeliveryValidationInputError'
+  }
+}
+
 const normalizeInput = ({
   title,
   goal,
@@ -100,7 +144,18 @@ export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
     id: crypto.randomUUID(),
     stage: 'discovery',
     intentRevision: 1,
+    revision: 1,
+    workRevision: 1,
     artifacts: {},
+    validationChecks: REQUIRED_VALIDATION_CHECKS.map(({ id, name }) => ({
+      id,
+      name,
+      required: true,
+      status: 'pending',
+      history: [],
+      revision: 0,
+      updatedAt: now,
+    })),
     createdAt: now,
     updatedAt: now,
   }
@@ -117,6 +172,8 @@ export const updateDeliveryTask = (
     title: () => normalized.title,
     goal: () => normalized.goal,
     intentRevision: () => task.intentRevision + Number(intentChanged),
+    revision: () => task.revision + Number(intentChanged),
+    workRevision: () => task.workRevision + Number(intentChanged),
     updatedAt: () => new Date().toISOString(),
   })
   return intentChanged
@@ -159,17 +216,110 @@ export const saveDeliveryArtifact = (
     createdAt: previous?.createdAt ?? now,
     updatedAt: now,
   }
-  return applyUpdate(task, {
+  const updated = applyUpdate(task, {
     artifacts: replaceWithin(task.artifacts, stage, () => artifact),
+    revision: task.revision + Number(previous?.content !== content),
+    workRevision: task.workRevision + Number(previous?.content !== content),
+    updatedAt: now,
+  })
+  return previous?.content !== content &&
+    DELIVERY_STAGES.indexOf(stage) < DELIVERY_STAGES.indexOf(task.stage)
+    ? replaceWithin(updated, 'stage', () => stage)
+    : updated
+}
+
+export const recordDeliveryValidationResult = (
+  task: DeliveryTask,
+  checkId: DeliveryValidationCheckId,
+  status: DeliveryValidationStatus,
+  note: string,
+  source: UserValidationSource | null
+): DeliveryTask => {
+  if (task.stage !== 'validation') {
+    throw new DeliveryValidationInputError(
+      'Validation results can only be recorded during the validation stage.'
+    )
+  }
+  const check = task.validationChecks.find(({ id }) => id === checkId)
+  if (!check) {
+    throw new DeliveryValidationInputError(
+      'Choose a required validation check.'
+    )
+  }
+  if (status !== 'pending' && !source) {
+    throw new DeliveryValidationInputError('Choose an evidence source.')
+  }
+  if (status === 'passed' && !note.trim()) {
+    throw new DeliveryValidationInputError(
+      'Add an evidence note or URL before marking a check passed.'
+    )
+  }
+
+  const unchanged =
+    check.status === status &&
+    (status === 'pending' ||
+      (check.evidence?.note === note &&
+        check.evidence.source === source &&
+        check.evidence.workRevision === task.workRevision))
+  if (unchanged) return task
+
+  const now = new Date().toISOString()
+  const evidence =
+    status === 'pending'
+      ? undefined
+      : {
+          status,
+          note: note.trim(),
+          source: source!,
+          recordedAt: now,
+          taskRevision: task.revision + 1,
+          workRevision: task.workRevision,
+          revision: check.revision + 1,
+        }
+  const updatedCheck: DeliveryValidationCheck = {
+    ...check,
+    status,
+    evidence,
+    history: check.evidence
+      ? [...check.history, check.evidence]
+      : check.history,
+    revision: check.revision + 1,
+    updatedAt: now,
+  }
+  return applyUpdate(task, {
+    validationChecks: task.validationChecks.map((item) =>
+      item.id === checkId ? updatedCheck : item
+    ),
+    revision: task.revision + 1,
     updatedAt: now,
   })
 }
 
 export const getDeliveryStageBlocker = (
+  task: DeliveryTask,
   stage: DeliveryStage
 ): string | null => {
   if (stage === 'validation') {
-    return 'Validation evidence cannot be recorded in this demo yet.'
+    const blockers = task.validationChecks
+      .filter(({ required }) => required)
+      .flatMap((check) => {
+        if (check.status === 'pending')
+          return [`${check.name} has not been run.`]
+        if (check.evidence?.source === 'demo') {
+          return [
+            `${check.name} has simulated evidence, which cannot pass review.`,
+          ]
+        }
+        if (check.evidence?.workRevision !== task.workRevision) {
+          return [`${check.name} evidence is stale for this task revision.`]
+        }
+        if (check.status === 'failed') return [`${check.name} failed.`]
+        if (!check.evidence?.note.trim()) {
+          return [`${check.name} needs an evidence note or URL.`]
+        }
+        return []
+      })
+    return blockers.length ? `Review is blocked: ${blockers.join(' ')}` : null
   }
   if (stage === 'review') {
     return 'Review needs validation evidence and an approval record.'
@@ -191,7 +341,7 @@ export const completeDeliveryTaskStage = (
     throw new DeliveryTaskStageError('Only the current stage can be completed.')
   }
   if (stage === 'handoff') throw new DeliveryTaskStageError(HANDOFF_BLOCKER)
-  const blocker = getDeliveryStageBlocker(stage)
+  const blocker = getDeliveryStageBlocker(task, stage)
   if (blocker) throw new DeliveryTaskStageError(blocker)
   // Handoff is the final entry in the fixed workflow sequence.
   const updated = replaceItemCur(task, 'stage', (current) => {
