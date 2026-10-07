@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import {
+  createDemoJourney,
+  type DemoJourney,
+} from '@/features/ai-delivery-lab/demoJourneys'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
   completeDeliveryTaskStage,
@@ -269,6 +273,11 @@ export const AIDeliveryLabPage = () => {
     setTasks((current) => [task].concat(current))
     return task
   }
+  const createSample = (journey: DemoJourney): DeliveryTask => {
+    const task = createDemoJourney(journey)
+    setTasks((current) => [task, ...current])
+    return task
+  }
   const saveTask = (
     id: string,
     input: DeliveryTaskInput
@@ -355,7 +364,10 @@ export const AIDeliveryLabPage = () => {
   return (
     <Routes>
       <Route index element={<DemoWalkthrough />} />
-      <Route path="tasks" element={<TaskListPage tasks={tasks} />} />
+      <Route
+        path="tasks"
+        element={<TaskListPage tasks={tasks} onCreateSample={createSample} />}
+      />
       <Route
         path="tasks/new"
         element={<TaskCreatePage onCreate={createTask} />}

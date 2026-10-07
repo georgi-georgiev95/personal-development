@@ -450,19 +450,17 @@ describe('delivery task stage transitions', () => {
     }
   )
 
-  it.each([
-    [
-      'handoff',
-      'Handoff needs an approved review, passing required checks, and a summary.',
-    ],
-  ] as const)('explains the %s prerequisite gate', (stage, message) => {
-    expect(
-      getDeliveryStageBlocker(
-        createDeliveryTask({ title: 'First', goal: 'Goal' }),
-        stage
-      )
-    ).toBe(message)
-  })
+  it.each([['handoff', 'Complete earlier stages before handoff.']] as const)(
+    'explains the %s prerequisite gate',
+    (stage, message) => {
+      expect(
+        getDeliveryStageBlocker(
+          createDeliveryTask({ title: 'First', goal: 'Goal' }),
+          stage
+        )
+      ).toBe(message)
+    }
+  )
 
   it('rejects advancing from validation without evidence', () => {
     const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
@@ -490,7 +488,7 @@ describe('delivery task stage transitions', () => {
 
     expect(() => completeDeliveryTaskStage(handoff, 'handoff')).toThrowError(
       new DeliveryTaskStageError(
-        'Handoff needs an approved review, passing required checks, and a summary.'
+        'Handoff is the final stage. Preview or export the handoff.'
       )
     )
   })

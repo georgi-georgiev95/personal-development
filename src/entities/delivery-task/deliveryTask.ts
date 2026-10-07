@@ -367,7 +367,9 @@ export const getDeliveryStageBlocker = (
       : 'Changes were requested. Resolve them and review again.'
   }
   if (stage === 'handoff') {
-    return HANDOFF_BLOCKER
+    return task.stage === 'handoff'
+      ? getDeliveryStageBlocker(task, 'review')
+      : 'Complete earlier stages before handoff.'
   }
   return null
 }
@@ -422,7 +424,7 @@ export const recordDeliveryReviewDecision = (
 }
 
 const HANDOFF_BLOCKER =
-  'Handoff needs an approved review, passing required checks, and a summary.'
+  'Handoff is the final stage. Preview or export the handoff.'
 
 export const completeDeliveryTaskStage = (
   task: DeliveryTask,
