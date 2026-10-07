@@ -10,6 +10,10 @@ import {
   type DeliveryTaskInput,
   type DeliveryStage,
   type DeliveryArtifactStage,
+  type DeliveryValidationCheck,
+  type DeliveryValidationCheckId,
+  type DeliveryValidationSource,
+  type DeliveryValidationStatus,
 } from '@/entities/delivery-task'
 import { Button, Textarea } from '@/shared/ui-kit'
 import {
@@ -35,6 +39,7 @@ import {
   TaskMeta,
   TaskPage,
   TextInput,
+  ValidationSelect,
 } from './TaskWorkspace.styles'
 
 interface TaskListPageProps {
@@ -52,6 +57,13 @@ interface TaskDetailPageProps {
     id: string,
     stage: DeliveryArtifactStage,
     content: string
+  ) => DeliveryTask | null
+  onSaveValidationResult: (
+    id: string,
+    checkId: DeliveryValidationCheckId,
+    status: DeliveryValidationStatus,
+    note: string,
+    source: Exclude<DeliveryValidationSource, 'demo'> | null
   ) => DeliveryTask | null
   onCompleteStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
   onReopenStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
@@ -195,6 +207,7 @@ export const TaskDetailRoute = ({
   tasks,
   onSave,
   onSaveArtifact,
+  onSaveValidationResult,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailRouteProps) => {
@@ -209,6 +222,7 @@ export const TaskDetailRoute = ({
       task={task}
       onSave={onSave}
       onSaveArtifact={onSaveArtifact}
+      onSaveValidationResult={onSaveValidationResult}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
     />
@@ -219,6 +233,7 @@ const TaskDetailPage = ({
   task,
   onSave,
   onSaveArtifact,
+  onSaveValidationResult,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailPageProps) => {
@@ -249,7 +264,7 @@ const TaskDetailPage = ({
       : selectedStageIndex === currentStageIndex
         ? 'current'
         : 'pending'
-  const stageBlocker = getDeliveryStageBlocker(selectedStage)
+  const stageBlocker = getDeliveryStageBlocker(task, selectedStage)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -342,6 +357,15 @@ const TaskDetailPage = ({
               intentRevision={task.intentRevision}
               artifact={task.artifacts[selectedStage]}
               onSave={onSaveArtifact}
+            />
+          ) : selectedStage === 'validation' ? (
+            <ValidationResults
+              checks={task.validationChecks}
+              taskId={task.id}
+              taskRevision={task.revision}
+              workRevision={task.workRevision}
+              editable={selectedStageStatus === 'current'}
+              onSave={onSaveValidationResult}
             />
           ) : (
             <TaskMeta role="note">
@@ -522,6 +546,202 @@ const StageArtifactEditor = ({
         </>
       )}
     </ArtifactPanel>
+  )
+}
+
+interface ValidationResultsProps {
+  checks: DeliveryValidationCheck[]
+  taskId: string
+  taskRevision: number
+  workRevision: number
+  editable: boolean
+  onSave: TaskDetailPageProps['onSaveValidationResult']
+}
+
+function ValidationResults({
+  checks,
+  taskId,
+  taskRevision,
+  workRevision,
+  editable,
+  onSave,
+}: ValidationResultsProps) {
+  const required = checks.filter((check) => check.required)
+  const passed = required.filter(
+    (check) =>
+      check.status === 'passed' &&
+      check.evidence?.workRevision === workRevision &&
+      check.evidence.source !== 'demo' &&
+      Boolean(check.evidence.note.trim())
+  ).length
+
+  return (
+    <ArtifactPanel aria-label="Validation results">
+      <h2>Required checks</h2>
+      <ArtifactMeta>
+        {required.length === 0
+          ? 'No required checks are configured; review may proceed.'
+          : `${passed} of ${required.length} required checks pass for task revision ${taskRevision} (work revision ${workRevision}). Results are manually reported; no checks run here.`}
+      </ArtifactMeta>
+      <TaskList>
+        {checks.map((check) => (
+          <TaskCard key={`${check.id}-${check.revision}`}>
+            <ValidationCheckEditor
+              check={check}
+              taskId={taskId}
+              workRevision={workRevision}
+              editable={editable}
+              onSave={onSave}
+            />
+          </TaskCard>
+        ))}
+      </TaskList>
+    </ArtifactPanel>
+  )
+}
+
+interface ValidationCheckEditorProps {
+  check: DeliveryValidationCheck
+  taskId: string
+  workRevision: number
+  editable: boolean
+  onSave: ValidationResultsProps['onSave']
+}
+
+function ValidationCheckEditor({
+  check,
+  taskId,
+  workRevision,
+  editable,
+  onSave,
+}: ValidationCheckEditorProps) {
+  const [status, setStatus] = useState<DeliveryValidationStatus>(check.status)
+  const [note, setNote] = useState(check.evidence?.note ?? '')
+  const [source, setSource] = useState<'manual' | 'ci'>(
+    check.evidence?.source === 'ci' ? 'ci' : 'manual'
+  )
+  const [error, setError] = useState('')
+  const stale = Boolean(
+    check.evidence && check.evidence.workRevision !== workRevision
+  )
+  const label =
+    check.evidence?.source === 'demo'
+      ? 'Simulated demo · cannot satisfy review'
+      : stale
+        ? 'Stale'
+        : check.status === 'pending'
+          ? 'Not run'
+          : check.status === 'passed'
+            ? check.evidence?.source === 'ci'
+              ? 'Passed · manually reported from CI'
+              : 'Passed · manually reported'
+            : check.status === 'failed'
+              ? check.evidence?.source === 'ci'
+                ? 'Failed · manually reported from CI'
+                : 'Failed · manually reported'
+              : check.status
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    try {
+      onSave(
+        taskId,
+        check.id,
+        status,
+        note,
+        status === 'pending' ? null : source
+      )
+      setError('')
+    } catch (caught) {
+      if (caught instanceof Error) setError(caught.message)
+      else throw caught
+    }
+  }
+
+  return (
+    <>
+      <Stage>
+        {check.name}
+        {check.required ? ' · required' : ' · optional'}
+      </Stage>
+      <ArtifactMeta role={stale ? 'alert' : undefined}>
+        {stale
+          ? `${check.evidence?.source === 'demo' ? 'Simulated demo evidence · ' : 'Stale: '}evidence is for work revision ${check.evidence?.workRevision}; current work revision is ${workRevision}.`
+          : label}
+      </ArtifactMeta>
+      {check.evidence && !stale && (
+        <ArtifactMeta>
+          {check.evidence.note || 'No note or URL provided'} · recorded{' '}
+          {new Date(check.evidence.recordedAt).toLocaleString()} · evidence
+          revision {check.evidence.revision} · task revision{' '}
+          {check.evidence.taskRevision}
+          {check.history.length > 0 &&
+            ` · ${check.history.length} prior result(s)`}
+        </ArtifactMeta>
+      )}
+      {editable ? (
+        <TaskForm onSubmit={handleSubmit}>
+          <Field>
+            <label htmlFor={`check-status-${check.id}`}>
+              Result for {check.name}
+            </label>
+            <ValidationSelect
+              id={`check-status-${check.id}`}
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as DeliveryValidationStatus)
+                setError('')
+              }}
+            >
+              <option value="pending">Not run</option>
+              <option value="passed">Passed</option>
+              <option value="failed">Failed</option>
+            </ValidationSelect>
+          </Field>
+          {status !== 'pending' && (
+            <>
+              <Field>
+                <label htmlFor={`check-source-${check.id}`}>
+                  Evidence source for {check.name}
+                </label>
+                <ValidationSelect
+                  id={`check-source-${check.id}`}
+                  value={source}
+                  onChange={(event) =>
+                    setSource(event.target.value as 'manual' | 'ci')
+                  }
+                >
+                  <option value="manual">Manual</option>
+                  <option value="ci">CI copied manually</option>
+                </ValidationSelect>
+              </Field>
+              <Field>
+                <label htmlFor={`check-evidence-${check.id}`}>
+                  Evidence note or URL for {check.name}{' '}
+                  {status === 'passed' ? '(required)' : '(optional)'}
+                </label>
+                <TextInput
+                  id={`check-evidence-${check.id}`}
+                  value={note}
+                  onChange={(event) => {
+                    setNote(event.target.value)
+                    setError('')
+                  }}
+                />
+              </Field>
+            </>
+          )}
+          {error && <FieldError role="alert">{error}</FieldError>}
+          <Actions>
+            <Button type="submit">Save {check.name} result</Button>
+          </Actions>
+        </TaskForm>
+      ) : (
+        <ArtifactMeta>
+          Results can only be edited during the validation stage.
+        </ArtifactMeta>
+      )}
+    </>
   )
 }
 

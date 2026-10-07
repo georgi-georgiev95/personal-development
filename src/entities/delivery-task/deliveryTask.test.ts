@@ -4,13 +4,29 @@ import {
   completeDeliveryTaskStage,
   createDeliveryTask,
   DeliveryArtifactInputError,
+  DeliveryValidationInputError,
+  type DeliveryValidationCheckId,
   DeliveryTaskInputError,
   DeliveryTaskStageError,
   getDeliveryStageBlocker,
   reopenDeliveryTaskStage,
+  recordDeliveryValidationResult,
+  REQUIRED_VALIDATION_CHECKS,
   saveDeliveryArtifact,
   updateDeliveryTask,
 } from './deliveryTask'
+
+const makeValidationTask = () =>
+  completeDeliveryTaskStage(
+    completeDeliveryTaskStage(
+      completeDeliveryTaskStage(
+        createDeliveryTask({ title: 'First', goal: 'Goal' }),
+        'discovery'
+      ),
+      'planning'
+    ),
+    'implementation'
+  )
 
 describe('createDeliveryTask', () => {
   it('trims and creates a distinct task at discovery', () => {
@@ -140,6 +156,241 @@ describe('saveDeliveryArtifact', () => {
   })
 })
 
+describe('delivery validation results', () => {
+  it('starts required checks pending and blocks review with clear reasons', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+
+    expect(task.validationChecks).toHaveLength(4)
+    expect(task.validationChecks.every((check) => check.required)).toBe(true)
+    expect(
+      task.validationChecks.every((check) => check.status === 'pending')
+    ).toBe(true)
+    expect(getDeliveryStageBlocker(task, 'validation')).toBe(
+      'Review is blocked: Typecheck has not been run. Lint has not been run. Coverage has not been run. Build and performance has not been run.'
+    )
+  })
+
+  it('requires a source and evidence before reporting a check as passed', () => {
+    const task = makeValidationTask()
+
+    expect(() =>
+      recordDeliveryValidationResult(task, 'typecheck', 'passed', '', 'manual')
+    ).toThrowError(
+      new DeliveryValidationInputError(
+        'Add an evidence note or URL before marking a check passed.'
+      )
+    )
+    expect(() =>
+      recordDeliveryValidationResult(task, 'lint', 'failed', '', null)
+    ).toThrowError(
+      new DeliveryValidationInputError('Choose an evidence source.')
+    )
+    expect(() =>
+      recordDeliveryValidationResult(
+        task,
+        'missing' as DeliveryValidationCheckId,
+        'pending',
+        '',
+        null
+      )
+    ).toThrowError(
+      new DeliveryValidationInputError('Choose a required validation check.')
+    )
+  })
+
+  it('only records results during the validation stage', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+
+    expect(() =>
+      recordDeliveryValidationResult(task, 'typecheck', 'failed', '', 'manual')
+    ).toThrowError(
+      new DeliveryValidationInputError(
+        'Validation results can only be recorded during the validation stage.'
+      )
+    )
+  })
+
+  it('blocks failed required checks and opens review only when all current checks pass', () => {
+    const task = makeValidationTask()
+    const failed = recordDeliveryValidationResult(
+      task,
+      'typecheck',
+      'failed',
+      '',
+      'manual'
+    )
+    expect(getDeliveryStageBlocker(failed, 'validation')).toContain(
+      'Typecheck failed.'
+    )
+
+    const passed = REQUIRED_VALIDATION_CHECKS.reduce(
+      (current, check) =>
+        recordDeliveryValidationResult(
+          current,
+          check.id,
+          'passed',
+          'See validation log',
+          'manual'
+        ),
+      task
+    )
+    const currentResults = REQUIRED_VALIDATION_CHECKS.reduce(
+      (current, check) =>
+        recordDeliveryValidationResult(
+          current,
+          check.id,
+          'passed',
+          'See validation log',
+          'manual'
+        ),
+      task
+    )
+
+    expect(getDeliveryStageBlocker(passed, 'validation')).toBeNull()
+    expect(completeDeliveryTaskStage(currentResults, 'validation').stage).toBe(
+      'review'
+    )
+  })
+
+  it('makes prior evidence stale after reviewed work changes', () => {
+    const task = makeValidationTask()
+    const passed = REQUIRED_VALIDATION_CHECKS.reduce(
+      (current, check) =>
+        recordDeliveryValidationResult(
+          current,
+          check.id,
+          'passed',
+          'See validation log',
+          'ci'
+        ),
+      task
+    )
+    const taskInReview = applyUpdate(passed, { stage: 'review' })
+    const changed = saveDeliveryArtifact(
+      taskInReview,
+      'implementation',
+      'Changed implementation'
+    )
+
+    expect(changed.revision).toBe(passed.revision + 1)
+    expect(changed.stage).toBe('implementation')
+    expect(getDeliveryStageBlocker(changed, 'validation')).toContain(
+      'Typecheck evidence is stale for this task revision.'
+    )
+  })
+
+  it('keeps prior evidence when a result is updated or reset', () => {
+    const task = makeValidationTask()
+    const passed = recordDeliveryValidationResult(
+      task,
+      'coverage',
+      'passed',
+      'Coverage report',
+      'manual'
+    )
+    expect(
+      recordDeliveryValidationResult(
+        passed,
+        'coverage',
+        'passed',
+        'Coverage report',
+        'manual'
+      )
+    ).toBe(passed)
+    const failed = recordDeliveryValidationResult(
+      passed,
+      'coverage',
+      'failed',
+      '',
+      'ci'
+    )
+    const reset = recordDeliveryValidationResult(
+      failed,
+      'coverage',
+      'pending',
+      '',
+      null
+    )
+
+    expect(failed.validationChecks[2]).toMatchObject({
+      status: 'failed',
+      revision: 2,
+      history: [expect.objectContaining({ note: 'Coverage report' })],
+    })
+    expect(reset.validationChecks[2]).toMatchObject({
+      status: 'pending',
+      revision: 3,
+      history: [
+        expect.objectContaining({ note: 'Coverage report' }),
+        expect.objectContaining({ status: 'failed', source: 'ci' }),
+      ],
+    })
+    expect(
+      recordDeliveryValidationResult(reset, 'coverage', 'pending', '', null)
+    ).toBe(reset)
+  })
+
+  it('does not treat simulated evidence as a passed check', () => {
+    const task = makeValidationTask()
+    const check = task.validationChecks[0]
+    const withSimulatedEvidence = {
+      ...task,
+      validationChecks: task.validationChecks.map((item) =>
+        item.id === check.id
+          ? {
+              ...item,
+              status: 'passed' as const,
+              evidence: {
+                status: 'passed' as const,
+                note: 'Example only',
+                source: 'demo' as const,
+                recordedAt: task.createdAt,
+                taskRevision: task.revision,
+                workRevision: task.workRevision,
+                revision: 1,
+              },
+            }
+          : item
+      ),
+    }
+
+    expect(
+      getDeliveryStageBlocker(withSimulatedEvidence, 'validation')
+    ).toContain('Typecheck has simulated evidence, which cannot pass review.')
+  })
+
+  it('requires an evidence note for malformed passed results and reports no-check tasks explicitly', () => {
+    const task = makeValidationTask()
+    const invalidPassed = {
+      ...task,
+      validationChecks: task.validationChecks.map((check, index) =>
+        index === 0
+          ? {
+              ...check,
+              status: 'passed' as const,
+              evidence: {
+                status: 'passed' as const,
+                note: '',
+                source: 'manual' as const,
+                recordedAt: task.createdAt,
+                taskRevision: task.revision,
+                workRevision: task.workRevision,
+                revision: 1,
+              },
+            }
+          : check
+      ),
+    }
+    const noRequiredChecks = { ...task, validationChecks: [] }
+
+    expect(getDeliveryStageBlocker(invalidPassed, 'validation')).toContain(
+      'Typecheck needs an evidence note or URL.'
+    )
+    expect(getDeliveryStageBlocker(noRequiredChecks, 'validation')).toBeNull()
+    expect(getDeliveryStageBlocker(task, 'planning')).toBeNull()
+  })
+})
+
 describe('delivery task stage transitions', () => {
   it('advances only the current stage and permits reopening completed stages', () => {
     const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
@@ -176,14 +427,18 @@ describe('delivery task stage transitions', () => {
   )
 
   it.each([
-    ['validation', 'Validation evidence cannot be recorded in this demo yet.'],
     ['review', 'Review needs validation evidence and an approval record.'],
     [
       'handoff',
       'Handoff needs an approved review, passing required checks, and a summary.',
     ],
   ] as const)('explains the %s prerequisite gate', (stage, message) => {
-    expect(getDeliveryStageBlocker(stage)).toBe(message)
+    expect(
+      getDeliveryStageBlocker(
+        createDeliveryTask({ title: 'First', goal: 'Goal' }),
+        stage
+      )
+    ).toBe(message)
   })
 
   it('rejects advancing from validation without evidence', () => {
@@ -201,7 +456,7 @@ describe('delivery task stage transitions', () => {
       completeDeliveryTaskStage(validation, 'validation')
     ).toThrowError(
       new DeliveryTaskStageError(
-        'Validation evidence cannot be recorded in this demo yet.'
+        'Review is blocked: Typecheck has not been run. Lint has not been run. Coverage has not been run. Build and performance has not been run.'
       )
     )
   })

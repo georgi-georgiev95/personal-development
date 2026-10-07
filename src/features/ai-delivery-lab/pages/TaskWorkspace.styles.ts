@@ -148,6 +148,22 @@ export const TextInput = styled.input`
   }
 `
 
+export const ValidationSelect = styled.select`
+  width: 100%;
+  min-height: 44px;
+  padding: ${theme.spacing.sm};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.md};
+  color: ${theme.colors.textInverse};
+  background: ${theme.colors.cardBg};
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary};
+    outline-offset: 2px;
+  }
+`
+
 export const FieldError = styled.p`
   margin: 0;
   color: ${theme.colors.error};

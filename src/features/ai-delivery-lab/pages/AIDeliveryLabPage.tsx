@@ -4,11 +4,15 @@ import {
   completeDeliveryTaskStage,
   createDeliveryTask,
   reopenDeliveryTaskStage,
+  recordDeliveryValidationResult,
   saveDeliveryArtifact,
   updateDeliveryTask,
   type DeliveryTask,
   type DeliveryStage,
   type DeliveryArtifactStage,
+  type DeliveryValidationCheckId,
+  type DeliveryValidationSource,
+  type DeliveryValidationStatus,
   type DeliveryTaskInput,
 } from '@/entities/delivery-task'
 import {
@@ -63,6 +67,7 @@ interface ApprovalGate {
 interface ValidationResult {
   check: string
   status: ValidationStatus
+  source: 'demo'
 }
 
 interface WorkflowStage {
@@ -122,10 +127,10 @@ const workflowStages: WorkflowStage[] = [
     agent: { name: 'Validation agent', role: 'Quality checks' },
     artifacts: [{ kind: 'checks', title: 'Quality-gate results' }],
     validationResults: [
-      { check: 'Typecheck', status: 'pending' },
-      { check: 'Lint', status: 'pending' },
-      { check: 'Coverage', status: 'pending' },
-      { check: 'Build and performance', status: 'pending' },
+      { check: 'Typecheck', status: 'pending', source: 'demo' },
+      { check: 'Lint', status: 'pending', source: 'demo' },
+      { check: 'Coverage', status: 'pending', source: 'demo' },
+      { check: 'Build and performance', status: 'pending', source: 'demo' },
     ],
   },
   {
@@ -225,7 +230,7 @@ const DemoWalkthrough = () => {
             )}
             {selectedStage.validationResults.map((result) => (
               <li key={result.check}>
-                {result.check}: {result.status}
+                {result.check}: {result.status} · Simulated demo
               </li>
             ))}
           </DetailList>
@@ -287,6 +292,27 @@ export const AIDeliveryLabPage = () => {
     )
     return updated
   }
+  const saveValidationResult = (
+    id: string,
+    checkId: DeliveryValidationCheckId,
+    status: DeliveryValidationStatus,
+    note: string,
+    source: Exclude<DeliveryValidationSource, 'demo'> | null
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = recordDeliveryValidationResult(
+      task,
+      checkId,
+      status,
+      note,
+      source
+    )
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
   const completeStage = (
     id: string,
     stage: DeliveryStage
@@ -327,6 +353,7 @@ export const AIDeliveryLabPage = () => {
             tasks={tasks}
             onSave={saveTask}
             onSaveArtifact={saveArtifact}
+            onSaveValidationResult={saveValidationResult}
             onCompleteStage={completeStage}
             onReopenStage={reopenStage}
           />
