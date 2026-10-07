@@ -68,6 +68,16 @@ export const ArtifactPanel = styled.section`
     color: ${theme.colors.text};
     font-size: ${theme.fontSizes.lg};
   }
+
+  summary {
+    color: ${theme.colors.text};
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid ${theme.colors.primary};
+      outline-offset: 2px;
+    }
+  }
 `
 
 export const ArtifactContent = styled.p`

@@ -5,6 +5,8 @@ import {
   createDeliveryTask,
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
+  recordDeliveryReviewDecision,
+  type DeliveryReviewInput,
   saveDeliveryArtifact,
   updateDeliveryTask,
   type DeliveryTask,
@@ -325,6 +327,18 @@ export const AIDeliveryLabPage = () => {
     )
     return updated
   }
+  const reviewTask = (
+    id: string,
+    input: DeliveryReviewInput
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = recordDeliveryReviewDecision(task, input)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
   const reopenStage = (
     id: string,
     stage: DeliveryStage
@@ -354,6 +368,7 @@ export const AIDeliveryLabPage = () => {
             onSave={saveTask}
             onSaveArtifact={saveArtifact}
             onSaveValidationResult={saveValidationResult}
+            onReview={reviewTask}
             onCompleteStage={completeStage}
             onReopenStage={reopenStage}
           />

@@ -7,11 +7,16 @@ export {
   getDeliveryStageBlocker,
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
+  recordDeliveryReviewDecision,
   DeliveryValidationInputError,
   saveDeliveryArtifact,
   updateDeliveryTask,
 } from './deliveryTask'
-export { DELIVERY_STAGES, REQUIRED_VALIDATION_CHECKS } from './deliveryTask'
+export {
+  DELIVERY_STAGES,
+  DELIVERY_REVIEW_RETURN_STAGES,
+  REQUIRED_VALIDATION_CHECKS,
+} from './deliveryTask'
 export type {
   DeliveryStage,
   DeliveryArtifact,
@@ -24,4 +29,8 @@ export type {
   DeliveryValidationStatus,
   DeliveryTask,
   DeliveryTaskInput,
+  DeliveryReviewer,
+  DeliveryReviewInput,
+  DeliveryReviewDecision,
+  DeliveryReviewReturnStage,
 } from './deliveryTask'

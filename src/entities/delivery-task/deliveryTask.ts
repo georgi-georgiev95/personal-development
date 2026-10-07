@@ -78,6 +78,35 @@ export interface DeliveryArtifact {
   updatedAt: string
 }
 
+export interface DeliveryReviewer {
+  id: string
+  name: string
+  source: 'simulated' | 'owner'
+}
+
+export const DELIVERY_REVIEW_RETURN_STAGES = [
+  'discovery',
+  'planning',
+  'implementation',
+  'validation',
+] as const
+export type DeliveryReviewReturnStage =
+  (typeof DELIVERY_REVIEW_RETURN_STAGES)[number]
+
+export type DeliveryReviewInput = { reviewer: DeliveryReviewer } & (
+  | { decision: 'approved' }
+  | {
+      decision: 'changes-requested'
+      reason: string
+      returnStage: DeliveryReviewReturnStage
+    }
+)
+
+export type DeliveryReviewDecision = DeliveryReviewInput & {
+  taskRevision: number
+  recordedAt: string
+}
+
 export interface DeliveryTask extends DeliveryTaskInput {
   id: string
   stage: DeliveryStage
@@ -86,6 +115,7 @@ export interface DeliveryTask extends DeliveryTaskInput {
   workRevision: number
   artifacts: Partial<Record<DeliveryArtifactStage, DeliveryArtifact>>
   validationChecks: DeliveryValidationCheck[]
+  reviewDecisions: DeliveryReviewDecision[]
   createdAt: string
   updatedAt: string
 }
@@ -147,6 +177,7 @@ export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
     revision: 1,
     workRevision: 1,
     artifacts: {},
+    reviewDecisions: [],
     validationChecks: REQUIRED_VALIDATION_CHECKS.map(({ id, name }) => ({
       id,
       name,
@@ -218,8 +249,10 @@ export const saveDeliveryArtifact = (
   }
   const updated = applyUpdate(task, {
     artifacts: replaceWithin(task.artifacts, stage, () => artifact),
-    revision: task.revision + Number(previous?.content !== content),
-    workRevision: task.workRevision + Number(previous?.content !== content),
+    revision: task.revision + 1,
+    workRevision:
+      task.workRevision +
+      Number(stage !== 'review' && previous?.content !== content),
     updatedAt: now,
   })
   return previous?.content !== content &&
@@ -322,12 +355,70 @@ export const getDeliveryStageBlocker = (
     return blockers.length ? `Review is blocked: ${blockers.join(' ')}` : null
   }
   if (stage === 'review') {
-    return 'Review needs validation evidence and an approval record.'
+    const validationBlocker = getDeliveryStageBlocker(task, 'validation')
+    if (validationBlocker) return validationBlocker
+    const latest = task.reviewDecisions.at(-1)
+    if (!latest) return 'Review needs an explicit approval.'
+    if (latest.taskRevision !== task.revision) {
+      return 'The review decision is stale. Review the current revision again.'
+    }
+    return latest.decision === 'approved'
+      ? null
+      : 'Changes were requested. Resolve them and review again.'
   }
   if (stage === 'handoff') {
     return HANDOFF_BLOCKER
   }
   return null
+}
+
+export const recordDeliveryReviewDecision = (
+  task: DeliveryTask,
+  input: DeliveryReviewInput
+): DeliveryTask => {
+  if (task.stage !== 'review') {
+    throw new DeliveryTaskStageError(
+      'Decisions can only be recorded during review.'
+    )
+  }
+  if (!input.reviewer.id.trim() || !input.reviewer.name.trim()) {
+    throw new DeliveryTaskStageError('Identify the reviewer.')
+  }
+  const normalized =
+    input.decision === 'changes-requested'
+      ? { ...input, reason: input.reason.trim() }
+      : input
+  if (normalized.decision === 'changes-requested' && !normalized.reason) {
+    throw new DeliveryTaskStageError('Give a reason for requesting changes.')
+  }
+  if (
+    normalized.decision === 'changes-requested' &&
+    !DELIVERY_REVIEW_RETURN_STAGES.includes(normalized.returnStage)
+  ) {
+    throw new DeliveryTaskStageError(
+      'Choose an earlier stage for the requested changes.'
+    )
+  }
+  const stage =
+    normalized.decision === 'approved' ? 'handoff' : normalized.returnStage
+  if (normalized.decision === 'approved') {
+    const blocker = getDeliveryStageBlocker(task, 'validation')
+    if (blocker) throw new DeliveryTaskStageError(blocker)
+  }
+  const now = new Date().toISOString()
+  return applyUpdate(task, {
+    stage,
+    reviewDecisions: [
+      ...task.reviewDecisions,
+      {
+        ...normalized,
+        reviewer: { ...normalized.reviewer },
+        taskRevision: task.revision,
+        recordedAt: now,
+      },
+    ],
+    updatedAt: now,
+  })
 }
 
 const HANDOFF_BLOCKER =
