@@ -2,17 +2,23 @@ import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   DELIVERY_STAGES,
+  DeliveryArtifactInputError,
   DeliveryTaskInputError,
   getDeliveryStageBlocker,
+  type DeliveryArtifact,
   type DeliveryTask,
   type DeliveryTaskInput,
   type DeliveryStage,
+  type DeliveryArtifactStage,
 } from '@/entities/delivery-task'
 import { Button, Textarea } from '@/shared/ui-kit'
 import {
   Actions,
   Breadcrumb,
   Content,
+  ArtifactContent,
+  ArtifactMeta,
+  ArtifactPanel,
   Eyebrow,
   Field,
   FieldError,
@@ -42,6 +48,11 @@ interface TaskCreatePageProps {
 interface TaskDetailPageProps {
   task: DeliveryTask | undefined
   onSave: (id: string, input: DeliveryTaskInput) => DeliveryTask | null
+  onSaveArtifact: (
+    id: string,
+    stage: DeliveryArtifactStage,
+    content: string
+  ) => DeliveryTask | null
   onCompleteStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
   onReopenStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
 }
@@ -56,7 +67,7 @@ const PageHeading = ({ title }: { title: string }) => (
     <Heading>{title}</Heading>
     <Notice role="status">
       Demo only: tasks are held in memory and will reset when you reload this
-      page.
+      page. Saved notes stay with their task while you navigate this demo.
     </Notice>
   </>
 )
@@ -183,6 +194,7 @@ export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
 export const TaskDetailRoute = ({
   tasks,
   onSave,
+  onSaveArtifact,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailRouteProps) => {
@@ -196,6 +208,7 @@ export const TaskDetailRoute = ({
       key={taskId}
       task={task}
       onSave={onSave}
+      onSaveArtifact={onSaveArtifact}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
     />
@@ -205,6 +218,7 @@ export const TaskDetailRoute = ({
 const TaskDetailPage = ({
   task,
   onSave,
+  onSaveArtifact,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailPageProps) => {
@@ -320,6 +334,21 @@ const TaskDetailPage = ({
               </Button>
             )}
           </StageActions>
+          {isArtifactStage(selectedStage) ? (
+            <StageArtifactEditor
+              key={`${task.id}-${selectedStage}`}
+              taskId={task.id}
+              stage={selectedStage}
+              intentRevision={task.intentRevision}
+              artifact={task.artifacts[selectedStage]}
+              onSave={onSaveArtifact}
+            />
+          ) : (
+            <TaskMeta role="note">
+              Notes are available for discovery, planning, implementation, and
+              review.
+            </TaskMeta>
+          )}
         </section>
         <TaskMeta>Created {new Date(task.createdAt).toLocaleString()}</TaskMeta>
         <TaskForm onSubmit={handleSubmit}>
@@ -372,6 +401,127 @@ const TaskDetailPage = ({
         </TaskForm>
       </Content>
     </TaskPage>
+  )
+}
+
+const ARTIFACT_STAGE_INFO: Partial<
+  Record<DeliveryStage, { title: string; label: string }>
+> = {
+  discovery: { title: 'Discovery notes', label: 'discovery notes' },
+  planning: { title: 'Plan', label: 'plan' },
+  implementation: {
+    title: 'Implementation notes',
+    label: 'implementation notes',
+  },
+  review: { title: 'Review notes', label: 'review notes' },
+}
+
+const isArtifactStage = (
+  stage: DeliveryStage
+): stage is DeliveryArtifactStage => Boolean(ARTIFACT_STAGE_INFO[stage])
+
+interface StageArtifactEditorProps {
+  taskId: string
+  stage: DeliveryArtifactStage
+  intentRevision: number
+  artifact: DeliveryArtifact | undefined
+  onSave: TaskDetailPageProps['onSaveArtifact']
+}
+
+const StageArtifactEditor = ({
+  taskId,
+  stage,
+  intentRevision,
+  artifact,
+  onSave,
+}: StageArtifactEditorProps) => {
+  const info = ARTIFACT_STAGE_INFO[stage]!
+  const [editing, setEditing] = useState(!artifact)
+  const [draft, setDraft] = useState(artifact?.content ?? '')
+  const [error, setError] = useState('')
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    try {
+      if (!onSave(taskId, stage, draft)) return
+      setEditing(false)
+      setError('')
+    } catch (caught) {
+      if (caught instanceof DeliveryArtifactInputError) setError(caught.message)
+      else throw caught
+    }
+  }
+
+  const cancel = () => {
+    setDraft(artifact?.content ?? '')
+    setError('')
+    setEditing(false)
+  }
+
+  return (
+    <ArtifactPanel aria-label={info.title}>
+      <h2>{info.title}</h2>
+      {editing ? (
+        <form onSubmit={handleSubmit}>
+          <Field>
+            <label htmlFor={`artifact-${taskId}-${stage}`}>{info.title}</label>
+            <Textarea
+              id={`artifact-${taskId}-${stage}`}
+              value={draft}
+              rows={8}
+              onChange={(event) => {
+                setDraft(event.target.value)
+                setError('')
+              }}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? `artifact-error-${stage}` : undefined}
+            />
+            {error && (
+              <FieldError id={`artifact-error-${stage}`} role="alert">
+                {error}
+              </FieldError>
+            )}
+          </Field>
+          <Actions>
+            <Button type="submit">Save {info.label}</Button>
+            <Button type="button" variant="secondary" onClick={cancel}>
+              Cancel
+            </Button>
+          </Actions>
+        </form>
+      ) : (
+        <>
+          {artifact ? (
+            <>
+              <ArtifactContent>{artifact.content}</ArtifactContent>
+              <ArtifactMeta>
+                Revision {artifact.revision} · Source: Manual entry · Created{' '}
+                {new Date(artifact.createdAt).toLocaleString()} · Updated{' '}
+                {new Date(artifact.updatedAt).toLocaleString()}
+              </ArtifactMeta>
+              {artifact.taskRevision !== intentRevision && (
+                <ArtifactMeta role="status">
+                  This note may be stale: the task title or goal changed after
+                  it was saved.
+                </ArtifactMeta>
+              )}
+            </>
+          ) : (
+            <TaskMeta>No {info.label} saved yet.</TaskMeta>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setDraft(artifact?.content ?? '')
+              setEditing(true)
+            }}
+          >
+            {artifact ? 'Edit' : 'Add notes'}
+          </Button>
+        </>
+      )}
+    </ArtifactPanel>
   )
 }
 
