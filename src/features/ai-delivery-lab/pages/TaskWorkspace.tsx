@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import type { DemoJourney } from '@/features/ai-delivery-lab/demoJourneys'
 import {
   DELIVERY_STAGES,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
   DeliveryTaskInputError,
   getDeliveryStageBlocker,
+  createDeliveryHandoff,
   type DeliveryArtifact,
   type DeliveryTask,
   type DeliveryTaskInput,
@@ -43,10 +45,12 @@ import {
   TaskPage,
   TextInput,
   ValidationSelect,
+  HandoffPreview,
 } from './TaskWorkspace.styles'
 
 interface TaskListPageProps {
   tasks: DeliveryTask[]
+  onCreateSample: (journey: DemoJourney) => DeliveryTask
 }
 
 interface TaskCreatePageProps {
@@ -88,11 +92,11 @@ const PageHeading = ({ title }: { title: string }) => (
   </>
 )
 
-export const TaskListPage = ({ tasks }: TaskListPageProps) => (
-  <TaskListContent tasks={tasks} />
+export const TaskListPage = ({ tasks, onCreateSample }: TaskListPageProps) => (
+  <TaskListContent tasks={tasks} onCreateSample={onCreateSample} />
 )
 
-const TaskListContent = ({ tasks }: TaskListPageProps) => {
+const TaskListContent = ({ tasks, onCreateSample }: TaskListPageProps) => {
   const navigate = useNavigate()
   return (
     <TaskPage>
@@ -103,7 +107,23 @@ const TaskListContent = ({ tasks }: TaskListPageProps) => {
           <Button onClick={() => navigate('/demo/tasks/new')}>
             Create task
           </Button>
+          {(['successful', 'changes-requested'] as const).map((journey) => (
+            <Button
+              key={journey}
+              variant="secondary"
+              onClick={() =>
+                navigate(`/demo/tasks/${onCreateSample(journey).id}`)
+              }
+            >
+              Load {journey} journey template
+            </Button>
+          ))}
         </Actions>
+        <TaskMeta>
+          Samples contain placeholder notes and no passing evidence. Complete
+          the successful path with real manual evidence and approval; the
+          changes-requested sample has a simulated review decision.
+        </TaskMeta>
         {tasks.length === 0 ? (
           <TaskMeta>
             No tasks yet. Create one to start the demo journey.
@@ -346,7 +366,8 @@ const TaskDetailPage = ({
           )}
           <StageActions>
             {selectedStageStatus === 'current' &&
-              selectedStage !== 'review' && (
+              selectedStage !== 'review' &&
+              selectedStage !== 'handoff' && (
                 <Button
                   disabled={Boolean(stageBlocker)}
                   onClick={() =>
@@ -386,10 +407,7 @@ const TaskDetailPage = ({
               onSave={onSaveValidationResult}
             />
           ) : (
-            <TaskMeta role="note">
-              Notes are available for discovery, planning, implementation, and
-              review.
-            </TaskMeta>
+            <HandoffExport task={task} />
           )}
         </section>
         <TaskMeta>Created {new Date(task.createdAt).toLocaleString()}</TaskMeta>
@@ -461,6 +479,55 @@ const ARTIFACT_STAGE_INFO: Partial<
 const isArtifactStage = (
   stage: DeliveryStage
 ): stage is DeliveryArtifactStage => Boolean(ARTIFACT_STAGE_INFO[stage])
+
+function HandoffExport({ task }: { task: DeliveryTask }) {
+  const handoff = createDeliveryHandoff(task)
+  const [message, setMessage] = useState('')
+  const download = () => {
+    const url = URL.createObjectURL(
+      new Blob([handoff.markdown], { type: 'text/markdown;charset=utf-8' })
+    )
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `delivery-handoff-${task.id}-${handoff.status}.md`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+  return (
+    <ArtifactPanel aria-label="Delivery handoff">
+      <h2>Delivery handoff</h2>
+      <TaskMeta role="status">
+        {handoff.status === 'ready'
+          ? 'Ready handoff'
+          : 'Draft handoff — prerequisites are incomplete.'}
+      </TaskMeta>
+      <Actions>
+        <Button onClick={download}>Download {handoff.status} Markdown</Button>
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(handoff.markdown)
+              setMessage('Markdown copied.')
+            } catch {
+              setMessage('Copy unavailable. Download the Markdown instead.')
+            }
+          }}
+        >
+          Copy Markdown
+        </Button>
+      </Actions>
+      {message && <TaskMeta role="status">{message}</TaskMeta>}
+      <HandoffPreview
+        role="region"
+        tabIndex={0}
+        aria-label="Markdown handoff preview"
+      >
+        {handoff.markdown}
+      </HandoffPreview>
+    </ArtifactPanel>
+  )
+}
 
 interface ReviewDecisionsProps {
   task: DeliveryTask

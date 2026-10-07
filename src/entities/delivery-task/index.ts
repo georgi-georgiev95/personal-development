@@ -34,3 +34,5 @@ export type {
   DeliveryReviewDecision,
   DeliveryReviewReturnStage,
 } from './deliveryTask'
+export { createDeliveryHandoff } from './deliveryHandoff'
+export type { DeliveryHandoff } from './deliveryHandoff'

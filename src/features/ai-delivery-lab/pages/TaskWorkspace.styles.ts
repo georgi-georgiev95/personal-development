@@ -88,6 +88,22 @@ export const ArtifactContent = styled.p`
   overflow-wrap: anywhere;
 `
 
+export const HandoffPreview = styled.pre`
+  margin: 0;
+  max-height: 600px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: ${theme.colors.text};
+  font-size: ${theme.fontSizes.sm};
+  line-height: ${theme.lineHeight.relaxed};
+
+  &:focus-visible {
+    outline: 2px solid ${theme.colors.primary};
+    outline-offset: 2px;
+  }
+`
+
 export const ArtifactMeta = styled.p`
   margin: 0;
   color: ${theme.colors.textSecondary};
