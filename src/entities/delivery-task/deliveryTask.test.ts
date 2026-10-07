@@ -11,6 +11,8 @@ import {
   getDeliveryStageBlocker,
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
+  recordDeliveryReviewDecision,
+  type DeliveryReviewReturnStage,
   REQUIRED_VALIDATION_CHECKS,
   saveDeliveryArtifact,
   updateDeliveryTask,
@@ -26,6 +28,28 @@ const makeValidationTask = () =>
       'planning'
     ),
     'implementation'
+  )
+
+const reviewer = {
+  id: 'demo-reviewer',
+  name: 'Demo reviewer',
+  source: 'simulated' as const,
+}
+const approval = { decision: 'approved' as const, reviewer }
+const makeReviewTask = () =>
+  completeDeliveryTaskStage(
+    REQUIRED_VALIDATION_CHECKS.reduce(
+      (task, check) =>
+        recordDeliveryValidationResult(
+          task,
+          check.id,
+          'passed',
+          'Validation log',
+          'manual'
+        ),
+      makeValidationTask()
+    ),
+    'validation'
   )
 
 describe('createDeliveryTask', () => {
@@ -427,7 +451,6 @@ describe('delivery task stage transitions', () => {
   )
 
   it.each([
-    ['review', 'Review needs validation evidence and an approval record.'],
     [
       'handoff',
       'Handoff needs an approved review, passing required checks, and a summary.',
@@ -479,6 +502,214 @@ describe('delivery task stage transitions', () => {
     )
     expect(() => reopenDeliveryTaskStage(task, 'handoff')).toThrowError(
       new DeliveryTaskStageError('Only a completed stage can be reopened.')
+    )
+  })
+})
+
+describe('delivery review decisions', () => {
+  it('blocks approval until every required check passes for current work', () => {
+    const pending = applyUpdate(makeValidationTask(), { stage: 'review' })
+    expect(() => recordDeliveryReviewDecision(pending, approval)).toThrow(
+      'Typecheck has not been run.'
+    )
+    expect(pending.reviewDecisions).toEqual([])
+    const changed = saveDeliveryArtifact(
+      makeReviewTask(),
+      'implementation',
+      'Changed work'
+    )
+    expect(() =>
+      recordDeliveryReviewDecision(
+        applyUpdate(changed, { stage: 'review' }),
+        approval
+      )
+    ).toThrow('evidence is stale')
+    expect(() => completeDeliveryTaskStage(makeReviewTask(), 'review')).toThrow(
+      'Review needs an explicit approval.'
+    )
+  })
+
+  it('records the exact reviewed revision and simulated identity, and opens handoff', () => {
+    const task = makeReviewTask()
+    const approved = recordDeliveryReviewDecision(task, approval)
+    expect(approved.stage).toBe('handoff')
+    expect(approved.reviewDecisions).toEqual([
+      {
+        decision: 'approved',
+        reviewer,
+        taskRevision: task.revision,
+        recordedAt: approved.updatedAt,
+      },
+    ])
+    expect(approved.reviewDecisions[0].reviewer).not.toBe(reviewer)
+    expect(task.reviewDecisions).toEqual([])
+    expect(getDeliveryStageBlocker(approved, 'review')).toBeNull()
+    expect(
+      completeDeliveryTaskStage(
+        reopenDeliveryTaskStage(approved, 'review'),
+        'review'
+      ).stage
+    ).toBe('handoff')
+    expect(() => recordDeliveryReviewDecision(approved, approval)).toThrow(
+      'Decisions can only be recorded during review.'
+    )
+    expect(approved.reviewDecisions).toHaveLength(1)
+  })
+
+  it('requires a reviewer identity, a reason, and an earlier return stage', () => {
+    const task = makeReviewTask()
+    for (const identity of [
+      { ...reviewer, id: ' ' },
+      { ...reviewer, name: ' ' },
+    ]) {
+      expect(() =>
+        recordDeliveryReviewDecision(task, { ...approval, reviewer: identity })
+      ).toThrow('Identify the reviewer.')
+    }
+    expect(() =>
+      recordDeliveryReviewDecision(task, {
+        decision: 'changes-requested',
+        reviewer,
+        reason: ' ',
+        returnStage: 'implementation',
+      })
+    ).toThrow('Give a reason for requesting changes.')
+    expect(() =>
+      recordDeliveryReviewDecision(task, {
+        decision: 'changes-requested',
+        reviewer,
+        reason: 'Fix work',
+        returnStage: 'handoff' as DeliveryReviewReturnStage,
+      })
+    ).toThrow('Choose an earlier stage')
+  })
+
+  it('retains decision history through requested changes, revalidation, and owner self-review', () => {
+    const first = recordDeliveryReviewDecision(makeReviewTask(), approval)
+    const input = {
+      decision: 'changes-requested' as const,
+      reviewer,
+      reason: '  Fix the plan  ',
+      returnStage: 'planning' as const,
+    }
+    const requested = recordDeliveryReviewDecision(
+      reopenDeliveryTaskStage(first, 'review'),
+      input
+    )
+    expect(requested.stage).toBe('planning')
+    expect(requested.reviewDecisions[1]).toMatchObject({
+      reason: 'Fix the plan',
+      returnStage: 'planning',
+    })
+    expect(getDeliveryStageBlocker(requested, 'review')).toBe(
+      'Changes were requested. Resolve them and review again.'
+    )
+    expect(() => recordDeliveryReviewDecision(requested, input)).toThrow(
+      'Decisions can only be recorded during review.'
+    )
+    const changed = saveDeliveryArtifact(
+      requested,
+      'planning',
+      'Corrected plan'
+    )
+    const validating = completeDeliveryTaskStage(
+      completeDeliveryTaskStage(changed, 'planning'),
+      'implementation'
+    )
+    const passed = REQUIRED_VALIDATION_CHECKS.reduce(
+      (task, check) =>
+        recordDeliveryValidationResult(
+          task,
+          check.id,
+          'passed',
+          'New validation log',
+          'manual'
+        ),
+      validating
+    )
+    const reviewing = completeDeliveryTaskStage(passed, 'validation')
+    const approved = recordDeliveryReviewDecision(reviewing, {
+      decision: 'approved',
+      reviewer: { id: 'owner-id', name: 'Owner', source: 'owner' },
+    })
+    expect(approved.stage).toBe('handoff')
+    expect(approved.reviewDecisions).toHaveLength(3)
+    expect(approved.reviewDecisions[0]).toEqual(first.reviewDecisions[0])
+    expect(approved.reviewDecisions[2]).toMatchObject({
+      reviewer: { id: 'owner-id', source: 'owner' },
+      taskRevision: passed.revision,
+    })
+    expect(getDeliveryStageBlocker(approved, 'review')).toBeNull()
+  })
+
+  it('invalidates approval after intent or artifact edits but preserves it on unchanged saves', () => {
+    const original = saveDeliveryArtifact(
+      makeReviewTask(),
+      'review',
+      'Review notes'
+    )
+    const approved = recordDeliveryReviewDecision(original, approval)
+    expect(
+      getDeliveryStageBlocker(
+        updateDeliveryTask(approved, {
+          title: approved.title,
+          goal: approved.goal,
+        }),
+        'review'
+      )
+    ).toBeNull()
+    expect(saveDeliveryArtifact(approved, 'review', 'Review notes')).toBe(
+      approved
+    )
+    const notesChanged = saveDeliveryArtifact(
+      approved,
+      'review',
+      'Revised review notes'
+    )
+    expect(notesChanged.stage).toBe('review')
+    expect(notesChanged.workRevision).toBe(approved.workRevision)
+    expect(getDeliveryStageBlocker(notesChanged, 'review')).toContain(
+      'decision is stale'
+    )
+    expect(() => completeDeliveryTaskStage(notesChanged, 'review')).toThrow(
+      'decision is stale'
+    )
+    expect(
+      recordDeliveryReviewDecision(notesChanged, approval).reviewDecisions
+    ).toHaveLength(2)
+    const intentChanged = updateDeliveryTask(approved, {
+      title: approved.title,
+      goal: 'New goal',
+    })
+    expect(intentChanged.stage).toBe('discovery')
+    expect(intentChanged.reviewDecisions[0].taskRevision).not.toBe(
+      intentChanged.revision
+    )
+    const workChanged = saveDeliveryArtifact(
+      approved,
+      'implementation',
+      'New work'
+    )
+    expect(workChanged.stage).toBe('implementation')
+    expect(getDeliveryStageBlocker(workChanged, 'review')).toContain(
+      'evidence is stale'
+    )
+    expect(workChanged.reviewDecisions).toEqual(approved.reviewDecisions)
+  })
+
+  it('requires review again when validation evidence changes', () => {
+    const approved = recordDeliveryReviewDecision(makeReviewTask(), approval)
+    const validating = reopenDeliveryTaskStage(approved, 'validation')
+    const revised = recordDeliveryValidationResult(
+      validating,
+      'lint',
+      'passed',
+      'Updated evidence',
+      'ci'
+    )
+    expect(getDeliveryStageBlocker(revised, 'validation')).toBeNull()
+    expect(getDeliveryStageBlocker(revised, 'review')).toContain(
+      'decision is stale'
     )
   })
 })

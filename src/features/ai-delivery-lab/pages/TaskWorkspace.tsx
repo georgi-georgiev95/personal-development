@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   DELIVERY_STAGES,
+  DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
   DeliveryTaskInputError,
   getDeliveryStageBlocker,
@@ -14,6 +15,8 @@ import {
   type DeliveryValidationCheckId,
   type DeliveryValidationSource,
   type DeliveryValidationStatus,
+  type DeliveryReviewInput,
+  type DeliveryReviewReturnStage,
 } from '@/entities/delivery-task'
 import { Button, Textarea } from '@/shared/ui-kit'
 import {
@@ -66,6 +69,7 @@ interface TaskDetailPageProps {
     source: Exclude<DeliveryValidationSource, 'demo'> | null
   ) => DeliveryTask | null
   onCompleteStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
+  onReview: (id: string, input: DeliveryReviewInput) => DeliveryTask | null
   onReopenStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
 }
 
@@ -208,6 +212,7 @@ export const TaskDetailRoute = ({
   onSave,
   onSaveArtifact,
   onSaveValidationResult,
+  onReview,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailRouteProps) => {
@@ -223,6 +228,7 @@ export const TaskDetailRoute = ({
       onSave={onSave}
       onSaveArtifact={onSaveArtifact}
       onSaveValidationResult={onSaveValidationResult}
+      onReview={onReview}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
     />
@@ -234,6 +240,7 @@ const TaskDetailPage = ({
   onSave,
   onSaveArtifact,
   onSaveValidationResult,
+  onReview,
   onCompleteStage,
   onReopenStage,
 }: TaskDetailPageProps) => {
@@ -293,6 +300,10 @@ const TaskDetailPage = ({
       <PageHeading title={task.title} />
       <Content>
         <Stage>Current stage: {task.stage}</Stage>
+        {task.stage === 'handoff' &&
+          !getDeliveryStageBlocker(task, 'review') && (
+            <TaskMeta role="status">Ready for handoff.</TaskMeta>
+          )}
         <StageProgress aria-label="Task delivery stages">
           {DELIVERY_STAGES.map((stage) => {
             const stageIndex = DELIVERY_STAGES.indexOf(stage)
@@ -317,6 +328,12 @@ const TaskDetailPage = ({
             )
           })}
         </StageProgress>
+        <ReviewDecisions
+          key={task.id + task.reviewDecisions.length}
+          task={task}
+          editable={task.stage === 'review' && selectedStage === 'review'}
+          onReview={(input) => updateStage(onReview(task.id, input))}
+        />
         <section aria-label={`${selectedStage} stage details`}>
           <Stage>
             {selectedStageStatus} stage: {selectedStage}
@@ -328,16 +345,17 @@ const TaskDetailPage = ({
             <TaskMeta role="note">Complete earlier stages first.</TaskMeta>
           )}
           <StageActions>
-            {selectedStageStatus === 'current' && (
-              <Button
-                disabled={Boolean(stageBlocker)}
-                onClick={() =>
-                  updateStage(onCompleteStage(task.id, selectedStage))
-                }
-              >
-                Complete stage
-              </Button>
-            )}
+            {selectedStageStatus === 'current' &&
+              selectedStage !== 'review' && (
+                <Button
+                  disabled={Boolean(stageBlocker)}
+                  onClick={() =>
+                    updateStage(onCompleteStage(task.id, selectedStage))
+                  }
+                >
+                  Complete stage
+                </Button>
+              )}
             {selectedStageStatus === 'completed' && (
               <Button
                 variant="secondary"
@@ -443,6 +461,132 @@ const ARTIFACT_STAGE_INFO: Partial<
 const isArtifactStage = (
   stage: DeliveryStage
 ): stage is DeliveryArtifactStage => Boolean(ARTIFACT_STAGE_INFO[stage])
+
+interface ReviewDecisionsProps {
+  task: DeliveryTask
+  editable: boolean
+  onReview: (input: DeliveryReviewInput) => void
+}
+
+function ReviewDecisions({ task, editable, onReview }: ReviewDecisionsProps) {
+  const [reason, setReason] = useState('')
+  const [returnStage, setReturnStage] =
+    useState<DeliveryReviewReturnStage>('implementation')
+  const [error, setError] = useState('')
+  const latest = task.reviewDecisions.at(-1)
+  const validationBlocker = getDeliveryStageBlocker(task, 'validation')
+  const reviewer = {
+    id: 'demo-reviewer',
+    name: 'Demo reviewer',
+    source: 'simulated' as const,
+  }
+  const decide = (input: DeliveryReviewInput) => {
+    try {
+      onReview(input)
+      setError('')
+    } catch (caught) {
+      if (caught instanceof Error) setError(caught.message)
+      else throw caught
+    }
+  }
+  const decisionText = (decision: DeliveryTask['reviewDecisions'][number]) =>
+    `${decision.decision === 'approved' ? 'Approved' : `Changes requested: ${decision.reason} · Return to ${decision.returnStage}`} · ${decision.reviewer.name} (${decision.reviewer.source === 'simulated' ? 'simulated reviewer' : 'signed-in owner; self-review'}) · ${new Date(decision.recordedAt).toLocaleString()} · Task revision ${decision.taskRevision}${decision.taskRevision !== task.revision ? ' · Stale — review again' : ''}`
+
+  return (
+    <ArtifactPanel aria-label="Review decision">
+      <h2>Review decision</h2>
+      <ArtifactMeta>
+        Demo reviewer is simulated. Personal-workspace review will use the
+        signed-in owner; it is self-review, with no independent review claim.
+      </ArtifactMeta>
+      <ArtifactContent role="status">
+        {latest ? decisionText(latest) : 'No review decision yet.'}
+      </ArtifactContent>
+      {task.reviewDecisions.length > 1 && (
+        <details>
+          <summary>
+            Decision history ({task.reviewDecisions.length - 1} prior)
+          </summary>
+          <TaskList>
+            {task.reviewDecisions
+              .slice(0, -1)
+              .reverse()
+              .map((decision, index) => (
+                <TaskCard key={index}>
+                  <ArtifactContent>{decisionText(decision)}</ArtifactContent>
+                </TaskCard>
+              ))}
+          </TaskList>
+        </details>
+      )}
+      {editable && (
+        <TaskForm
+          onSubmit={(event) => {
+            event.preventDefault()
+            decide({
+              decision: 'changes-requested',
+              reviewer,
+              reason,
+              returnStage,
+            })
+          }}
+        >
+          {validationBlocker && (
+            <TaskMeta role="note">{validationBlocker}</TaskMeta>
+          )}
+          <Field>
+            <label htmlFor="review-reason">
+              Reason for requested changes (required)
+            </label>
+            <Textarea
+              id="review-reason"
+              value={reason}
+              onChange={(event) => {
+                setReason(event.target.value)
+                setError('')
+              }}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'review-error' : undefined}
+            />
+          </Field>
+          <Field>
+            <label htmlFor="review-return-stage">Return changes to</label>
+            <ValidationSelect
+              id="review-return-stage"
+              value={returnStage}
+              onChange={(event) =>
+                setReturnStage(event.target.value as DeliveryReviewReturnStage)
+              }
+            >
+              {DELIVERY_REVIEW_RETURN_STAGES.map((stage) => (
+                <option key={stage} value={stage}>
+                  {stage}
+                </option>
+              ))}
+            </ValidationSelect>
+          </Field>
+          {error && (
+            <FieldError id="review-error" role="alert">
+              {error}
+            </FieldError>
+          )}
+          <Actions>
+            <Button
+              type="button"
+              disabled={Boolean(validationBlocker)}
+              onClick={() => decide({ decision: 'approved', reviewer })}
+            >
+              Approve review
+            </Button>
+            <Button type="submit" variant="secondary">
+              Request changes
+            </Button>
+          </Actions>
+        </TaskForm>
+      )}
+    </ArtifactPanel>
+  )
+}
 
 interface StageArtifactEditorProps {
   taskId: string
