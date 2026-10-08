@@ -5,6 +5,7 @@ import {
   DELIVERY_STAGES,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
+  DeliveryTaskConflictError,
   DeliveryTaskInputError,
   getDeliveryStageBlocker,
   createDeliveryTask,
@@ -221,6 +222,8 @@ export const TaskCreatePage = ({
       navigate(`${basePath}/tasks/${created.id}`)
     } catch (caught) {
       if (caught instanceof DeliveryTaskInputError) setError(caught)
+      else if (caught instanceof DeliveryTaskConflictError)
+        setSaveError(caught.message)
       else setSaveError('Could not save this task. Try again.')
     } finally {
       submitting.current = false
@@ -368,8 +371,12 @@ const TaskDetailPage = ({
     setMutationError('')
     try {
       updateStage(await operation())
-    } catch {
-      setMutationError('Could not save this change. Try again.')
+    } catch (caught) {
+      setMutationError(
+        caught instanceof DeliveryTaskConflictError
+          ? caught.message
+          : 'Could not save this change. Try again.'
+      )
     }
   }
   const currentStageIndex = DELIVERY_STAGES.indexOf(task.stage)
@@ -399,6 +406,8 @@ const TaskDetailPage = ({
       setError(null)
     } catch (caught) {
       if (caught instanceof DeliveryTaskInputError) setError(caught)
+      else if (caught instanceof DeliveryTaskConflictError)
+        setSaveError(caught.message)
       else setSaveError('Could not save these changes. Try again.')
     } finally {
       submitting.current = false
@@ -806,6 +815,8 @@ const StageArtifactEditor = ({
       setError('')
     } catch (caught) {
       if (caught instanceof DeliveryArtifactInputError) setError(caught.message)
+      else if (caught instanceof DeliveryTaskConflictError)
+        setError(caught.message)
       else setError('Could not save these notes. Try again.')
     } finally {
       setSaving(false)

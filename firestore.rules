@@ -93,10 +93,10 @@ service cloud.firestore {
               decision.returnStage in ['discovery', 'planning', 'implementation', 'validation']));
       }
 
-      function validTask(task, taskId) {
+      function validTaskEnvelope(task, taskId) {
         return task.keys().hasOnly([
-            'id', 'title', 'goal', 'stage', 'intentRevision', 'revision', 'workRevision',
-            'artifacts', 'validationChecks', 'reviewDecisions', 'createdAt', 'updatedAt'
+          'id', 'title', 'goal', 'stage', 'intentRevision', 'revision', 'workRevision',
+            'persistenceRevision', 'artifacts', 'validationChecks', 'reviewDecisions', 'createdAt', 'updatedAt'
           ]) &&
           task.keys().hasAll([
             'id', 'title', 'goal', 'stage', 'intentRevision', 'revision', 'workRevision',
@@ -109,30 +109,61 @@ service cloud.firestore {
           task.intentRevision is int && task.intentRevision > 0 &&
           task.revision is int && task.revision > 0 &&
           task.workRevision is int && task.workRevision > 0 &&
+          (!task.keys().hasAny(['persistenceRevision']) ||
+            (task.persistenceRevision is int && task.persistenceRevision > 0)) &&
           task.createdAt is string &&
           task.updatedAt is string &&
           task.artifacts is map &&
-          task.artifacts.keys().hasOnly(['discovery', 'planning', 'implementation', 'review']) &&
-          (!task.artifacts.keys().hasAny(['discovery']) || validArtifact(task.artifacts.discovery, 'discovery', 'discovery-notes')) &&
-          (!task.artifacts.keys().hasAny(['planning']) || validArtifact(task.artifacts.planning, 'planning', 'plan')) &&
-          (!task.artifacts.keys().hasAny(['implementation']) || validArtifact(task.artifacts.implementation, 'implementation', 'implementation-notes')) &&
-          (!task.artifacts.keys().hasAny(['review']) || validArtifact(task.artifacts.review, 'review', 'review-notes')) &&
           task.validationChecks is list && task.validationChecks.size() == 4 &&
-          validCheck(task.validationChecks[0], 'typecheck', 'Typecheck') &&
-          validCheck(task.validationChecks[1], 'lint', 'Lint') &&
-          validCheck(task.validationChecks[2], 'coverage', 'Coverage') &&
-          validCheck(task.validationChecks[3], 'build-performance', 'Build and performance') &&
-          task.reviewDecisions is list && task.reviewDecisions.size() <= 100 &&
-          (task.reviewDecisions.size() == 0 || validReview(task.reviewDecisions[task.reviewDecisions.size() - 1]));
+          task.reviewDecisions is list && task.reviewDecisions.size() <= 100;
+      }
+
+      function validArtifacts(artifacts) {
+        return artifacts.keys().hasOnly(['discovery', 'planning', 'implementation', 'review']) &&
+          (!artifacts.keys().hasAny(['discovery']) || validArtifact(artifacts.discovery, 'discovery', 'discovery-notes')) &&
+          (!artifacts.keys().hasAny(['planning']) || validArtifact(artifacts.planning, 'planning', 'plan')) &&
+          (!artifacts.keys().hasAny(['implementation']) || validArtifact(artifacts.implementation, 'implementation', 'implementation-notes')) &&
+          (!artifacts.keys().hasAny(['review']) || validArtifact(artifacts.review, 'review', 'review-notes'));
+      }
+
+      function validChecks(checks) {
+        return checks.size() == 4 &&
+          validCheck(checks[0], 'typecheck', 'Typecheck') &&
+          validCheck(checks[1], 'lint', 'Lint') &&
+          validCheck(checks[2], 'coverage', 'Coverage') &&
+          validCheck(checks[3], 'build-performance', 'Build and performance');
+      }
+
+      function validReviews(decisions) {
+        return decisions.size() <= 100 &&
+          (decisions.size() == 0 || validReview(decisions[decisions.size() - 1]));
+      }
+
+      function validTask(task, taskId) {
+        return validTaskEnvelope(task, taskId) &&
+          validArtifacts(task.artifacts) &&
+          validChecks(task.validationChecks) &&
+          validReviews(task.reviewDecisions);
+      }
+
+      function validTaskUpdate(task, taskId) {
+        return validTaskEnvelope(task, taskId) &&
+          validReviews(task.reviewDecisions);
       }
 
       match /tasks/{taskId} {
         allow get, list: if isWorkspaceOwner();
-        allow create: if isWorkspaceOwner() && validTask(request.resource.data, taskId);
+        allow create: if isWorkspaceOwner() &&
+          request.resource.data.persistenceRevision == 1 &&
+          validTask(request.resource.data, taskId);
         allow update: if isWorkspaceOwner() &&
           request.resource.data.id == resource.data.id &&
           request.resource.data.createdAt == resource.data.createdAt &&
-          validTask(request.resource.data, taskId);
+          ((!resource.data.keys().hasAny(['persistenceRevision']) &&
+              request.resource.data.persistenceRevision == 1) ||
+            (resource.data.persistenceRevision is int &&
+              request.resource.data.persistenceRevision == resource.data.persistenceRevision + 1)) &&
+          validTaskUpdate(request.resource.data, taskId);
         allow delete: if false;
       }
     }

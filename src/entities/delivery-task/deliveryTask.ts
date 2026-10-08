@@ -109,6 +109,7 @@ export type DeliveryReviewDecision = DeliveryReviewInput & {
 
 export interface DeliveryTask extends DeliveryTaskInput {
   id: string
+  persistenceRevision?: number
   stage: DeliveryStage
   intentRevision: number
   revision: number
@@ -134,6 +135,13 @@ export class DeliveryTaskStageError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'DeliveryTaskStageError'
+  }
+}
+
+export class DeliveryTaskConflictError extends Error {
+  constructor() {
+    super('This task changed in another tab. Reload it before saving again.')
+    this.name = 'DeliveryTaskConflictError'
   }
 }
 

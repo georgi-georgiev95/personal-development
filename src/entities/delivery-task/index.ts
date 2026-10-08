@@ -1,6 +1,7 @@
 export {
   createDeliveryTask,
   DeliveryArtifactInputError,
+  DeliveryTaskConflictError,
   completeDeliveryTaskStage,
   DeliveryTaskInputError,
   DeliveryTaskStageError,

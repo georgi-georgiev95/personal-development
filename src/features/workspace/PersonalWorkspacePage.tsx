@@ -84,12 +84,12 @@ function OwnedWorkspace({
   }, [uid, attempt])
 
   const createTask = async (task: DeliveryTask) => {
-    await saveWorkspaceDeliveryTask(uid, task)
+    const saved = await saveWorkspaceDeliveryTask(uid, task, 'create')
     setTasks((current) => [
-      task,
-      ...current.filter((item) => item.id !== task.id),
+      saved,
+      ...current.filter((item) => item.id !== saved.id),
     ])
-    return task
+    return saved
   }
 
   const saveTask = async (
@@ -99,11 +99,11 @@ function OwnedWorkspace({
     const task = tasks.find((item) => item.id === id)
     if (!task) return null
     const updated = updateDeliveryTask(task, input)
-    await saveWorkspaceDeliveryTask(uid, updated)
+    const saved = await saveWorkspaceDeliveryTask(uid, updated, 'update')
     setTasks((current) =>
-      current.map((item) => (item.id === id ? updated : item))
+      current.map((item) => (item.id === id ? saved : item))
     )
-    return updated
+    return saved
   }
 
   const updateTask = async (
@@ -113,11 +113,11 @@ function OwnedWorkspace({
     const task = tasks.find((item) => item.id === id)
     if (!task) return null
     const updated = transform(task)
-    await saveWorkspaceDeliveryTask(uid, updated)
+    const saved = await saveWorkspaceDeliveryTask(uid, updated, 'update')
     setTasks((current) =>
-      current.map((item) => (item.id === id ? updated : item))
+      current.map((item) => (item.id === id ? saved : item))
     )
-    return updated
+    return saved
   }
 
   const saveArtifact = (
