@@ -90,7 +90,7 @@ export interface DeliveryArtifact {
   stage: DeliveryArtifactStage
   kind: DeliveryArtifactKind
   content: string
-  source: 'manual'
+  source: 'manual' | 'ai' | 'demo'
   revision: number
   taskRevision: number
   contextRevision?: number
@@ -349,7 +349,8 @@ const ARTIFACT_KINDS: Record<DeliveryArtifactStage, DeliveryArtifactKind> = {
 export const saveDeliveryArtifact = (
   task: DeliveryTask,
   stage: DeliveryArtifactStage,
-  content: string
+  content: string,
+  source: DeliveryArtifact['source'] = task.artifacts[stage]?.source ?? 'manual'
 ): DeliveryTask => {
   if (!content.trim()) {
     throw new DeliveryArtifactInputError('Enter some notes before saving.')
@@ -361,6 +362,7 @@ export const saveDeliveryArtifact = (
     previous?.contextRevision !== (task.contextRevision ?? 0)
   if (
     previous?.content === content &&
+    previous.source === source &&
     previous.taskRevision === task.intentRevision &&
     previous.contextRevision ===
       (stage === 'planning' ? (task.contextRevision ?? 0) : undefined)
@@ -373,7 +375,7 @@ export const saveDeliveryArtifact = (
     stage,
     kind: ARTIFACT_KINDS[stage],
     content,
-    source: 'manual',
+    source,
     revision: (previous?.revision ?? 0) + 1,
     taskRevision: task.intentRevision,
     ...(stage === 'planning'

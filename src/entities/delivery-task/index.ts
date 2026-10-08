@@ -45,3 +45,9 @@ export type {
 } from './deliveryTask'
 export { createDeliveryHandoff } from './deliveryHandoff'
 export type { DeliveryHandoff } from './deliveryHandoff'
+export {
+  acceptDeliveryPlan,
+  isDeliveryPlanCurrent,
+  ARTIFACT_SOURCE_LABELS,
+} from './deliveryPlan'
+export type { DeliveryPlanProposal } from './deliveryPlan'

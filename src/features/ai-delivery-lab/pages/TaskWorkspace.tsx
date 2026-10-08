@@ -1,8 +1,11 @@
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { DemoJourney } from '@/features/ai-delivery-lab/demoJourneys'
+import { PlanDraftEditor } from '@/features/ai-delivery-lab/pages/PlanDraftEditor'
 import {
   DELIVERY_STAGES,
+  ARTIFACT_SOURCE_LABELS,
+  type DeliveryPlanProposal,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
   DeliveryContextInputError,
@@ -109,6 +112,10 @@ interface TaskDetailPageProps {
   onRemoveContext?: (
     id: string,
     contextId: string
+  ) => TaskWrite<DeliveryTask | null>
+  onAcceptPlan?: (
+    id: string,
+    draft: DeliveryPlanProposal
   ) => TaskWrite<DeliveryTask | null>
 }
 
@@ -324,6 +331,7 @@ export const TaskDetailRoute = ({
   onReopenStage,
   onSaveContext,
   onRemoveContext,
+  onAcceptPlan,
   basePath = '/demo',
   reviewer,
 }: TaskDetailRouteProps) => {
@@ -344,6 +352,7 @@ export const TaskDetailRoute = ({
       onReopenStage={onReopenStage}
       onSaveContext={onSaveContext}
       onRemoveContext={onRemoveContext}
+      onAcceptPlan={onAcceptPlan}
       basePath={basePath}
       reviewer={reviewer}
     />
@@ -360,6 +369,7 @@ const TaskDetailPage = ({
   onReopenStage,
   onSaveContext,
   onRemoveContext,
+  onAcceptPlan,
   basePath = '/demo',
   reviewer,
 }: TaskDetailPageProps) => {
@@ -521,9 +531,17 @@ const TaskDetailPage = ({
               </Button>
             )}
           </StageActions>
+          {selectedStage === 'planning' && onAcceptPlan && (
+            <PlanDraftEditor
+              key={`${task.id}-${task.revision}-${task.contextRevision ?? 0}`}
+              task={task}
+              demo={basePath === '/demo'}
+              onAccept={onAcceptPlan}
+            />
+          )}
           {isArtifactStage(selectedStage) ? (
             <StageArtifactEditor
-              key={`${task.id}-${selectedStage}`}
+              key={`${task.id}-${selectedStage}-${task.artifacts[selectedStage]?.revision ?? 0}`}
               taskId={task.id}
               stage={selectedStage}
               intentRevision={task.intentRevision}
@@ -1079,7 +1097,8 @@ const StageArtifactEditor = ({
             <>
               <ArtifactContent>{artifact.content}</ArtifactContent>
               <ArtifactMeta>
-                Revision {artifact.revision} · Source: Manual entry · Created{' '}
+                Revision {artifact.revision} · Source:{' '}
+                {ARTIFACT_SOURCE_LABELS[artifact.source]} · Created{' '}
                 {new Date(artifact.createdAt).toLocaleString()} · Updated{' '}
                 {new Date(artifact.updatedAt).toLocaleString()}
               </ArtifactMeta>
