@@ -25,6 +25,11 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import {
+  connectFunctionsEmulator,
+  getFunctions,
+  httpsCallable,
+} from 'firebase/functions'
+import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
@@ -494,4 +499,120 @@ test('private delivery tasks persist for their owner and reject other users or i
       true
     )
   })
+})
+
+test('authenticated plan generation is owner-scoped, context-versioned, mocked, and rate-limited', async () => {
+  const app = initializeApp(
+    { apiKey: 'demo-api-key', projectId: 'demo-pd-28' },
+    'planning-endpoint-emulator'
+  )
+  const auth = initializeAuth(app, { persistence: inMemoryPersistence })
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099')
+  const db = getFirestore(app)
+  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+  const functions = getFunctions(app, 'europe-west1')
+  connectFunctionsEmulator(functions, '127.0.0.1', 5001)
+  const call = httpsCallable(functions, 'generatePlan')
+
+  try {
+    await assert.rejects(
+      call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 1 }),
+      (error) => error.code === 'functions/unauthenticated'
+    )
+
+    const { user: owner } = await createUserWithEmailAndPassword(
+      auth,
+      `planner-owner-${crypto.randomUUID()}@example.test`,
+      'local-only-password'
+    )
+    const workspaceRef = doc(db, 'workspaces', owner.uid)
+    await setDoc(workspaceRef, {
+      ownerUid: owner.uid,
+      createdAt: serverTimestamp(),
+    })
+    const taskRef = doc(db, 'workspaces', owner.uid, 'tasks', 'plan-task')
+    const contextTime = new Date().toISOString()
+    await setDoc(taskRef, deliveryTaskFixture('plan-task'))
+    await updateDoc(taskRef, {
+      title: 'Improve onboarding',
+      goal: 'Make first use clear.',
+      contextRevision: 1,
+      persistenceRevision: 2,
+      updatedAt: contextTime,
+      contextEntries: [
+        {
+          id: 'readme-context',
+          name: 'README',
+          content: 'Use the current route structure.',
+          revision: 1,
+          createdAt: contextTime,
+          updatedAt: contextTime,
+        },
+        {
+          id: 'agents-context',
+          name: 'AGENTS',
+          content: 'Use accessible controls.',
+          revision: 1,
+          createdAt: contextTime,
+          updatedAt: contextTime,
+        },
+      ],
+    })
+
+    const response = await call({
+      taskId: 'plan-task',
+      contextEntryIds: ['agents-context'],
+      contextRevision: 1,
+    })
+    assert.deepEqual(response.data, {
+      objective: 'Make first use clear. (AGENTS)',
+      steps: ['Inspect the relevant code.', 'Implement and verify the change.'],
+      acceptanceCriteria: ['The requested behavior is implemented.'],
+      risks: [],
+      contextRevision: 1,
+    })
+
+    await assert.rejects(
+      call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 0 }),
+      (error) => error.code === 'functions/failed-precondition'
+    )
+
+    await signOut(auth)
+    const { user: other } = await createUserWithEmailAndPassword(
+      auth,
+      `planner-other-${crypto.randomUUID()}@example.test`,
+      'local-only-password'
+    )
+    await assert.rejects(
+      call({
+        taskId: 'plan-task',
+        contextEntryIds: ['agents-context'],
+        contextRevision: 1,
+      }),
+      (error) => error.code === 'functions/not-found'
+    )
+    await rules.withSecurityRulesDisabled(async (context) => {
+      const usage = await getDoc(
+        doc(context.firestore(), 'aiPlanningUsage', other.uid)
+      )
+      assert.equal(usage.exists(), false)
+    })
+
+    await signOut(auth)
+    await signInWithEmailAndPassword(auth, owner.email, 'local-only-password')
+    for (let request = 1; request < 5; request += 1) {
+      await call({
+        taskId: 'plan-task',
+        contextEntryIds: [],
+        contextRevision: 1,
+      })
+    }
+    await assert.rejects(
+      call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 1 }),
+      (error) => error.code === 'functions/resource-exhausted'
+    )
+    await deleteUser(auth.currentUser)
+  } finally {
+    await deleteApp(app)
+  }
 })
