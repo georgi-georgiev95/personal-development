@@ -4,6 +4,10 @@ import {
   completeDeliveryTaskStage,
   createDeliveryTask,
   DeliveryArtifactInputError,
+  DeliveryContextInputError,
+  DELIVERY_CONTEXT_MAX_CONTENT_LENGTH,
+  DELIVERY_CONTEXT_MAX_ENTRIES,
+  DELIVERY_CONTEXT_MAX_NAME_LENGTH,
   DeliveryValidationInputError,
   type DeliveryValidationCheckId,
   DeliveryTaskInputError,
@@ -12,9 +16,11 @@ import {
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
   recordDeliveryReviewDecision,
+  removeDeliveryContextEntry,
   type DeliveryReviewReturnStage,
   REQUIRED_VALIDATION_CHECKS,
   saveDeliveryArtifact,
+  saveDeliveryContextEntry,
   updateDeliveryTask,
 } from './deliveryTask'
 
@@ -162,6 +168,7 @@ describe('saveDeliveryArtifact', () => {
   it('marks an artifact against the task intent revision it was saved for', () => {
     const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
     const note = saveDeliveryArtifact(task, 'review', 'Looks good')
+    expect(saveDeliveryArtifact(note, 'review', 'Looks good')).toBe(note)
     const revisedTask = updateDeliveryTask(note, {
       title: 'First',
       goal: 'Changed goal',
@@ -177,6 +184,218 @@ describe('saveDeliveryArtifact', () => {
       revisedTask.intentRevision
     )
     expect(refreshedNote.artifacts.review?.revision).toBe(2)
+  })
+
+  it('records the context revision used by a plan and refreshes it when context changes', () => {
+    const task = createDeliveryTask({ title: 'First', goal: 'Goal' })
+    const plan = saveDeliveryArtifact(task, 'planning', 'Plan')
+    const legacyPlan = saveDeliveryArtifact(
+      { ...task, contextRevision: undefined },
+      'planning',
+      'Legacy plan'
+    )
+    const withContext = saveDeliveryContextEntry(plan, {
+      name: 'README excerpt',
+      content: 'Project facts',
+    })
+    const refreshedPlan = saveDeliveryArtifact(withContext, 'planning', 'Plan')
+
+    expect(plan.artifacts.planning?.contextRevision).toBe(0)
+    expect(legacyPlan.artifacts.planning?.contextRevision).toBe(0)
+    const legacyPlanAtContextZero = {
+      ...legacyPlan,
+      contextRevision: undefined,
+    }
+    expect(
+      saveDeliveryArtifact(legacyPlanAtContextZero, 'planning', 'Legacy plan')
+    ).toBe(legacyPlanAtContextZero)
+    expect(refreshedPlan.artifacts.planning?.contextRevision).toBe(1)
+    expect(refreshedPlan.artifacts.planning?.revision).toBe(2)
+    expect(refreshedPlan.workRevision).toBe(plan.workRevision + 1)
+    expect(saveDeliveryArtifact(refreshedPlan, 'planning', 'Plan')).toBe(
+      refreshedPlan
+    )
+  })
+})
+
+describe('delivery task project context', () => {
+  it('saves, edits, and removes named entries with entry and task context revisions', () => {
+    const task = createDeliveryTask({ title: 'Task', goal: 'Goal' })
+    const added = saveDeliveryContextEntry(task, {
+      name: ' README excerpt ',
+      content: '  Keep pasted formatting.\n',
+    })
+    const entry = added.contextEntries?.[0]
+    const edited = saveDeliveryContextEntry(added, {
+      id: entry!.id,
+      name: 'Project README',
+      content: 'Updated facts',
+    })
+    const removed = removeDeliveryContextEntry(edited, entry!.id)
+
+    expect(task.contextEntries).toEqual([])
+    expect(added.contextEntries?.[0]).toMatchObject({
+      name: 'README excerpt',
+      content: '  Keep pasted formatting.\n',
+      revision: 1,
+    })
+    expect(edited.contextEntries?.[0]).toMatchObject({
+      id: entry!.id,
+      name: 'Project README',
+      content: 'Updated facts',
+      revision: 2,
+      createdAt: entry!.createdAt,
+    })
+    expect([
+      added.contextRevision,
+      edited.contextRevision,
+      removed.contextRevision,
+    ]).toEqual([1, 2, 3])
+    expect(removed.contextEntries).toEqual([])
+  })
+
+  it('returns the task for an unchanged entry and initializes legacy revisions', () => {
+    const task = createDeliveryTask({ title: 'Task', goal: 'Goal' })
+    const added = saveDeliveryContextEntry(task, {
+      name: 'README',
+      content: 'Project facts',
+    })
+    expect(
+      saveDeliveryContextEntry(added, {
+        id: added.contextEntries![0].id,
+        name: 'README',
+        content: 'Project facts',
+      })
+    ).toBe(added)
+
+    const legacyTask = {
+      ...task,
+      contextEntries: undefined,
+      contextRevision: undefined,
+    }
+    const migrated = saveDeliveryContextEntry(legacyTask, {
+      name: 'AGENTS excerpt',
+      content: 'Project guidance',
+    })
+    expect(migrated.contextRevision).toBe(1)
+    expect(migrated.contextEntries).toHaveLength(1)
+  })
+
+  it('keeps sibling entries when editing and removes legacy entries at revision one', () => {
+    const task = createDeliveryTask({ title: 'Task', goal: 'Goal' })
+    const withFirst = saveDeliveryContextEntry(task, {
+      name: 'README',
+      content: 'Project facts',
+    })
+    const withTwo = saveDeliveryContextEntry(withFirst, {
+      name: 'AGENTS excerpt',
+      content: 'Project rules',
+    })
+    const firstId = withTwo.contextEntries![0].id
+    const updated = saveDeliveryContextEntry(withTwo, {
+      id: firstId,
+      name: 'README',
+      content: 'Updated project facts',
+    })
+    expect(updated.contextEntries?.map(({ content }) => content)).toEqual([
+      'Updated project facts',
+      'Project rules',
+    ])
+
+    const legacy = {
+      ...withFirst,
+      contextEntries: withFirst.contextEntries,
+      contextRevision: undefined,
+    }
+    const removed = removeDeliveryContextEntry(
+      legacy,
+      withFirst.contextEntries![0].id
+    )
+    expect(removed.contextRevision).toBe(1)
+    expect(removed.contextEntries).toEqual([])
+  })
+
+  it('rejects empty, oversized, duplicate, excessive, and missing entries', () => {
+    const task = createDeliveryTask({ title: 'Task', goal: 'Goal' })
+    const invalidInputs = [
+      [{ name: ' ', content: 'facts' }, 'Enter a context name.'],
+      [
+        {
+          name: 'n'.repeat(DELIVERY_CONTEXT_MAX_NAME_LENGTH + 1),
+          content: 'facts',
+        },
+        `Keep the context name under ${DELIVERY_CONTEXT_MAX_NAME_LENGTH} characters.`,
+      ],
+      [{ name: 'README', content: '  ' }, 'Paste some project context.'],
+      [
+        {
+          name: 'README',
+          content: 'x'.repeat(DELIVERY_CONTEXT_MAX_CONTENT_LENGTH + 1),
+        },
+        `Keep context under ${DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters.`,
+      ],
+    ] as const
+    for (const [input, message] of invalidInputs) {
+      expect(() =>
+        saveDeliveryContextEntry(
+          task,
+          input as { name: string; content: string }
+        )
+      ).toThrowError(new DeliveryContextInputError(message))
+    }
+
+    const first = saveDeliveryContextEntry(task, {
+      name: 'README',
+      content: 'facts',
+    })
+    expect(() =>
+      saveDeliveryContextEntry(first, {
+        name: 'readme',
+        content: 'other facts',
+      })
+    ).toThrowError(
+      new DeliveryContextInputError(
+        'Choose a different name for this context entry.'
+      )
+    )
+
+    const full = Array.from({ length: DELIVERY_CONTEXT_MAX_ENTRIES }).reduce<
+      typeof task
+    >(
+      (current, _item, index) =>
+        saveDeliveryContextEntry(current, {
+          name: `Context ${index}`,
+          content: 'facts',
+        }),
+      task
+    )
+    expect(() =>
+      saveDeliveryContextEntry(full, { name: 'One too many', content: 'facts' })
+    ).toThrowError(
+      new DeliveryContextInputError(
+        `A task can have up to ${DELIVERY_CONTEXT_MAX_ENTRIES} context entries.`
+      )
+    )
+    expect(() =>
+      saveDeliveryContextEntry(task, {
+        id: 'missing',
+        name: 'README',
+        content: 'facts',
+      })
+    ).toThrowError(
+      new DeliveryContextInputError('That context entry no longer exists.')
+    )
+    expect(() => removeDeliveryContextEntry(task, 'missing')).toThrowError(
+      new DeliveryContextInputError('That context entry no longer exists.')
+    )
+    expect(() =>
+      removeDeliveryContextEntry(
+        { ...task, contextEntries: undefined },
+        'missing'
+      )
+    ).toThrowError(
+      new DeliveryContextInputError('That context entry no longer exists.')
+    )
   })
 })
 

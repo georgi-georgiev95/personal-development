@@ -9,8 +9,11 @@ import {
   recordDeliveryReviewDecision,
   recordDeliveryValidationResult,
   saveDeliveryArtifact,
+  saveDeliveryContextEntry,
+  removeDeliveryContextEntry,
   updateDeliveryTask,
   type DeliveryArtifactStage,
+  type DeliveryContextInput,
   type DeliveryReviewInput,
   type DeliveryStage,
   type DeliveryTask,
@@ -126,6 +129,12 @@ function OwnedWorkspace({
     content: string
   ) => updateTask(id, (task) => saveDeliveryArtifact(task, stage, content))
 
+  const saveContext = (id: string, input: DeliveryContextInput) =>
+    updateTask(id, (task) => saveDeliveryContextEntry(task, input))
+
+  const removeContext = (id: string, contextId: string) =>
+    updateTask(id, (task) => removeDeliveryContextEntry(task, contextId))
+
   const saveValidationResult = (
     id: string,
     checkId: DeliveryValidationCheckId,
@@ -197,6 +206,8 @@ function OwnedWorkspace({
             onReview={reviewTask}
             onCompleteStage={completeStage}
             onReopenStage={reopenStage}
+            onSaveContext={saveContext}
+            onRemoveContext={removeContext}
           />
         }
       />
