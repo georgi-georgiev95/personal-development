@@ -11,7 +11,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
+    include: [
+      'src/**/*.{test,spec}.{js,ts,tsx}',
+      'functions/test/**/*.test.ts',
+    ],
     coverage: {
       include: ['src/entities/**', 'src/shared/utils/**'],
       exclude: ['**/index.ts'],
