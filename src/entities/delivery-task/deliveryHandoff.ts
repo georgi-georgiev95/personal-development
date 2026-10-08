@@ -3,6 +3,7 @@ import {
   getDeliveryStageBlocker,
   type DeliveryTask,
 } from '@/entities/delivery-task/deliveryTask'
+import { ARTIFACT_SOURCE_LABELS } from '@/entities/delivery-task/deliveryPlan'
 
 export interface DeliveryHandoff {
   status: 'ready' | 'draft'
@@ -37,7 +38,7 @@ export const createDeliveryHandoff = (task: DeliveryTask): DeliveryHandoff => {
     return artifact
       ? [
           `### ${stage} · ${artifact.kind}`,
-          `Manual entry · Artifact revision ${artifact.revision} · Intent revision ${artifact.taskRevision}${artifact.taskRevision !== task.intentRevision ? ' · Stale intent' : ''}`,
+          `${ARTIFACT_SOURCE_LABELS[artifact.source]} · Artifact revision ${artifact.revision} · Intent revision ${artifact.taskRevision}${artifact.taskRevision !== task.intentRevision ? ' · Stale intent' : ''}${artifact.contextRevision !== undefined ? ` · Context revision ${artifact.contextRevision}` : ''}`,
           literal(artifact.content),
         ].join('\n\n')
       : []
@@ -74,7 +75,7 @@ export const createDeliveryHandoff = (task: DeliveryTask): DeliveryHandoff => {
       '# Delivery handoff',
       `**${status === 'ready' ? 'READY' : 'DRAFT — incomplete; not ready for handoff'}**`,
       `Task ID: ${task.id} · Task revision ${task.revision} · Work revision ${task.workRevision} · Current stage: ${task.stage}`,
-      'This document uses recorded data only. The product did not write code, run checks, verify repository links, or perform AI work.',
+      'This document uses recorded data only. The product did not write code, run checks, verify repository links, or perform AI work beyond explicitly requested plan drafting.',
       '## Task',
       literal(task.title),
       '## Goal',

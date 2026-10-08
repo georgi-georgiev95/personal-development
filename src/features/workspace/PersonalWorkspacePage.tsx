@@ -5,6 +5,8 @@ import { PageSpinner } from '@/shared/components/PageSpinner'
 import { useAuth } from '@/features/auth/components/useAuth'
 import {
   completeDeliveryTaskStage,
+  acceptDeliveryPlan,
+  type DeliveryPlanProposal,
   reopenDeliveryTaskStage,
   recordDeliveryReviewDecision,
   recordDeliveryValidationResult,
@@ -132,6 +134,9 @@ function OwnedWorkspace({
   const saveContext = (id: string, input: DeliveryContextInput) =>
     updateTask(id, (task) => saveDeliveryContextEntry(task, input))
 
+  const acceptPlan = (id: string, draft: DeliveryPlanProposal) =>
+    updateTask(id, (task) => acceptDeliveryPlan(task, draft))
+
   const removeContext = (id: string, contextId: string) =>
     updateTask(id, (task) => removeDeliveryContextEntry(task, contextId))
 
@@ -202,6 +207,7 @@ function OwnedWorkspace({
             reviewer={{ id: uid, name: reviewerName, source: 'owner' }}
             onSave={saveTask}
             onSaveArtifact={saveArtifact}
+            onAcceptPlan={acceptPlan}
             onSaveValidationResult={saveValidationResult}
             onReview={reviewTask}
             onCompleteStage={completeStage}

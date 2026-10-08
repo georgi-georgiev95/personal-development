@@ -6,6 +6,8 @@ import {
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
   completeDeliveryTaskStage,
+  acceptDeliveryPlan,
+  type DeliveryPlanProposal,
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
   recordDeliveryReviewDecision,
@@ -322,6 +324,18 @@ export const AIDeliveryLabPage = () => {
     )
     return updated
   }
+  const acceptPlan = (
+    id: string,
+    draft: DeliveryPlanProposal
+  ): DeliveryTask | null => {
+    const task = tasks.find((item) => item.id === id)
+    if (!task) return null
+    const updated = acceptDeliveryPlan(task, draft)
+    setTasks((current) =>
+      current.map((item) => (item.id === id ? updated : item))
+    )
+    return updated
+  }
   const completeStage = (
     id: string,
     stage: DeliveryStage
@@ -384,6 +398,7 @@ export const AIDeliveryLabPage = () => {
             basePath="/demo"
             onSave={saveTask}
             onSaveArtifact={saveArtifact}
+            onAcceptPlan={acceptPlan}
             onSaveValidationResult={saveValidationResult}
             onReview={reviewTask}
             onCompleteStage={completeStage}
