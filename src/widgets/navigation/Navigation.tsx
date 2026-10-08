@@ -76,6 +76,15 @@ export function Navigation() {
           >
             Demo
           </NavLink>
+          {user && (
+            <NavLink
+              href="/workspace"
+              $active={location.pathname === '/workspace'}
+              onClick={(e) => handleClick(e, '/workspace')}
+            >
+              Workspace
+            </NavLink>
+          )}
         </NavLinks>
         <NavAuthRow>
           {loading ? null : user ? (

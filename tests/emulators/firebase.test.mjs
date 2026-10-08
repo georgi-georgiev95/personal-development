@@ -14,9 +14,15 @@ import {
 import {
   connectFirestoreEmulator,
   getFirestore,
+  collection,
   doc,
   getDoc,
+  getDocs,
+  deleteDoc,
+  runTransaction,
+  serverTimestamp,
   setDoc,
+  updateDoc,
 } from 'firebase/firestore'
 import {
   assertFails,
@@ -94,4 +100,89 @@ test('rules allow only the profile owner, and deny anonymous access', async () =
   await assertFails(
     setDoc(doc(anonymous, 'users', 'fixture-owner'), { username: 'Anonymous' })
   )
+})
+
+test('personal workspace initialization is stable and idempotent', async () => {
+  const app = initializeApp(
+    { apiKey: 'demo-api-key', projectId: 'demo-pd-28' },
+    'workspace-concurrency'
+  )
+  const auth = initializeAuth(app, { persistence: inMemoryPersistence })
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099')
+  const db = getFirestore(app)
+  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+
+  try {
+    const { user } = await createUserWithEmailAndPassword(
+      auth,
+      `workspace-${crypto.randomUUID()}@example.test`,
+      'local-only-password'
+    )
+    const workspaceRef = doc(db, 'workspaces', user.uid)
+
+    await Promise.all(
+      Array.from({ length: 4 }, () =>
+        runTransaction(db, async (transaction) => {
+          const workspace = await transaction.get(workspaceRef)
+          if (!workspace.exists()) {
+            transaction.set(workspaceRef, {
+              ownerUid: user.uid,
+              createdAt: serverTimestamp(),
+            })
+          }
+        })
+      )
+    )
+
+    assert.equal((await getDoc(workspaceRef)).data().ownerUid, user.uid)
+    await rules.withSecurityRulesDisabled(async (context) => {
+      const workspaces = await getDocs(
+        collection(context.firestore(), 'workspaces')
+      )
+      assert.equal(workspaces.size, 1)
+    })
+    await deleteUser(user)
+  } finally {
+    await deleteApp(app)
+  }
+})
+
+test('workspace rules enforce private immutable ownership and deny listing', async () => {
+  const owner = rules.authenticatedContext('workspace-owner').firestore()
+  const workspaceRef = doc(owner, 'workspaces', 'workspace-owner')
+  await assertSucceeds(
+    setDoc(workspaceRef, {
+      ownerUid: 'workspace-owner',
+      createdAt: serverTimestamp(),
+    })
+  )
+  await assertSucceeds(getDoc(workspaceRef))
+  await assertFails(updateDoc(workspaceRef, { ownerUid: 'workspace-other' }))
+  await assertFails(deleteDoc(workspaceRef))
+  await assertFails(getDocs(collection(owner, 'workspaces')))
+
+  const other = rules.authenticatedContext('workspace-other').firestore()
+  await assertFails(getDoc(doc(other, 'workspaces', 'workspace-owner')))
+  await assertFails(
+    setDoc(doc(other, 'workspaces', 'workspace-owner'), {
+      ownerUid: 'workspace-other',
+      createdAt: serverTimestamp(),
+    })
+  )
+  await assertFails(
+    updateDoc(doc(other, 'workspaces', 'workspace-owner'), {
+      ownerUid: 'workspace-other',
+    })
+  )
+  await assertFails(getDocs(collection(other, 'workspaces')))
+
+  const anonymous = rules.unauthenticatedContext().firestore()
+  await assertFails(getDoc(doc(anonymous, 'workspaces', 'workspace-owner')))
+  await assertFails(
+    setDoc(doc(anonymous, 'workspaces', 'workspace-anonymous'), {
+      ownerUid: 'workspace-anonymous',
+      createdAt: serverTimestamp(),
+    })
+  )
+  await assertFails(getDocs(collection(anonymous, 'workspaces')))
 })
