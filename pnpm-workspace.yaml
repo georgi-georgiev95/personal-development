@@ -6,3 +6,9 @@ allowBuilds:
   '@swc/core': true
   esbuild: true
   protobufjs: true
+
+overrides:
+  'gaxios@6>uuid': 11.1.1
+  '@google-cloud/pubsub>@opentelemetry/core': 2.8.0
+  'get-uri@6>basic-ftp': 6.2.1
+  'firebase-tools>chokidar': 4.0.3

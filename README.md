@@ -6,6 +6,10 @@ AI Delivery Lab is a product for turning a task into a clear plan, focused imple
 
 Use pnpm 10 or newer. Install dependencies with `pnpm install --frozen-lockfile`.
 
+## Local Firebase development
+
+See [isolated emulator setup and validation](docs/firebase-emulators.md).
+
 ## Project Structure
 
 Feature-Sliced Design (FSD) — source is organized by ownership, not file type:
