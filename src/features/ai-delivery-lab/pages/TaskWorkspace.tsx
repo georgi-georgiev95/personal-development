@@ -7,10 +7,12 @@ import {
   DeliveryArtifactInputError,
   DeliveryTaskInputError,
   getDeliveryStageBlocker,
+  createDeliveryTask,
   createDeliveryHandoff,
   type DeliveryArtifact,
   type DeliveryTask,
   type DeliveryTaskInput,
+  type DeliveryReviewer,
   type DeliveryStage,
   type DeliveryArtifactStage,
   type DeliveryValidationCheck,
@@ -50,89 +52,137 @@ import {
 
 interface TaskListPageProps {
   tasks: DeliveryTask[]
-  onCreateSample: (journey: DemoJourney) => DeliveryTask
+  onCreateSample?: (journey: DemoJourney) => DeliveryTask
+  basePath?: string
 }
 
 interface TaskCreatePageProps {
-  onCreate: (input: DeliveryTaskInput) => DeliveryTask
+  onCreate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  basePath?: string
 }
+
+type TaskWrite<T> = T | Promise<T>
 
 interface TaskDetailPageProps {
   task: DeliveryTask | undefined
-  onSave: (id: string, input: DeliveryTaskInput) => DeliveryTask | null
+  basePath?: string
+  reviewer?: DeliveryReviewer
+  onSave: (
+    id: string,
+    input: DeliveryTaskInput
+  ) => TaskWrite<DeliveryTask | null>
   onSaveArtifact: (
     id: string,
     stage: DeliveryArtifactStage,
     content: string
-  ) => DeliveryTask | null
+  ) => TaskWrite<DeliveryTask | null>
   onSaveValidationResult: (
     id: string,
     checkId: DeliveryValidationCheckId,
     status: DeliveryValidationStatus,
     note: string,
     source: Exclude<DeliveryValidationSource, 'demo'> | null
-  ) => DeliveryTask | null
-  onCompleteStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
-  onReview: (id: string, input: DeliveryReviewInput) => DeliveryTask | null
-  onReopenStage: (id: string, stage: DeliveryStage) => DeliveryTask | null
+  ) => TaskWrite<DeliveryTask | null>
+  onCompleteStage: (
+    id: string,
+    stage: DeliveryStage
+  ) => TaskWrite<DeliveryTask | null>
+  onReview: (
+    id: string,
+    input: DeliveryReviewInput
+  ) => TaskWrite<DeliveryTask | null>
+  onReopenStage: (
+    id: string,
+    stage: DeliveryStage
+  ) => TaskWrite<DeliveryTask | null>
 }
 
 interface TaskDetailRouteProps extends Omit<TaskDetailPageProps, 'task'> {
   tasks: DeliveryTask[]
+  basePath?: string
+  reviewer?: DeliveryReviewer
 }
 
-const PageHeading = ({ title }: { title: string }) => (
+const PageHeading = ({
+  title,
+  basePath = '/demo',
+}: {
+  title: string
+  basePath?: string
+}) => (
   <>
-    <Eyebrow>// demo workspace</Eyebrow>
+    <Eyebrow>
+      // {basePath === '/demo' ? 'demo workspace' : 'private workspace'}
+    </Eyebrow>
     <Heading>{title}</Heading>
     <Notice role="status">
-      Demo only: tasks are held in memory and will reset when you reload this
-      page. Saved notes stay with their task while you navigate this demo.
+      {basePath === '/demo'
+        ? 'Demo only: tasks are held in memory and reset when you reload this page.'
+        : 'Tasks are saved in your private workspace and stay separate from the public demo.'}
     </Notice>
   </>
 )
 
-export const TaskListPage = ({ tasks, onCreateSample }: TaskListPageProps) => (
-  <TaskListContent tasks={tasks} onCreateSample={onCreateSample} />
+export const TaskListPage = ({
+  tasks,
+  onCreateSample,
+  basePath = '/demo',
+}: TaskListPageProps) => (
+  <TaskListContent
+    tasks={tasks}
+    onCreateSample={onCreateSample}
+    basePath={basePath}
+  />
 )
 
-const TaskListContent = ({ tasks, onCreateSample }: TaskListPageProps) => {
+const TaskListContent = ({
+  tasks,
+  onCreateSample,
+  basePath = '/demo',
+}: TaskListPageProps) => {
   const navigate = useNavigate()
   return (
     <TaskPage>
-      <Breadcrumb to="/demo">← Back to walkthrough</Breadcrumb>
-      <PageHeading title="Delivery tasks" />
+      <Breadcrumb to={basePath}>
+        {basePath === '/demo' ? '← Back to walkthrough' : '← Workspace'}
+      </Breadcrumb>
+      <PageHeading title="Delivery tasks" basePath={basePath} />
       <Content aria-label="Delivery tasks">
         <Actions>
-          <Button onClick={() => navigate('/demo/tasks/new')}>
+          <Button onClick={() => navigate(`${basePath}/tasks/new`)}>
             Create task
           </Button>
-          {(['successful', 'changes-requested'] as const).map((journey) => (
-            <Button
-              key={journey}
-              variant="secondary"
-              onClick={() =>
-                navigate(`/demo/tasks/${onCreateSample(journey).id}`)
-              }
-            >
-              Load {journey} journey template
-            </Button>
-          ))}
+          {onCreateSample &&
+            (['successful', 'changes-requested'] as const).map((journey) => (
+              <Button
+                key={journey}
+                variant="secondary"
+                onClick={() =>
+                  navigate(`${basePath}/tasks/${onCreateSample(journey).id}`)
+                }
+              >
+                Load {journey} journey template
+              </Button>
+            ))}
         </Actions>
         <TaskMeta>
-          Samples contain placeholder notes and no passing evidence. Complete
-          the successful path with real manual evidence and approval; the
-          changes-requested sample has a simulated review decision.
+          {onCreateSample
+            ? 'Samples contain placeholder notes and no passing evidence. Complete the successful path with real manual evidence and approval; the changes-requested sample has a simulated review decision.'
+            : 'Personal tasks and their stage progress are saved to this workspace.'}
         </TaskMeta>
         {tasks.length === 0 ? (
           <TaskMeta>
-            No tasks yet. Create one to start the demo journey.
+            {onCreateSample
+              ? 'No tasks yet. Create one to start the demo journey.'
+              : 'No saved tasks yet. Create one to start your workflow.'}
           </TaskMeta>
         ) : (
           <TaskList>
             {tasks.map((task) => (
               <TaskCard key={task.id}>
-                <TaskLink to={`/demo/tasks/${task.id}`}>{task.title}</TaskLink>
+                <TaskLink to={`${basePath}/tasks/${task.id}`}>
+                  {task.title}
+                </TaskLink>
                 <TaskMeta>{task.goal}</TaskMeta>
                 <Stage>Current stage: {task.stage}</Stage>
               </TaskCard>
@@ -144,33 +194,47 @@ const TaskListContent = ({ tasks, onCreateSample }: TaskListPageProps) => {
   )
 }
 
-export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
+export const TaskCreatePage = ({
+  onCreate,
+  basePath = '/demo',
+}: TaskCreatePageProps) => {
   const navigate = useNavigate()
   const submitting = useRef(false)
+  const pendingTask = useRef<DeliveryTask | null>(null)
   const [title, setTitle] = useState('')
   const [goal, setGoal] = useState('')
   const [error, setError] = useState<DeliveryTaskInputError | null>(null)
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (submitting.current) return
     submitting.current = true
+    setSaving(true)
+    setError(null)
+    setSaveError('')
     try {
-      const task = onCreate({ title, goal })
-      navigate(`/demo/tasks/${task.id}`)
+      const task = pendingTask.current ?? createDeliveryTask({ title, goal })
+      pendingTask.current = task
+      const created = await onCreate(task)
+      navigate(`${basePath}/tasks/${created.id}`)
     } catch (caught) {
-      submitting.current = false
       if (caught instanceof DeliveryTaskInputError) setError(caught)
-      else throw caught
+      else setSaveError('Could not save this task. Try again.')
+    } finally {
+      submitting.current = false
+      setSaving(false)
     }
   }
 
   return (
     <TaskPage>
-      <Breadcrumb to="/demo/tasks">← All tasks</Breadcrumb>
-      <PageHeading title="Create a delivery task" />
+      <Breadcrumb to={`${basePath}/tasks`}>← All tasks</Breadcrumb>
+      <PageHeading title="Create a delivery task" basePath={basePath} />
       <Content>
         <TaskForm onSubmit={handleSubmit}>
+          {saveError && <FieldError role="alert">{saveError}</FieldError>}
           <Field>
             <label htmlFor="task-title">Title</label>
             <TextInput
@@ -179,6 +243,8 @@ export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
               onChange={(event) => {
                 setTitle(event.target.value)
                 setError(null)
+                setSaveError('')
+                pendingTask.current = null
               }}
               aria-invalid={error?.field === 'title'}
               aria-describedby={
@@ -199,6 +265,8 @@ export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
               onChange={(event) => {
                 setGoal(event.target.value)
                 setError(null)
+                setSaveError('')
+                pendingTask.current = null
               }}
               aria-invalid={error?.field === 'goal'}
               aria-describedby={
@@ -212,11 +280,13 @@ export const TaskCreatePage = ({ onCreate }: TaskCreatePageProps) => {
             )}
           </Field>
           <Actions>
-            <Button type="submit">Create task</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Create task'}
+            </Button>
             <Button
               type="button"
               variant="secondary"
-              onClick={() => navigate('/demo/tasks')}
+              onClick={() => navigate(`${basePath}/tasks`)}
             >
               Cancel
             </Button>
@@ -235,6 +305,8 @@ export const TaskDetailRoute = ({
   onReview,
   onCompleteStage,
   onReopenStage,
+  basePath = '/demo',
+  reviewer,
 }: TaskDetailRouteProps) => {
   const { taskId = '' } = useParams()
   const task = useMemo(
@@ -251,6 +323,8 @@ export const TaskDetailRoute = ({
       onReview={onReview}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
+      basePath={basePath}
+      reviewer={reviewer}
     />
   )
 }
@@ -263,6 +337,8 @@ const TaskDetailPage = ({
   onReview,
   onCompleteStage,
   onReopenStage,
+  basePath = '/demo',
+  reviewer,
 }: TaskDetailPageProps) => {
   const navigate = useNavigate()
   const submitting = useRef(false)
@@ -270,11 +346,14 @@ const TaskDetailPage = ({
   const [goal, setGoal] = useState(task?.goal ?? '')
   const [error, setError] = useState<DeliveryTaskInputError | null>(null)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [mutationError, setMutationError] = useState('')
   const [selectedStage, setSelectedStage] = useState<DeliveryStage>(
     task?.stage ?? 'discovery'
   )
 
-  if (!task) return <UnknownTaskPage />
+  if (!task) return <UnknownTaskPage basePath={basePath} />
 
   const selectStage = (stage: DeliveryStage) => {
     setSelectedStage(stage)
@@ -282,6 +361,16 @@ const TaskDetailPage = ({
 
   const updateStage = (update: DeliveryTask | null) => {
     if (update) setSelectedStage(update.stage)
+  }
+  const runStageMutation = async (
+    operation: () => TaskWrite<DeliveryTask | null>
+  ) => {
+    setMutationError('')
+    try {
+      updateStage(await operation())
+    } catch {
+      setMutationError('Could not save this change. Try again.')
+    }
   }
   const currentStageIndex = DELIVERY_STAGES.indexOf(task.stage)
   const selectedStageIndex = DELIVERY_STAGES.indexOf(selectedStage)
@@ -293,31 +382,34 @@ const TaskDetailPage = ({
         : 'pending'
   const stageBlocker = getDeliveryStageBlocker(task, selectedStage)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (submitting.current) return
     submitting.current = true
+    setSaving(true)
+    setSaveError('')
     try {
-      const updated = onSave(task.id, { title, goal })
+      const updated = await onSave(task.id, { title, goal })
       if (!updated) {
-        navigate('/demo/tasks')
+        navigate(`${basePath}/tasks`)
         return
       }
-      submitting.current = false
       setSelectedStage(updated.stage)
       setSaved(true)
       setError(null)
     } catch (caught) {
-      submitting.current = false
       if (caught instanceof DeliveryTaskInputError) setError(caught)
-      else throw caught
+      else setSaveError('Could not save these changes. Try again.')
+    } finally {
+      submitting.current = false
+      setSaving(false)
     }
   }
 
   return (
     <TaskPage>
-      <Breadcrumb to="/demo/tasks">← All tasks</Breadcrumb>
-      <PageHeading title={task.title} />
+      <Breadcrumb to={`${basePath}/tasks`}>← All tasks</Breadcrumb>
+      <PageHeading title={task.title} basePath={basePath} />
       <Content>
         <Stage>Current stage: {task.stage}</Stage>
         {task.stage === 'handoff' &&
@@ -351,10 +443,18 @@ const TaskDetailPage = ({
         <ReviewDecisions
           key={task.id + task.reviewDecisions.length}
           task={task}
+          reviewer={reviewer}
           editable={task.stage === 'review' && selectedStage === 'review'}
-          onReview={(input) => updateStage(onReview(task.id, input))}
+          onReview={async (input) => {
+            const updated = await onReview(task.id, input)
+            updateStage(updated)
+            return updated
+          }}
         />
         <section aria-label={`${selectedStage} stage details`}>
+          {mutationError && (
+            <FieldError role="alert">{mutationError}</FieldError>
+          )}
           <Stage>
             {selectedStageStatus} stage: {selectedStage}
           </Stage>
@@ -371,7 +471,9 @@ const TaskDetailPage = ({
                 <Button
                   disabled={Boolean(stageBlocker)}
                   onClick={() =>
-                    updateStage(onCompleteStage(task.id, selectedStage))
+                    void runStageMutation(() =>
+                      onCompleteStage(task.id, selectedStage)
+                    )
                   }
                 >
                   Complete stage
@@ -381,7 +483,9 @@ const TaskDetailPage = ({
               <Button
                 variant="secondary"
                 onClick={() =>
-                  updateStage(onReopenStage(task.id, selectedStage))
+                  void runStageMutation(() =>
+                    onReopenStage(task.id, selectedStage)
+                  )
                 }
               >
                 Reopen stage
@@ -412,6 +516,7 @@ const TaskDetailPage = ({
         </section>
         <TaskMeta>Created {new Date(task.createdAt).toLocaleString()}</TaskMeta>
         <TaskForm onSubmit={handleSubmit}>
+          {saveError && <FieldError role="alert">{saveError}</FieldError>}
           <Field>
             <label htmlFor="task-title">Title</label>
             <TextInput
@@ -455,7 +560,9 @@ const TaskDetailPage = ({
             )}
           </Field>
           <Actions>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </Button>
             {saved && <TaskMeta role="status">Task updated.</TaskMeta>}
           </Actions>
         </TaskForm>
@@ -532,28 +639,40 @@ function HandoffExport({ task }: { task: DeliveryTask }) {
 interface ReviewDecisionsProps {
   task: DeliveryTask
   editable: boolean
-  onReview: (input: DeliveryReviewInput) => void
+  reviewer?: DeliveryReviewer
+  onReview: (input: DeliveryReviewInput) => TaskWrite<DeliveryTask | null>
 }
 
-function ReviewDecisions({ task, editable, onReview }: ReviewDecisionsProps) {
+function ReviewDecisions({
+  task,
+  editable,
+  reviewer: suppliedReviewer,
+  onReview,
+}: ReviewDecisionsProps) {
   const [reason, setReason] = useState('')
   const [returnStage, setReturnStage] =
     useState<DeliveryReviewReturnStage>('implementation')
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
   const latest = task.reviewDecisions.at(-1)
   const validationBlocker = getDeliveryStageBlocker(task, 'validation')
-  const reviewer = {
+  const reviewer = suppliedReviewer ?? {
     id: 'demo-reviewer',
     name: 'Demo reviewer',
     source: 'simulated' as const,
   }
-  const decide = (input: DeliveryReviewInput) => {
+  const decide = async (input: DeliveryReviewInput) => {
+    setSaving(true)
     try {
-      onReview(input)
+      const updated = await onReview(input)
+      if (!updated) throw new Error('Task is no longer available.')
       setError('')
     } catch (caught) {
-      if (caught instanceof Error) setError(caught.message)
-      else throw caught
+      setError(
+        caught instanceof Error ? caught.message : 'Could not save review.'
+      )
+    } finally {
+      setSaving(false)
     }
   }
   const decisionText = (decision: DeliveryTask['reviewDecisions'][number]) =>
@@ -563,8 +682,9 @@ function ReviewDecisions({ task, editable, onReview }: ReviewDecisionsProps) {
     <ArtifactPanel aria-label="Review decision">
       <h2>Review decision</h2>
       <ArtifactMeta>
-        Demo reviewer is simulated. Personal-workspace review will use the
-        signed-in owner; it is self-review, with no independent review claim.
+        {reviewer.source === 'simulated'
+          ? 'The demo reviewer is simulated.'
+          : 'Review is recorded by the signed-in owner; this is self-review, not an independent review.'}
       </ArtifactMeta>
       <ArtifactContent role="status">
         {latest ? decisionText(latest) : 'No review decision yet.'}
@@ -590,7 +710,7 @@ function ReviewDecisions({ task, editable, onReview }: ReviewDecisionsProps) {
         <TaskForm
           onSubmit={(event) => {
             event.preventDefault()
-            decide({
+            void decide({
               decision: 'changes-requested',
               reviewer,
               reason,
@@ -640,13 +760,13 @@ function ReviewDecisions({ task, editable, onReview }: ReviewDecisionsProps) {
           <Actions>
             <Button
               type="button"
-              disabled={Boolean(validationBlocker)}
-              onClick={() => decide({ decision: 'approved', reviewer })}
+              disabled={Boolean(validationBlocker) || saving}
+              onClick={() => void decide({ decision: 'approved', reviewer })}
             >
               Approve review
             </Button>
-            <Button type="submit" variant="secondary">
-              Request changes
+            <Button type="submit" variant="secondary" disabled={saving}>
+              {saving ? 'Saving…' : 'Request changes'}
             </Button>
           </Actions>
         </TaskForm>
@@ -674,16 +794,21 @@ const StageArtifactEditor = ({
   const [editing, setEditing] = useState(!artifact)
   const [draft, setDraft] = useState(artifact?.content ?? '')
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setSaving(true)
     try {
-      if (!onSave(taskId, stage, draft)) return
+      const updated = await onSave(taskId, stage, draft)
+      if (!updated) throw new Error('Task is no longer available.')
       setEditing(false)
       setError('')
     } catch (caught) {
       if (caught instanceof DeliveryArtifactInputError) setError(caught.message)
-      else throw caught
+      else setError('Could not save these notes. Try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -718,8 +843,15 @@ const StageArtifactEditor = ({
             )}
           </Field>
           <Actions>
-            <Button type="submit">Save {info.label}</Button>
-            <Button type="button" variant="secondary" onClick={cancel}>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : `Save ${info.label}`}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={cancel}
+              disabled={saving}
+            >
               Cancel
             </Button>
           </Actions>
@@ -832,6 +964,7 @@ function ValidationCheckEditor({
     check.evidence?.source === 'ci' ? 'ci' : 'manual'
   )
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
   const stale = Boolean(
     check.evidence && check.evidence.workRevision !== workRevision
   )
@@ -852,20 +985,25 @@ function ValidationCheckEditor({
                 : 'Failed · manually reported'
               : check.status
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setSaving(true)
     try {
-      onSave(
+      const updated = await onSave(
         taskId,
         check.id,
         status,
         note,
         status === 'pending' ? null : source
       )
+      if (!updated) throw new Error('Task is no longer available.')
       setError('')
     } catch (caught) {
-      if (caught instanceof Error) setError(caught.message)
-      else throw caught
+      setError(
+        caught instanceof Error ? caught.message : 'Could not save result.'
+      )
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -944,7 +1082,9 @@ function ValidationCheckEditor({
           )}
           {error && <FieldError role="alert">{error}</FieldError>}
           <Actions>
-            <Button type="submit">Save {check.name} result</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : `Save ${check.name} result`}
+            </Button>
           </Actions>
         </TaskForm>
       ) : (
@@ -956,14 +1096,19 @@ function ValidationCheckEditor({
   )
 }
 
-export const UnknownTaskPage = () => (
+export const UnknownTaskPage = ({
+  basePath = '/demo',
+}: {
+  basePath?: string
+}) => (
   <TaskPage>
-    <Breadcrumb to="/demo/tasks">← All tasks</Breadcrumb>
-    <PageHeading title="Task not found" />
+    <Breadcrumb to={`${basePath}/tasks`}>← All tasks</Breadcrumb>
+    <PageHeading title="Task not found" basePath={basePath} />
     <Content>
       <TaskMeta role="status">
-        This task is unavailable in the current demo session. It may have been
-        cleared when the page reloaded.
+        {basePath === '/demo'
+          ? 'This task is unavailable in the current demo session. It may have been cleared when the page reloaded.'
+          : 'This task was not found in your private workspace.'}
       </TaskMeta>
     </Content>
   </TaskPage>

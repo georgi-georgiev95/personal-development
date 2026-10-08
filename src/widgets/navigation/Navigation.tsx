@@ -79,7 +79,7 @@ export function Navigation() {
           {user && (
             <NavLink
               href="/workspace"
-              $active={location.pathname === '/workspace'}
+              $active={location.pathname.startsWith('/workspace')}
               onClick={(e) => handleClick(e, '/workspace')}
             >
               Workspace

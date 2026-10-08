@@ -15,6 +15,126 @@ service cloud.firestore {
         request.resource.data.ownerUid == request.auth.uid &&
         request.resource.data.createdAt == request.time;
       allow update, delete: if false;
+
+      function isWorkspaceOwner() {
+        return request.auth != null &&
+          request.auth.uid == uid &&
+          exists(/databases/$(database)/documents/workspaces/$(uid)) &&
+          get(/databases/$(database)/documents/workspaces/$(uid)).data.ownerUid == request.auth.uid;
+      }
+
+      function validEvidence(evidence) {
+        return evidence.keys().hasOnly([
+            'status', 'note', 'source', 'recordedAt', 'taskRevision', 'workRevision', 'revision'
+          ]) &&
+          evidence.keys().hasAll([
+            'status', 'note', 'source', 'recordedAt', 'taskRevision', 'workRevision', 'revision'
+          ]) &&
+          evidence.status in ['passed', 'failed'] &&
+          evidence.note is string &&
+          (evidence.status == 'failed' || evidence.note.size() > 0) &&
+          evidence.source in ['manual', 'ci'] &&
+          evidence.recordedAt is string &&
+          evidence.taskRevision is int && evidence.taskRevision > 0 &&
+          evidence.workRevision is int && evidence.workRevision > 0 &&
+          evidence.revision is int && evidence.revision > 0;
+      }
+
+      function validArtifact(artifact, stage, kind) {
+        return artifact.keys().hasOnly([
+            'stage', 'kind', 'content', 'source', 'revision', 'taskRevision', 'createdAt', 'updatedAt'
+          ]) &&
+          artifact.keys().hasAll([
+            'stage', 'kind', 'content', 'source', 'revision', 'taskRevision', 'createdAt', 'updatedAt'
+          ]) &&
+          artifact.stage == stage &&
+          artifact.kind == kind &&
+          artifact.content is string &&
+          artifact.source == 'manual' &&
+          artifact.revision is int && artifact.revision > 0 &&
+          artifact.taskRevision is int && artifact.taskRevision > 0 &&
+          artifact.createdAt is string &&
+          artifact.updatedAt is string;
+      }
+
+      function validCheck(check, checkId, checkName) {
+        return check.keys().hasOnly([
+            'id', 'name', 'required', 'status', 'evidence', 'history', 'revision', 'updatedAt'
+          ]) &&
+          check.keys().hasAll(['id', 'name', 'required', 'status', 'history', 'revision', 'updatedAt']) &&
+          check.id == checkId &&
+          check.name == checkName &&
+          check.required == true &&
+          check.status in ['pending', 'passed', 'failed'] &&
+          check.history is list &&
+          check.revision is int && check.revision >= 0 &&
+          check.updatedAt is string &&
+          ((!check.keys().hasAny(['evidence']) && check.status == 'pending') ||
+            (check.keys().hasAny(['evidence']) && validEvidence(check.evidence) &&
+              check.status == check.evidence.status));
+      }
+
+      function validReview(decision) {
+        return decision.keys().hasOnly([
+            'decision', 'reviewer', 'reason', 'returnStage', 'taskRevision', 'recordedAt'
+          ]) &&
+          decision.keys().hasAll(['decision', 'reviewer', 'taskRevision', 'recordedAt']) &&
+          decision.decision in ['approved', 'changes-requested'] &&
+          decision.reviewer.keys().hasOnly(['id', 'name', 'source']) &&
+          decision.reviewer.keys().hasAll(['id', 'name', 'source']) &&
+          decision.reviewer.id is string && decision.reviewer.id.size() > 0 &&
+          decision.reviewer.id == request.auth.uid &&
+          decision.reviewer.name is string && decision.reviewer.name.size() > 0 &&
+          decision.reviewer.source == 'owner' &&
+          decision.taskRevision is int && decision.taskRevision > 0 &&
+          decision.recordedAt is string &&
+          (decision.decision == 'approved' ||
+            (decision.reason is string && decision.reason.size() > 0 &&
+              decision.returnStage in ['discovery', 'planning', 'implementation', 'validation']));
+      }
+
+      function validTask(task, taskId) {
+        return task.keys().hasOnly([
+            'id', 'title', 'goal', 'stage', 'intentRevision', 'revision', 'workRevision',
+            'artifacts', 'validationChecks', 'reviewDecisions', 'createdAt', 'updatedAt'
+          ]) &&
+          task.keys().hasAll([
+            'id', 'title', 'goal', 'stage', 'intentRevision', 'revision', 'workRevision',
+            'artifacts', 'validationChecks', 'reviewDecisions', 'createdAt', 'updatedAt'
+          ]) &&
+          task.id == taskId &&
+          task.title is string && task.title.size() > 0 &&
+          task.goal is string && task.goal.size() > 0 &&
+          task.stage in ['discovery', 'planning', 'implementation', 'validation', 'review', 'handoff'] &&
+          task.intentRevision is int && task.intentRevision > 0 &&
+          task.revision is int && task.revision > 0 &&
+          task.workRevision is int && task.workRevision > 0 &&
+          task.createdAt is string &&
+          task.updatedAt is string &&
+          task.artifacts is map &&
+          task.artifacts.keys().hasOnly(['discovery', 'planning', 'implementation', 'review']) &&
+          (!task.artifacts.keys().hasAny(['discovery']) || validArtifact(task.artifacts.discovery, 'discovery', 'discovery-notes')) &&
+          (!task.artifacts.keys().hasAny(['planning']) || validArtifact(task.artifacts.planning, 'planning', 'plan')) &&
+          (!task.artifacts.keys().hasAny(['implementation']) || validArtifact(task.artifacts.implementation, 'implementation', 'implementation-notes')) &&
+          (!task.artifacts.keys().hasAny(['review']) || validArtifact(task.artifacts.review, 'review', 'review-notes')) &&
+          task.validationChecks is list && task.validationChecks.size() == 4 &&
+          validCheck(task.validationChecks[0], 'typecheck', 'Typecheck') &&
+          validCheck(task.validationChecks[1], 'lint', 'Lint') &&
+          validCheck(task.validationChecks[2], 'coverage', 'Coverage') &&
+          validCheck(task.validationChecks[3], 'build-performance', 'Build and performance') &&
+          task.reviewDecisions is list && task.reviewDecisions.size() <= 100 &&
+          (task.reviewDecisions.size() == 0 || validReview(task.reviewDecisions[task.reviewDecisions.size() - 1]));
+      }
+
+      match /tasks/{taskId} {
+        allow get, list: if isWorkspaceOwner();
+        allow create: if isWorkspaceOwner() && validTask(request.resource.data, taskId);
+        allow update: if isWorkspaceOwner() &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.createdAt == resource.data.createdAt &&
+          validTask(request.resource.data, taskId);
+        allow delete: if false;
+      }
     }
 
     match /users/{uid} {
