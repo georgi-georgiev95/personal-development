@@ -194,6 +194,7 @@ const deliveryTaskFixture = (id = 'task-stable-id') => {
     title: 'Private delivery task',
     goal: 'Persist its progress safely',
     stage: 'discovery',
+    persistenceRevision: 1,
     intentRevision: 1,
     revision: 1,
     workRevision: 1,
@@ -232,13 +233,126 @@ test('private delivery tasks persist for their owner and reject other users or i
   const taskRef = doc(owner, 'workspaces', ownerUid, 'tasks', 'task-stable-id')
   const task = deliveryTaskFixture()
   await assertSucceeds(setDoc(taskRef, task))
-  await assertSucceeds(setDoc(taskRef, task)) // retry overwrites the stable ID
+  await assertFails(setDoc(taskRef, task)) // stale direct retry cannot overwrite
   await assertSucceeds(getDoc(taskRef))
   await assertSucceeds(
     getDocs(collection(owner, 'workspaces', ownerUid, 'tasks'))
   )
-  await assertSucceeds(updateDoc(taskRef, { stage: 'planning', revision: 2 }))
+  await assertSucceeds(
+    updateDoc(taskRef, {
+      stage: 'planning',
+      revision: 2,
+      persistenceRevision: 2,
+    })
+  )
   assert.equal((await getDoc(taskRef)).data().stage, 'planning')
+
+  await assert.rejects(
+    runTransaction(owner, async (transaction) => {
+      const snapshot = await transaction.get(taskRef)
+      if (snapshot.data().persistenceRevision !== 1) {
+        throw new Error('Task changed in another tab.')
+      }
+      transaction.set(taskRef, {
+        ...snapshot.data(),
+        title: 'Stale approval overwrote newer work',
+        persistenceRevision: 3,
+      })
+    }),
+    /Task changed in another tab/
+  )
+  assert.equal((await getDoc(taskRef)).data().persistenceRevision, 2)
+
+  const artifactTime = new Date().toISOString()
+  await assertSucceeds(
+    updateDoc(taskRef, {
+      artifacts: {
+        discovery: {
+          stage: 'discovery',
+          kind: 'discovery-notes',
+          content: 'Saved discovery notes',
+          source: 'manual',
+          revision: 1,
+          taskRevision: 1,
+          createdAt: artifactTime,
+          updatedAt: artifactTime,
+        },
+      },
+      persistenceRevision: 3,
+    })
+  )
+
+  const evidence = {
+    status: 'passed',
+    note: 'Verified with the local emulator',
+    source: 'manual',
+    recordedAt: artifactTime,
+    taskRevision: 1,
+    workRevision: 1,
+    revision: 1,
+  }
+  const savedChecks = (await getDoc(taskRef)).data().validationChecks
+  savedChecks[0] = {
+    ...savedChecks[0],
+    status: 'passed',
+    evidence,
+    history: [evidence],
+    revision: 1,
+    updatedAt: artifactTime,
+  }
+  await assertSucceeds(
+    updateDoc(taskRef, {
+      stage: 'validation',
+      validationChecks: savedChecks,
+      persistenceRevision: 4,
+    })
+  )
+
+  await assertSucceeds(
+    updateDoc(taskRef, {
+      stage: 'handoff',
+      reviewDecisions: [
+        {
+          decision: 'approved',
+          reviewer: { id: ownerUid, name: 'Task owner', source: 'owner' },
+          taskRevision: 1,
+          recordedAt: artifactTime,
+        },
+      ],
+      persistenceRevision: 5,
+    })
+  )
+
+  const restoredTask = (await getDoc(taskRef)).data()
+  assert.equal(restoredTask.persistenceRevision, 5)
+  assert.equal(
+    restoredTask.artifacts.discovery.content,
+    'Saved discovery notes'
+  )
+  assert.equal(
+    restoredTask.validationChecks[0].evidence.note,
+    'Verified with the local emulator'
+  )
+  assert.equal(restoredTask.reviewDecisions[0].decision, 'approved')
+
+  await assertFails(
+    updateDoc(taskRef, {
+      reviewDecisions: [
+        {
+          decision: 'approved',
+          reviewer: {
+            id: 'another-user',
+            name: 'Another user',
+            source: 'owner',
+          },
+          taskRevision: 1,
+          recordedAt: artifactTime,
+        },
+      ],
+      persistenceRevision: 6,
+    })
+  )
+  assert.equal((await getDoc(taskRef)).data().persistenceRevision, 5)
 
   const other = rules.authenticatedContext('other-task-user').firestore()
   await assertFails(
