@@ -2,7 +2,54 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
+import type { DeliveryTask } from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
+import { TaskCreatePage } from './TaskWorkspace'
+
+describe('private task creation retry', () => {
+  it('keeps a stable task ID and waits for the save before navigating', async () => {
+    const user = userEvent.setup()
+    const attemptedIds: string[] = []
+    let attempts = 0
+    const onCreate = async (task: DeliveryTask) => {
+      attemptedIds.push(task.id)
+      attempts += 1
+      if (attempts === 1) throw new Error('offline')
+      return task
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/workspace/tasks/new']}>
+        <Routes>
+          <Route
+            path="/workspace/tasks/new"
+            element={
+              <TaskCreatePage onCreate={onCreate} basePath="/workspace" />
+            }
+          />
+          <Route
+            path="/workspace/tasks/:taskId"
+            element={<p>Saved task details</p>}
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.type(screen.getByLabelText('Title'), 'Personal task')
+    await user.type(screen.getByLabelText('Goal'), 'Persist after reload')
+    await user.click(screen.getByRole('button', { name: 'Create task' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not save this task. Try again.'
+    )
+    expect(screen.queryByText('Saved task details')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Create task' }))
+    expect(await screen.findByText('Saved task details')).toBeInTheDocument()
+    expect(attemptedIds).toHaveLength(2)
+    expect(attemptedIds[0]).toBe(attemptedIds[1])
+  })
+})
 
 describe('stage artifact editor', () => {
   it('saves literal text, rejects blank input, cancels edits, and keeps notes during navigation', async () => {
@@ -18,6 +65,7 @@ describe('stage artifact editor', () => {
     await user.type(screen.getByLabelText('Title'), 'Example task')
     await user.type(screen.getByLabelText('Goal'), 'Record a delivery outcome')
     await user.click(screen.getByRole('button', { name: 'Create task' }))
+    await screen.findByRole('button', { name: 'Save discovery notes' })
 
     await user.click(
       screen.getByRole('button', { name: 'Save discovery notes' })
@@ -63,6 +111,7 @@ describe('validation results', () => {
     await user.type(screen.getByLabelText('Title'), 'Validation task')
     await user.type(screen.getByLabelText('Goal'), 'Record actual checks')
     await user.click(screen.getByRole('button', { name: 'Create task' }))
+    await screen.findByRole('button', { name: 'Complete stage' })
     await user.click(screen.getByRole('button', { name: 'Complete stage' }))
     await user.click(screen.getByRole('button', { name: 'Complete stage' }))
     await user.click(screen.getByRole('button', { name: 'Complete stage' }))

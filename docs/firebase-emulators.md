@@ -41,7 +41,8 @@ running tests; do not substitute a remote host or live project.
 
 Fixtures use generated `.test` email addresses and local profile data. Rules
 tests clear only the demo database and use mocked authenticated/anonymous
-contexts; add workspace permission cases to the same harness later.
+contexts. They cover workspace ownership and private task reads, writes, and
+field validation, including stable-ID retries.
 Emulator data is disposable; stop the processes when finished. No export/import
 of hosted data is part of this workflow. CI runs these checks in Quality Gate.
 The emulator does not enforce production compound indexes or every service limit.

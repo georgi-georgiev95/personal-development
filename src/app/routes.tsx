@@ -35,7 +35,7 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
-        <Route path="/workspace" element={<PersonalWorkspacePage />} />
+        <Route path="/workspace/*" element={<PersonalWorkspacePage />} />
         <Route path="/demo/*" element={<AIDeliveryLabPage />} />
         {/* Keep the old demo URL working while retired portfolio URLs return home. */}
         <Route

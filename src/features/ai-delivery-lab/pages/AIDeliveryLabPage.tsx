@@ -6,7 +6,6 @@ import {
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import {
   completeDeliveryTaskStage,
-  createDeliveryTask,
   reopenDeliveryTaskStage,
   recordDeliveryValidationResult,
   recordDeliveryReviewDecision,
@@ -268,8 +267,7 @@ const DemoWalkthrough = () => {
 
 export const AIDeliveryLabPage = () => {
   const [tasks, setTasks] = useState<DeliveryTask[]>([])
-  const createTask = (input: DeliveryTaskInput): DeliveryTask => {
-    const task = createDeliveryTask(input)
+  const createTask = (task: DeliveryTask): DeliveryTask => {
     setTasks((current) => [task].concat(current))
     return task
   }
@@ -366,17 +364,24 @@ export const AIDeliveryLabPage = () => {
       <Route index element={<DemoWalkthrough />} />
       <Route
         path="tasks"
-        element={<TaskListPage tasks={tasks} onCreateSample={createSample} />}
+        element={
+          <TaskListPage
+            tasks={tasks}
+            onCreateSample={createSample}
+            basePath="/demo"
+          />
+        }
       />
       <Route
         path="tasks/new"
-        element={<TaskCreatePage onCreate={createTask} />}
+        element={<TaskCreatePage onCreate={createTask} basePath="/demo" />}
       />
       <Route
         path="tasks/:taskId"
         element={
           <TaskDetailRoute
             tasks={tasks}
+            basePath="/demo"
             onSave={saveTask}
             onSaveArtifact={saveArtifact}
             onSaveValidationResult={saveValidationResult}

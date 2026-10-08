@@ -186,3 +186,164 @@ test('workspace rules enforce private immutable ownership and deny listing', asy
   )
   await assertFails(getDocs(collection(anonymous, 'workspaces')))
 })
+
+const deliveryTaskFixture = (id = 'task-stable-id') => {
+  const now = new Date().toISOString()
+  return {
+    id,
+    title: 'Private delivery task',
+    goal: 'Persist its progress safely',
+    stage: 'discovery',
+    intentRevision: 1,
+    revision: 1,
+    workRevision: 1,
+    artifacts: {},
+    validationChecks: [
+      ['typecheck', 'Typecheck'],
+      ['lint', 'Lint'],
+      ['coverage', 'Coverage'],
+      ['build-performance', 'Build and performance'],
+    ].map(([checkId, name]) => ({
+      id: checkId,
+      name,
+      required: true,
+      status: 'pending',
+      history: [],
+      revision: 0,
+      updatedAt: now,
+    })),
+    reviewDecisions: [],
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+test('private delivery tasks persist for their owner and reject other users or invalid data', async () => {
+  const ownerUid = 'task-owner'
+  const owner = rules.authenticatedContext(ownerUid).firestore()
+  const workspaceRef = doc(owner, 'workspaces', ownerUid)
+  await assertSucceeds(
+    setDoc(workspaceRef, {
+      ownerUid,
+      createdAt: serverTimestamp(),
+    })
+  )
+
+  const taskRef = doc(owner, 'workspaces', ownerUid, 'tasks', 'task-stable-id')
+  const task = deliveryTaskFixture()
+  await assertSucceeds(setDoc(taskRef, task))
+  await assertSucceeds(setDoc(taskRef, task)) // retry overwrites the stable ID
+  await assertSucceeds(getDoc(taskRef))
+  await assertSucceeds(
+    getDocs(collection(owner, 'workspaces', ownerUid, 'tasks'))
+  )
+  await assertSucceeds(updateDoc(taskRef, { stage: 'planning', revision: 2 }))
+  assert.equal((await getDoc(taskRef)).data().stage, 'planning')
+
+  const other = rules.authenticatedContext('other-task-user').firestore()
+  await assertFails(
+    getDoc(doc(other, 'workspaces', ownerUid, 'tasks', task.id))
+  )
+  await assertFails(getDocs(collection(other, 'workspaces', ownerUid, 'tasks')))
+  await assertFails(
+    updateDoc(doc(other, 'workspaces', ownerUid, 'tasks', task.id), {
+      stage: 'handoff',
+    })
+  )
+
+  const anonymous = rules.unauthenticatedContext().firestore()
+  await assertFails(
+    getDoc(doc(anonymous, 'workspaces', ownerUid, 'tasks', task.id))
+  )
+  await assertFails(
+    setDoc(doc(owner, 'workspaces', ownerUid, 'tasks', 'invalid-stage'), {
+      ...deliveryTaskFixture('invalid-stage'),
+      stage: 'unknown',
+    })
+  )
+  await assertFails(
+    setDoc(
+      doc(owner, 'workspaces', ownerUid, 'tasks', 'mismatched-id'),
+      deliveryTaskFixture('different-document-id')
+    )
+  )
+  await assertFails(
+    setDoc(doc(owner, 'workspaces', ownerUid, 'tasks', 'simulated-review'), {
+      ...deliveryTaskFixture('simulated-review'),
+      reviewDecisions: [
+        {
+          decision: 'approved',
+          reviewer: { id: 'demo', name: 'Demo reviewer', source: 'simulated' },
+          taskRevision: 1,
+          recordedAt: new Date().toISOString(),
+        },
+      ],
+    })
+  )
+  await assertFails(
+    setDoc(doc(owner, 'workspaces', ownerUid, 'tasks', 'impersonated-review'), {
+      ...deliveryTaskFixture('impersonated-review'),
+      reviewDecisions: [
+        {
+          decision: 'approved',
+          reviewer: {
+            id: 'another-user',
+            name: 'Another user',
+            source: 'owner',
+          },
+          taskRevision: 1,
+          recordedAt: new Date().toISOString(),
+        },
+      ],
+    })
+  )
+  const invalidEvidenceTask = deliveryTaskFixture('invalid-evidence')
+  invalidEvidenceTask.validationChecks[0] = {
+    ...invalidEvidenceTask.validationChecks[0],
+    status: 'passed',
+    evidence: {
+      status: 'passed',
+      note: '',
+      source: 'manual',
+      recordedAt: new Date().toISOString(),
+      taskRevision: 1,
+      workRevision: 1,
+      revision: 1,
+    },
+  }
+  await assertFails(
+    setDoc(
+      doc(owner, 'workspaces', ownerUid, 'tasks', 'invalid-evidence'),
+      invalidEvidenceTask
+    )
+  )
+  await assertSucceeds(
+    setDoc(doc(owner, 'workspaces', ownerUid, 'tasks', 'owner-review'), {
+      ...deliveryTaskFixture('owner-review'),
+      stage: 'handoff',
+      reviewDecisions: [
+        {
+          decision: 'approved',
+          reviewer: { id: ownerUid, name: 'Task owner', source: 'owner' },
+          taskRevision: 1,
+          recordedAt: new Date().toISOString(),
+        },
+      ],
+    })
+  )
+
+  await rules.withSecurityRulesDisabled(async (context) => {
+    const saved = await getDocs(
+      collection(context.firestore(), 'workspaces', ownerUid, 'tasks')
+    )
+    assert.equal(saved.size, 2)
+    assert.equal(
+      saved.docs.some((item) => item.id === task.id),
+      true
+    )
+    assert.equal(
+      saved.docs.some((item) => item.id === 'owner-review'),
+      true
+    )
+  })
+})
