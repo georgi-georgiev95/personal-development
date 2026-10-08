@@ -7,6 +7,9 @@ import { GuestOnlyRoute } from '@/features/auth/components/GuestOnlyRoute'
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'))
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'))
+const PersonalWorkspacePage = lazy(
+  () => import('@/features/workspace/PersonalWorkspacePage')
+)
 const AIDeliveryLabPage = lazy(
   () => import('@/features/ai-delivery-lab/pages/AIDeliveryLabPage')
 )
@@ -32,6 +35,7 @@ export const AppRoutes = () => (
             </GuestOnlyRoute>
           }
         />
+        <Route path="/workspace" element={<PersonalWorkspacePage />} />
         <Route path="/demo/*" element={<AIDeliveryLabPage />} />
         {/* Keep the old demo URL working while retired portfolio URLs return home. */}
         <Route
