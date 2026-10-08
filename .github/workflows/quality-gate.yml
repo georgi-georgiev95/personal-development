@@ -37,3 +37,18 @@ jobs:
 
       - name: Test with coverage
         run: pnpm coverage
+
+      - name: Setup Java for Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Test isolated Firebase emulators and rules
+        run: pnpm test:emulators
+
+      - name: Verify production excludes emulator activation
+        run: |
+          pnpm build --mode emulator
+          pnpm check:emulator-build
+          pnpm perf
