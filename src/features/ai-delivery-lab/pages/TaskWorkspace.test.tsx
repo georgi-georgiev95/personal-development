@@ -2,9 +2,15 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import type { DeliveryTask } from '@/entities/delivery-task'
+import {
+  createDeliveryTask,
+  removeDeliveryContextEntry,
+  saveDeliveryArtifact,
+  saveDeliveryContextEntry,
+  type DeliveryTask,
+} from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
-import { TaskCreatePage } from './TaskWorkspace'
+import { TaskCreatePage, TaskDetailRoute } from './TaskWorkspace'
 
 describe('private task creation retry', () => {
   it('keeps a stable task ID and waits for the save before navigating', async () => {
@@ -48,6 +54,143 @@ describe('private task creation retry', () => {
     expect(await screen.findByText('Saved task details')).toBeInTheDocument()
     expect(attemptedIds).toHaveLength(2)
     expect(attemptedIds[0]).toBe(attemptedIds[1])
+  })
+})
+
+describe('private project context', () => {
+  it('warns when a legacy plan predates saved project context', () => {
+    const base = saveDeliveryArtifact(
+      createDeliveryTask({ title: 'Private task', goal: 'Use context' }),
+      'planning',
+      'Earlier plan'
+    )
+    const task: DeliveryTask = {
+      ...base,
+      stage: 'planning',
+      contextEntries: [
+        {
+          id: 'readme',
+          name: 'README excerpt',
+          content: 'Project facts',
+          revision: 1,
+          createdAt: base.createdAt,
+          updatedAt: base.updatedAt,
+        },
+      ],
+      contextRevision: 1,
+      artifacts: {
+        ...base.artifacts,
+        planning: { ...base.artifacts.planning!, contextRevision: undefined },
+      },
+    }
+
+    render(
+      <MemoryRouter initialEntries={[`/workspace/tasks/${task.id}`]}>
+        <Routes>
+          <Route
+            path="/workspace/tasks/:taskId"
+            element={
+              <TaskDetailRoute
+                tasks={[task]}
+                basePath="/workspace"
+                onSave={() => task}
+                onSaveArtifact={() => task}
+                onSaveValidationResult={() => task}
+                onCompleteStage={() => task}
+                onReview={() => task}
+                onReopenStage={() => task}
+                onSaveContext={() => task}
+                onRemoveContext={() => task}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(
+      screen.getByText(/Project context changed after this plan was saved/)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/against context revision 1 and save it again/)
+    ).toBeInTheDocument()
+  })
+
+  it('saves, reloads, edits, and removes context without adding it to the demo', async () => {
+    const user = userEvent.setup()
+    let task = createDeliveryTask({
+      title: 'Private task',
+      goal: 'Use context',
+    })
+    const route = () => (
+      <MemoryRouter initialEntries={[`/workspace/tasks/${task.id}`]}>
+        <Routes>
+          <Route
+            path="/workspace/tasks/:taskId"
+            element={
+              <TaskDetailRoute
+                tasks={[task]}
+                basePath="/workspace"
+                onSave={() => task}
+                onSaveArtifact={() => task}
+                onSaveValidationResult={() => task}
+                onCompleteStage={() => task}
+                onReview={() => task}
+                onReopenStage={() => task}
+                onSaveContext={(_id, input) => {
+                  task = saveDeliveryContextEntry(task, input)
+                  return task
+                }}
+                onRemoveContext={(_id, contextId) => {
+                  task = removeDeliveryContextEntry(task, contextId)
+                  return task
+                }}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+    const view = render(route())
+
+    expect(
+      screen.getByText(/sent to AI only when you explicitly generate a plan/)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/Do not include passwords, tokens/)
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Add context' }))
+    await user.type(screen.getByLabelText('Context name'), 'README excerpt')
+    await user.type(
+      screen.getByLabelText('Plain-text context'),
+      'Use the existing routing pattern.'
+    )
+    await user.click(screen.getByRole('button', { name: 'Save context' }))
+    view.rerender(route())
+    expect(screen.getByText('README excerpt')).toBeInTheDocument()
+    expect(
+      screen.getByText('Entry revision 1 · Task context revision 1')
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.clear(screen.getByLabelText('Plain-text context'))
+    await user.type(
+      screen.getByLabelText('Plain-text context'),
+      'Updated project facts.'
+    )
+    await user.click(screen.getByRole('button', { name: 'Save context' }))
+    view.rerender(route())
+    expect(screen.getByText('Updated project facts.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Entry revision 2 · Task context revision 2')
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Remove' }))
+    view.rerender(route())
+    expect(
+      screen.getByText('No project context saved yet.')
+    ).toBeInTheDocument()
+    expect(task.contextRevision).toBe(3)
   })
 })
 

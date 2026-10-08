@@ -199,6 +199,8 @@ const deliveryTaskFixture = (id = 'task-stable-id') => {
     revision: 1,
     workRevision: 1,
     artifacts: {},
+    contextEntries: [],
+    contextRevision: 0,
     validationChecks: [
       ['typecheck', 'Typecheck'],
       ['lint', 'Lint'],
@@ -335,6 +337,38 @@ test('private delivery tasks persist for their owner and reject other users or i
   )
   assert.equal(restoredTask.reviewDecisions[0].decision, 'approved')
 
+  const savedContext = {
+    id: 'readme-context',
+    name: 'README excerpt',
+    content: 'Local project facts',
+    revision: 1,
+    createdAt: artifactTime,
+    updatedAt: artifactTime,
+  }
+  await assertSucceeds(
+    updateDoc(taskRef, {
+      contextEntries: [savedContext],
+      contextRevision: 1,
+      persistenceRevision: 6,
+    })
+  )
+  const taskWithContext = (await getDoc(taskRef)).data()
+  assert.equal(taskWithContext.contextEntries[0].name, 'README excerpt')
+  assert.equal(taskWithContext.contextRevision, 1)
+  const tooManyContexts = Array.from({ length: 6 }, (_, index) => ({
+    ...savedContext,
+    id: `context-${index}`,
+    name: `Context ${index}`,
+  }))
+  await assertFails(
+    updateDoc(taskRef, {
+      contextEntries: tooManyContexts,
+      contextRevision: 2,
+      persistenceRevision: 7,
+    })
+  )
+  assert.equal((await getDoc(taskRef)).data().contextRevision, 1)
+
   await assertFails(
     updateDoc(taskRef, {
       reviewDecisions: [
@@ -349,10 +383,10 @@ test('private delivery tasks persist for their owner and reject other users or i
           recordedAt: artifactTime,
         },
       ],
-      persistenceRevision: 6,
+      persistenceRevision: 7,
     })
   )
-  assert.equal((await getDoc(taskRef)).data().persistenceRevision, 5)
+  assert.equal((await getDoc(taskRef)).data().persistenceRevision, 6)
 
   const other = rules.authenticatedContext('other-task-user').firestore()
   await assertFails(

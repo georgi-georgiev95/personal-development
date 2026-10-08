@@ -5,12 +5,18 @@ import {
   DELIVERY_STAGES,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
+  DeliveryContextInputError,
   DeliveryTaskConflictError,
   DeliveryTaskInputError,
+  DELIVERY_CONTEXT_MAX_CONTENT_LENGTH,
+  DELIVERY_CONTEXT_MAX_ENTRIES,
+  DELIVERY_CONTEXT_MAX_NAME_LENGTH,
   getDeliveryStageBlocker,
   createDeliveryTask,
   createDeliveryHandoff,
   type DeliveryArtifact,
+  type DeliveryContextEntry,
+  type DeliveryContextInput,
   type DeliveryTask,
   type DeliveryTaskInput,
   type DeliveryReviewer,
@@ -95,6 +101,14 @@ interface TaskDetailPageProps {
   onReopenStage: (
     id: string,
     stage: DeliveryStage
+  ) => TaskWrite<DeliveryTask | null>
+  onSaveContext?: (
+    id: string,
+    input: DeliveryContextInput
+  ) => TaskWrite<DeliveryTask | null>
+  onRemoveContext?: (
+    id: string,
+    contextId: string
   ) => TaskWrite<DeliveryTask | null>
 }
 
@@ -308,6 +322,8 @@ export const TaskDetailRoute = ({
   onReview,
   onCompleteStage,
   onReopenStage,
+  onSaveContext,
+  onRemoveContext,
   basePath = '/demo',
   reviewer,
 }: TaskDetailRouteProps) => {
@@ -326,6 +342,8 @@ export const TaskDetailRoute = ({
       onReview={onReview}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
+      onSaveContext={onSaveContext}
+      onRemoveContext={onRemoveContext}
       basePath={basePath}
       reviewer={reviewer}
     />
@@ -340,6 +358,8 @@ const TaskDetailPage = ({
   onReview,
   onCompleteStage,
   onReopenStage,
+  onSaveContext,
+  onRemoveContext,
   basePath = '/demo',
   reviewer,
 }: TaskDetailPageProps) => {
@@ -507,6 +527,7 @@ const TaskDetailPage = ({
               taskId={task.id}
               stage={selectedStage}
               intentRevision={task.intentRevision}
+              contextRevision={task.contextRevision ?? 0}
               artifact={task.artifacts[selectedStage]}
               onSave={onSaveArtifact}
             />
@@ -575,8 +596,191 @@ const TaskDetailPage = ({
             {saved && <TaskMeta role="status">Task updated.</TaskMeta>}
           </Actions>
         </TaskForm>
+        {onSaveContext && onRemoveContext && (
+          <ProjectContextEditor
+            key={task.id}
+            task={task}
+            onSave={onSaveContext}
+            onRemove={onRemoveContext}
+          />
+        )}
       </Content>
     </TaskPage>
+  )
+}
+
+function ProjectContextEditor({
+  task,
+  onSave,
+  onRemove,
+}: {
+  task: DeliveryTask
+  onSave: NonNullable<TaskDetailPageProps['onSaveContext']>
+  onRemove: NonNullable<TaskDetailPageProps['onRemoveContext']>
+}) {
+  const entries = task.contextEntries ?? []
+  const [editing, setEditing] = useState(false)
+  const [editingId, setEditingId] = useState<string | undefined>()
+  const [name, setName] = useState('')
+  const [content, setContent] = useState('')
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const edit = (entry?: DeliveryContextEntry) => {
+    setEditingId(entry?.id)
+    setName(entry?.name ?? '')
+    setContent(entry?.content ?? '')
+    setError('')
+    setEditing(true)
+  }
+  const cancel = () => {
+    setEditing(false)
+    setEditingId(undefined)
+    setError('')
+  }
+  const handleSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSaving(true)
+    try {
+      const updated = await onSave(task.id, { id: editingId, name, content })
+      if (!updated) throw new Error('Task is no longer available.')
+      cancel()
+    } catch (caught) {
+      setError(
+        caught instanceof DeliveryContextInputError ||
+          caught instanceof DeliveryTaskConflictError
+          ? caught.message
+          : 'Could not save this context. Try again.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+  const handleRemove = async (id: string) => {
+    setSaving(true)
+    setError('')
+    try {
+      const updated = await onRemove(task.id, id)
+      if (!updated) throw new Error('Task is no longer available.')
+      if (editingId === id) cancel()
+    } catch (caught) {
+      setError(
+        caught instanceof DeliveryContextInputError ||
+          caught instanceof DeliveryTaskConflictError
+          ? caught.message
+          : 'Could not remove this context. Try again.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <ArtifactPanel aria-label="Project context">
+      <h2>Project context</h2>
+      <ArtifactMeta>
+        Paste plain-text README, AGENTS.md or harness excerpts, or a project
+        structure summary. This does not grant repository access. Your text is
+        sent to AI only when you explicitly generate a plan. Do not include
+        passwords, tokens, or other credentials.
+      </ArtifactMeta>
+      {entries.length === 0 ? (
+        <TaskMeta>No project context saved yet.</TaskMeta>
+      ) : (
+        <TaskList>
+          {entries.map((entry) => (
+            <TaskCard key={entry.id}>
+              <strong>{entry.name}</strong>
+              <ArtifactContent>{entry.content}</ArtifactContent>
+              <ArtifactMeta>
+                Entry revision {entry.revision} · Task context revision{' '}
+                {task.contextRevision ?? 0}
+              </ArtifactMeta>
+              <Actions>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={saving}
+                  onClick={() => edit(entry)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={saving}
+                  onClick={() => void handleRemove(entry.id)}
+                >
+                  Remove
+                </Button>
+              </Actions>
+            </TaskCard>
+          ))}
+        </TaskList>
+      )}
+      {!editing && entries.length < DELIVERY_CONTEXT_MAX_ENTRIES && (
+        <Button type="button" onClick={() => edit()}>
+          Add context
+        </Button>
+      )}
+      {entries.length >= DELIVERY_CONTEXT_MAX_ENTRIES && !editing && (
+        <TaskMeta>
+          Maximum of {DELIVERY_CONTEXT_MAX_ENTRIES} entries reached.
+        </TaskMeta>
+      )}
+      {editing && (
+        <TaskForm onSubmit={handleSave}>
+          <Field>
+            <label htmlFor={`context-name-${task.id}`}>Context name</label>
+            <TextInput
+              id={`context-name-${task.id}`}
+              value={name}
+              maxLength={DELIVERY_CONTEXT_MAX_NAME_LENGTH}
+              onChange={(event) => {
+                setName(event.target.value)
+                setError('')
+              }}
+              required
+            />
+          </Field>
+          <Field>
+            <label htmlFor={`context-content-${task.id}`}>
+              Plain-text context
+            </label>
+            <Textarea
+              id={`context-content-${task.id}`}
+              value={content}
+              rows={8}
+              maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
+              onChange={(event) => {
+                setContent(event.target.value)
+                setError('')
+              }}
+              aria-describedby={`context-count-${task.id}`}
+              required
+            />
+            <ArtifactMeta id={`context-count-${task.id}`}>
+              {content.length.toLocaleString()} /{' '}
+              {DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters
+            </ArtifactMeta>
+          </Field>
+          {error && <FieldError role="alert">{error}</FieldError>}
+          <Actions>
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save context'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={saving}
+              onClick={cancel}
+            >
+              Cancel
+            </Button>
+          </Actions>
+        </TaskForm>
+      )}
+    </ArtifactPanel>
   )
 }
 
@@ -788,6 +992,7 @@ interface StageArtifactEditorProps {
   taskId: string
   stage: DeliveryArtifactStage
   intentRevision: number
+  contextRevision: number
   artifact: DeliveryArtifact | undefined
   onSave: TaskDetailPageProps['onSaveArtifact']
 }
@@ -796,6 +1001,7 @@ const StageArtifactEditor = ({
   taskId,
   stage,
   intentRevision,
+  contextRevision,
   artifact,
   onSave,
 }: StageArtifactEditorProps) => {
@@ -877,6 +1083,20 @@ const StageArtifactEditor = ({
                 {new Date(artifact.createdAt).toLocaleString()} · Updated{' '}
                 {new Date(artifact.updatedAt).toLocaleString()}
               </ArtifactMeta>
+              {stage === 'planning' &&
+                artifact.contextRevision !== undefined && (
+                  <ArtifactMeta>
+                    Uses project context revision {artifact.contextRevision}.
+                  </ArtifactMeta>
+                )}
+              {stage === 'planning' &&
+                (artifact.contextRevision ?? 0) !== contextRevision && (
+                  <TaskMeta role="note">
+                    Project context changed after this plan was saved. Review
+                    the plan against context revision {contextRevision} and save
+                    it again to update its reference.
+                  </TaskMeta>
+                )}
               {artifact.taskRevision !== intentRevision && (
                 <ArtifactMeta role="status">
                   This note may be stale: the task title or goal changed after

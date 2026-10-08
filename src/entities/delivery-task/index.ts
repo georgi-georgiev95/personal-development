@@ -1,6 +1,7 @@
 export {
   createDeliveryTask,
   DeliveryArtifactInputError,
+  DeliveryContextInputError,
   DeliveryTaskConflictError,
   completeDeliveryTaskStage,
   DeliveryTaskInputError,
@@ -11,16 +12,23 @@ export {
   recordDeliveryReviewDecision,
   DeliveryValidationInputError,
   saveDeliveryArtifact,
+  saveDeliveryContextEntry,
+  removeDeliveryContextEntry,
   updateDeliveryTask,
 } from './deliveryTask'
 export {
   DELIVERY_STAGES,
   DELIVERY_REVIEW_RETURN_STAGES,
   REQUIRED_VALIDATION_CHECKS,
+  DELIVERY_CONTEXT_MAX_ENTRIES,
+  DELIVERY_CONTEXT_MAX_NAME_LENGTH,
+  DELIVERY_CONTEXT_MAX_CONTENT_LENGTH,
 } from './deliveryTask'
 export type {
   DeliveryStage,
   DeliveryArtifact,
+  DeliveryContextEntry,
+  DeliveryContextInput,
   DeliveryArtifactKind,
   DeliveryArtifactStage,
   DeliveryValidationCheck,

@@ -33,6 +33,25 @@ export type DeliveryArtifactKind =
   | 'implementation-notes'
   | 'review-notes'
 
+export const DELIVERY_CONTEXT_MAX_ENTRIES = 5
+export const DELIVERY_CONTEXT_MAX_NAME_LENGTH = 80
+export const DELIVERY_CONTEXT_MAX_CONTENT_LENGTH = 20_000
+
+export interface DeliveryContextEntry {
+  id: string
+  name: string
+  content: string
+  revision: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DeliveryContextInput {
+  id?: string
+  name: string
+  content: string
+}
+
 export const REQUIRED_VALIDATION_CHECKS = [
   { id: 'typecheck', name: 'Typecheck' },
   { id: 'lint', name: 'Lint' },
@@ -74,6 +93,7 @@ export interface DeliveryArtifact {
   source: 'manual'
   revision: number
   taskRevision: number
+  contextRevision?: number
   createdAt: string
   updatedAt: string
 }
@@ -117,6 +137,8 @@ export interface DeliveryTask extends DeliveryTaskInput {
   artifacts: Partial<Record<DeliveryArtifactStage, DeliveryArtifact>>
   validationChecks: DeliveryValidationCheck[]
   reviewDecisions: DeliveryReviewDecision[]
+  contextEntries?: DeliveryContextEntry[]
+  contextRevision?: number
   createdAt: string
   updatedAt: string
 }
@@ -149,6 +171,13 @@ export class DeliveryArtifactInputError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'DeliveryArtifactInputError'
+  }
+}
+
+export class DeliveryContextInputError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'DeliveryContextInputError'
   }
 }
 
@@ -185,6 +214,8 @@ export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
     revision: 1,
     workRevision: 1,
     artifacts: {},
+    contextEntries: [],
+    contextRevision: 0,
     reviewDecisions: [],
     validationChecks: REQUIRED_VALIDATION_CHECKS.map(({ id, name }) => ({
       id,
@@ -196,6 +227,94 @@ export const createDeliveryTask = (input: DeliveryTaskInput): DeliveryTask => {
       updatedAt: now,
     })),
     createdAt: now,
+    updatedAt: now,
+  }
+}
+
+export const saveDeliveryContextEntry = (
+  task: DeliveryTask,
+  input: DeliveryContextInput
+): DeliveryTask => {
+  const name = input.name.trim()
+  if (!name) throw new DeliveryContextInputError('Enter a context name.')
+  if (name.length > DELIVERY_CONTEXT_MAX_NAME_LENGTH) {
+    throw new DeliveryContextInputError(
+      `Keep the context name under ${DELIVERY_CONTEXT_MAX_NAME_LENGTH} characters.`
+    )
+  }
+  if (!input.content.trim()) {
+    throw new DeliveryContextInputError('Paste some project context.')
+  }
+  if (input.content.length > DELIVERY_CONTEXT_MAX_CONTENT_LENGTH) {
+    throw new DeliveryContextInputError(
+      `Keep context under ${DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters.`
+    )
+  }
+
+  const entries = task.contextEntries ?? []
+  const existing =
+    input.id !== undefined
+      ? entries.find((entry) => entry.id === input.id)
+      : undefined
+  if (input.id !== undefined && !existing) {
+    throw new DeliveryContextInputError('That context entry no longer exists.')
+  }
+  if (
+    entries.some(
+      (entry) =>
+        entry.id !== input.id && entry.name.toLowerCase() === name.toLowerCase()
+    )
+  ) {
+    throw new DeliveryContextInputError(
+      'Choose a different name for this context entry.'
+    )
+  }
+  if (!existing && entries.length >= DELIVERY_CONTEXT_MAX_ENTRIES) {
+    throw new DeliveryContextInputError(
+      `A task can have up to ${DELIVERY_CONTEXT_MAX_ENTRIES} context entries.`
+    )
+  }
+  if (
+    existing &&
+    existing.name === name &&
+    existing.content === input.content
+  ) {
+    return task
+  }
+
+  const now = new Date().toISOString()
+  const saved: DeliveryContextEntry = {
+    id: existing?.id ?? crypto.randomUUID(),
+    name,
+    content: input.content,
+    revision: (existing?.revision ?? 0) + 1,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  }
+
+  return {
+    ...task,
+    contextEntries: existing
+      ? entries.map((entry) => (entry.id === existing.id ? saved : entry))
+      : [...entries, saved],
+    contextRevision: (task.contextRevision ?? 0) + 1,
+    updatedAt: now,
+  }
+}
+
+export const removeDeliveryContextEntry = (
+  task: DeliveryTask,
+  id: string
+): DeliveryTask => {
+  const entries = task.contextEntries ?? []
+  if (!entries.some((entry) => entry.id === id)) {
+    throw new DeliveryContextInputError('That context entry no longer exists.')
+  }
+  const now = new Date().toISOString()
+  return {
+    ...task,
+    contextEntries: entries.filter((entry) => entry.id !== id),
+    contextRevision: (task.contextRevision ?? 0) + 1,
     updatedAt: now,
   }
 }
@@ -237,9 +356,14 @@ export const saveDeliveryArtifact = (
   }
 
   const previous = task.artifacts[stage]
+  const planContextChanged =
+    stage === 'planning' &&
+    previous?.contextRevision !== (task.contextRevision ?? 0)
   if (
     previous?.content === content &&
-    previous.taskRevision === task.intentRevision
+    previous.taskRevision === task.intentRevision &&
+    previous.contextRevision ===
+      (stage === 'planning' ? (task.contextRevision ?? 0) : undefined)
   ) {
     return task
   }
@@ -252,6 +376,9 @@ export const saveDeliveryArtifact = (
     source: 'manual',
     revision: (previous?.revision ?? 0) + 1,
     taskRevision: task.intentRevision,
+    ...(stage === 'planning'
+      ? { contextRevision: task.contextRevision ?? 0 }
+      : {}),
     createdAt: previous?.createdAt ?? now,
     updatedAt: now,
   }
@@ -260,7 +387,10 @@ export const saveDeliveryArtifact = (
     revision: task.revision + 1,
     workRevision:
       task.workRevision +
-      Number(stage !== 'review' && previous?.content !== content),
+      Number(
+        stage !== 'review' &&
+          (previous?.content !== content || planContextChanged)
+      ),
     updatedAt: now,
   })
   return previous?.content !== content &&
