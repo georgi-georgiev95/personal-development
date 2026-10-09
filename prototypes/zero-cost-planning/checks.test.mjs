@@ -6,6 +6,7 @@ import {
   createTokenVerifier,
   createWorker,
   callModel,
+  deterministicPlan,
   JWKS_URL,
   MODEL,
   modelRequest,
@@ -79,10 +80,13 @@ const input = {
   contextEntryIds: ['readme'],
   contextRevision: 2,
 }
-const request = (token, body = input) =>
+const request = (token, body = input, origin) =>
   new Request('https://spike.test/plan', {
     method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(origin ? { Origin: origin } : {}),
+    },
     body: JSON.stringify(body),
   })
 function quota() {
@@ -315,6 +319,70 @@ test('native AI binding needs no account credential and uses the validated model
     }
   )
   assert.deepEqual(result, { draft, usage: { neurons: 1 } })
+})
+
+test('deterministic runtime protects CORS without using provider credentials', async () => {
+  const store = quota()
+  const calls = []
+  const worker = createWorker(async (url, options) => {
+    calls.push(url)
+    if (url === JWKS_URL) return keyResponse()
+    if (url.endsWith('/workspaces/owner'))
+      return Response.json({ fields: { ownerUid: { stringValue: 'owner' } } })
+    if (url.endsWith('/workspaces/owner/tasks/task-1'))
+      return Response.json({ fields: taskFields })
+    assert.fail(`Unexpected runtime request: ${url}`)
+  })
+  const runtime = {
+    ...env(store),
+    PLANNING_MODE: 'deterministic',
+    CORS_ORIGINS: 'https://app.example',
+  }
+  try {
+    const token = await sign()
+    const preflight = await worker.fetch(
+      new Request('https://spike.test/plan', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://app.example' },
+      }),
+      runtime
+    )
+    assert.equal(preflight.status, 204)
+    assert.equal(
+      preflight.headers.get('Access-Control-Allow-Origin'),
+      'https://app.example'
+    )
+
+    const response = await worker.fetch(
+      request(token, input, 'https://app.example'),
+      runtime
+    )
+    assert.equal(response.status, 200)
+    assert.deepEqual((await response.json()).draft, {
+      ...deterministicPlan({
+        title: 'Onboarding',
+        goal: 'Improve onboarding.',
+        contextEntries: [
+          { name: 'README', content: 'Use the existing router.' },
+        ],
+      }),
+      contextRevision: 2,
+    })
+    assert.equal(
+      response.headers.get('Access-Control-Allow-Origin'),
+      'https://app.example'
+    )
+    assert.equal(calls.filter((url) => url.includes('/ai/run/')).length, 0)
+
+    const disallowed = await worker.fetch(
+      request(token, input, 'https://evil.example'),
+      runtime
+    )
+    assert.equal(disallowed.status, 200)
+    assert.equal(disallowed.headers.get('Access-Control-Allow-Origin'), null)
+  } finally {
+    store.database.close()
+  }
 })
 
 test('input byte ceiling includes multilingual text and system prompt', () => {

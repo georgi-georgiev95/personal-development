@@ -234,6 +234,18 @@ export async function callModel(input, env, fetcher = fetch) {
   }
 }
 
+export function deterministicPlan(input) {
+  return {
+    objective: input.goal,
+    steps: [
+      `Review the existing ${input.title} flow.`,
+      'Implement and verify the requested change.',
+    ],
+    acceptanceCriteria: ['The requested planning behavior is available.'],
+    risks: [],
+  }
+}
+
 async function readRequest(request) {
   if (!request.body)
     throw new PlannerError('invalid-argument', 'Request body required.')
@@ -263,22 +275,59 @@ async function readRequest(request) {
   }
 }
 
-export function createWorker(fetcher = fetch) {
-  const verify = createTokenVerifier(fetcher)
+export function createWorker(
+  fetcher = fetch,
+  verifier = createTokenVerifier(fetcher)
+) {
+  const verify = verifier
+  const origins = (env) =>
+    (env.CORS_ORIGINS ?? '')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  const corsHeaders = (request, env) => {
+    const origin = request.headers.get('origin')
+    return origin && origins(env).includes(origin)
+      ? {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Cache-Control': 'no-store',
+          Vary: 'Origin',
+        }
+      : { 'Cache-Control': 'no-store' }
+  }
+  const respond = (body, init, request, env) =>
+    new Response(JSON.stringify(body), {
+      ...init,
+      headers: {
+        ...corsHeaders(request, env),
+        'Content-Type': 'application/json',
+      },
+    })
   return {
     async fetch(request, env) {
-      if (
-        request.method !== 'POST' ||
-        new URL(request.url).pathname !== '/plan'
-      ) {
+      const pathname = new URL(request.url).pathname
+      if (pathname !== '/plan')
         return new Response('POST /plan required.', { status: 404 })
+      if (request.method === 'OPTIONS') {
+        return origins(env).includes(request.headers.get('origin') ?? '')
+          ? new Response(null, {
+              status: 204,
+              headers: corsHeaders(request, env),
+            })
+          : new Response(null, { status: 403 })
       }
+      if (request.method !== 'POST')
+        return new Response('POST /plan required.', { status: 404 })
       try {
         const beta = env.BETA_UIDS?.split(',').filter(Boolean) ?? []
+        const deterministic = env.PLANNING_MODE === 'deterministic'
         if (
           env.FREE_PLAN_CONFIRMED !== 'true' ||
           !env.FIREBASE_PROJECT_ID ||
-          (!env.AI &&
+          (!deterministic &&
+            !env.AI &&
             (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_API_TOKEN)) ||
           !env.QUOTA ||
           !beta.length ||
@@ -316,12 +365,11 @@ export function createWorker(fetcher = fetch) {
               await env.QUOTA.prepare(RESERVE_SQL).bind(owner, day).first()
             ),
           generate: async (input) =>
-            (await callModel(input, env, fetcher)).draft,
+            deterministic
+              ? deterministicPlan(input)
+              : (await callModel(input, env, fetcher)).draft,
         })
-        return Response.json(
-          { draft },
-          { headers: { 'Cache-Control': 'no-store' } }
-        )
+        return respond({ draft }, { status: 200 }, request, env)
       } catch (error) {
         const code = error instanceof PlannerError ? error.code : 'unavailable'
         const status =
@@ -332,10 +380,7 @@ export function createWorker(fetcher = fetch) {
             'failed-precondition': 409,
             'resource-exhausted': 429,
           }[code] ?? 503
-        return Response.json(
-          { error: code },
-          { status, headers: { 'Cache-Control': 'no-store' } }
-        )
+        return respond({ error: code }, { status }, request, env)
       }
     },
   }
