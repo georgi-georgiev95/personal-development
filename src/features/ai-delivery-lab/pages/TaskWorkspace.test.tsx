@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   createDeliveryTask,
   removeDeliveryContextEntry,
@@ -11,6 +11,14 @@ import {
 } from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
 import { TaskCreatePage, TaskDetailRoute } from './TaskWorkspace'
+
+const { generateDeliveryPlan } = vi.hoisted(() => ({
+  generateDeliveryPlan: vi.fn(),
+}))
+
+vi.mock('@/entities/delivery-task/planService', () => ({
+  generateDeliveryPlan,
+}))
 
 describe('private task creation retry', () => {
   it('keeps a stable task ID and waits for the save before navigating', async () => {
@@ -58,6 +66,79 @@ describe('private task creation retry', () => {
 })
 
 describe('private project context', () => {
+  it('sends only the selected context entries when generating a plan', async () => {
+    const user = userEvent.setup()
+    const task = createDeliveryTask({
+      title: 'Private task',
+      goal: 'Use context',
+    })
+    const contextTask: DeliveryTask = {
+      ...task,
+      stage: 'planning',
+      contextRevision: 1,
+      contextEntries: [
+        {
+          id: 'readme',
+          name: 'README excerpt',
+          content: 'Use the existing routing pattern.',
+          revision: 1,
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        },
+        {
+          id: 'agents',
+          name: 'AGENTS excerpt',
+          content: 'Keep the change minimal.',
+          revision: 1,
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        },
+      ],
+    }
+    generateDeliveryPlan.mockResolvedValue({
+      objective: contextTask.goal,
+      steps: ['Implement the change.'],
+      acceptanceCriteria: ['Verify the result.'],
+      risks: [],
+      contextRevision: 1,
+    })
+
+    render(
+      <MemoryRouter initialEntries={[`/workspace/tasks/${contextTask.id}`]}>
+        <Routes>
+          <Route
+            path="/workspace/tasks/:taskId"
+            element={
+              <TaskDetailRoute
+                tasks={[contextTask]}
+                basePath="/workspace"
+                onSave={() => contextTask}
+                onSaveArtifact={() => contextTask}
+                onSaveValidationResult={() => contextTask}
+                onCompleteStage={() => contextTask}
+                onReview={() => contextTask}
+                onReopenStage={() => contextTask}
+                onAcceptPlan={() => contextTask}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.click(screen.getByLabelText('AGENTS excerpt'))
+    expect(
+      screen.getByText(/Context selection: 1 of 5 entries/)
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+
+    expect(generateDeliveryPlan).toHaveBeenCalledWith({
+      taskId: contextTask.id,
+      contextEntryIds: ['readme'],
+      contextRevision: 1,
+    })
+  })
+
   it('warns when a legacy plan predates saved project context', () => {
     const base = saveDeliveryArtifact(
       createDeliveryTask({ title: 'Private task', goal: 'Use context' }),
