@@ -284,8 +284,55 @@ test('private delivery tasks persist for their owner and reject other users or i
           createdAt: artifactTime,
           updatedAt: artifactTime,
         },
+        planning: {
+          stage: 'planning',
+          kind: 'plan',
+          content: 'Accepted AI plan',
+          source: 'ai',
+          revision: 1,
+          taskRevision: 1,
+          contextRevision: 0,
+          createdAt: artifactTime,
+          updatedAt: artifactTime,
+        },
       },
       persistenceRevision: 3,
+    })
+  )
+
+  await assertFails(
+    updateDoc(taskRef, {
+      artifacts: {
+        discovery: {
+          stage: 'discovery',
+          kind: 'plan',
+          content: 'Malformed artifact',
+          source: 'manual',
+          revision: 2,
+          taskRevision: 1,
+          createdAt: artifactTime,
+          updatedAt: artifactTime,
+        },
+      },
+      persistenceRevision: 4,
+    })
+  )
+
+  await assertFails(
+    updateDoc(taskRef, {
+      artifacts: {
+        discovery: {
+          stage: 'discovery',
+          kind: 'discovery-notes',
+          content: 'Simulated evidence',
+          source: 'demo',
+          revision: 2,
+          taskRevision: 1,
+          createdAt: artifactTime,
+          updatedAt: artifactTime,
+        },
+      },
+      persistenceRevision: 4,
     })
   )
 
@@ -307,6 +354,27 @@ test('private delivery tasks persist for their owner and reject other users or i
     revision: 1,
     updatedAt: artifactTime,
   }
+  const simulatedChecks = savedChecks.map((check) => ({ ...check }))
+  simulatedChecks[0] = {
+    ...simulatedChecks[0],
+    evidence: { ...evidence, source: 'demo' },
+  }
+  await assertFails(
+    updateDoc(taskRef, {
+      stage: 'validation',
+      validationChecks: simulatedChecks,
+      persistenceRevision: 4,
+    })
+  )
+  const malformedChecks = savedChecks.map((check) => ({ ...check }))
+  malformedChecks[0] = { ...malformedChecks[0], name: 'Malformed check' }
+  await assertFails(
+    updateDoc(taskRef, {
+      stage: 'validation',
+      validationChecks: malformedChecks,
+      persistenceRevision: 4,
+    })
+  )
   await assertSucceeds(
     updateDoc(taskRef, {
       stage: 'validation',
@@ -336,6 +404,7 @@ test('private delivery tasks persist for their owner and reject other users or i
     restoredTask.artifacts.discovery.content,
     'Saved discovery notes'
   )
+  assert.equal(restoredTask.artifacts.planning.source, 'ai')
   assert.equal(
     restoredTask.validationChecks[0].evidence.note,
     'Verified with the local emulator'
