@@ -1,5 +1,9 @@
 # AI planning endpoint
 
+The isolated [PD-36 zero-cost feasibility spike](zero-cost-ai-planning.md)
+evaluates zero-cost providers. Its accepted candidate is still pending owner
+approval and does not replace or enable this callable.
+
 PD-33 adds the `generatePlan` Firebase callable in `europe-west1`. It accepts a task ID, selected context-entry IDs, and the context revision. The function verifies Firebase Authentication, checks the workspace owner and task with the Admin SDK, then reads only the selected context entries. The response is an unaccepted draft containing an objective, 2–8 steps, 1–8 acceptance criteria, up to 5 risks, and the server-verified context revision.
 
 The provider is OpenAI `gpt-4.1-mini`, called from the function with [strict Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs). The key is a Firebase Secret Manager secret named `OPENAI_API_KEY`; it is never sent to the browser or written to logs. Configure it with `firebase functions:secrets:set OPENAI_API_KEY` when preparing a separately reviewed backend release. No cloud function or secret is provisioned by this change.

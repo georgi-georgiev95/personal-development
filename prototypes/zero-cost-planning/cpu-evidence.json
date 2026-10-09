@@ -1,0 +1,110 @@
+{
+  "recordedAt": "2026-10-09T18:17:33.003Z",
+  "data": {
+    "viewer": {
+      "accounts": [
+        {
+          "workersInvocationsAdaptive": [
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:14:48Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 11995,
+                "cpuTimeP99": 11995
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 1,
+                "subrequests": 3
+              }
+            },
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:11:54Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 369,
+                "cpuTimeP99": 369
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 1,
+                "subrequests": 0
+              }
+            },
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:14:47Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 1036,
+                "cpuTimeP99": 7550
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 6,
+                "subrequests": 4
+              }
+            },
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:15:09Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 6498,
+                "cpuTimeP99": 6498
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 1,
+                "subrequests": 3
+              }
+            },
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:15:31Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 5740,
+                "cpuTimeP99": 5740
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 1,
+                "subrequests": 2
+              }
+            },
+            {
+              "dimensions": {
+                "datetime": "2026-10-09T18:14:46Z",
+                "scriptName": "pd36-planning-spike",
+                "status": "success"
+              },
+              "quantiles": {
+                "cpuTimeP50": 4775,
+                "cpuTimeP99": 10216
+              },
+              "sum": {
+                "errors": 0,
+                "requests": 2,
+                "subrequests": 6
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "errors": null
+}
