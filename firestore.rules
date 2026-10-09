@@ -163,8 +163,6 @@ service cloud.firestore {
 
       function validTaskUpdate(task, taskId) {
         return validTaskEnvelope(task, taskId) &&
-          validArtifacts(task.artifacts) &&
-          validChecks(task.validationChecks) &&
           validReviews(task.reviewDecisions);
       }
 
@@ -180,6 +178,10 @@ service cloud.firestore {
               request.resource.data.persistenceRevision == 1) ||
             (resource.data.persistenceRevision is int &&
               request.resource.data.persistenceRevision == resource.data.persistenceRevision + 1)) &&
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['artifacts']) ||
+            validArtifacts(request.resource.data.artifacts)) &&
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['validationChecks']) ||
+            validChecks(request.resource.data.validationChecks)) &&
           validTaskUpdate(request.resource.data, taskId);
         allow delete: if false;
       }
