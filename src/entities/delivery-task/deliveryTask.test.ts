@@ -219,6 +219,47 @@ describe('saveDeliveryArtifact', () => {
 })
 
 describe('delivery task project context', () => {
+  it.each([
+    [
+      'adding',
+      (task: ReturnType<typeof createDeliveryTask>) =>
+        saveDeliveryContextEntry(task, { name: 'README', content: 'Facts' }),
+    ],
+    [
+      'editing',
+      (task: ReturnType<typeof createDeliveryTask>) =>
+        saveDeliveryContextEntry(task, {
+          id: task.contextEntries![0].id,
+          name: 'README',
+          content: 'Updated facts',
+        }),
+    ],
+    [
+      'deleting',
+      (task: ReturnType<typeof createDeliveryTask>) =>
+        removeDeliveryContextEntry(task, task.contextEntries![0].id),
+    ],
+  ] as const)('invalidates approval after context %s', (mutation, mutate) => {
+    const task =
+      mutation === 'adding'
+        ? makeReviewTask()
+        : saveDeliveryContextEntry(makeReviewTask(), {
+            name: 'README',
+            content: 'Facts',
+          })
+    const approved = recordDeliveryReviewDecision(task, approval)
+    const changed = mutate(approved)
+
+    expect(changed.reviewDecisions).toEqual(approved.reviewDecisions)
+    expect(changed.revision).toBe(approved.revision + 1)
+    expect(getDeliveryStageBlocker(changed, 'review')).toBe(
+      'The review decision is stale. Review the current revision again.'
+    )
+    expect(getDeliveryStageBlocker(changed, 'handoff')).toBe(
+      'The review decision is stale. Review the current revision again.'
+    )
+  })
+
   it('saves, edits, and removes named entries with entry and task context revisions', () => {
     const task = createDeliveryTask({ title: 'Task', goal: 'Goal' })
     const added = saveDeliveryContextEntry(task, {
