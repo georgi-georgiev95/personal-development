@@ -802,12 +802,16 @@ describe('delivery review decisions', () => {
     expect(approved.reviewDecisions[0].reviewer).not.toBe(reviewer)
     expect(task.reviewDecisions).toEqual([])
     expect(getDeliveryStageBlocker(approved, 'review')).toBeNull()
-    expect(
-      completeDeliveryTaskStage(
-        reopenDeliveryTaskStage(approved, 'review'),
-        'review'
-      ).stage
-    ).toBe('handoff')
+    const reopened = reopenDeliveryTaskStage(approved, 'review')
+    expect(getDeliveryStageBlocker(reopened, 'review')).toContain(
+      'decision is stale'
+    )
+    expect(() => completeDeliveryTaskStage(reopened, 'review')).toThrow(
+      'decision is stale'
+    )
+    expect(recordDeliveryReviewDecision(reopened, approval).stage).toBe(
+      'handoff'
+    )
     expect(() => recordDeliveryReviewDecision(approved, approval)).toThrow(
       'Decisions can only be recorded during review.'
     )

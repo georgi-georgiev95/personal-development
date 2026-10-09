@@ -592,5 +592,9 @@ export const reopenDeliveryTaskStage = (
   if (DELIVERY_STAGES.indexOf(stage) >= DELIVERY_STAGES.indexOf(task.stage)) {
     throw new DeliveryTaskStageError('Only a completed stage can be reopened.')
   }
-  return applyUpdate(task, { stage, updatedAt: new Date().toISOString() })
+  return applyUpdate(task, {
+    stage,
+    revision: task.revision + 1,
+    updatedAt: new Date().toISOString(),
+  })
 }
