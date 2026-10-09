@@ -32,6 +32,7 @@ service cloud.firestore {
           ]) &&
           evidence.status in ['passed', 'failed'] &&
           evidence.note is string &&
+          evidence.note.size() <= 20000 &&
           (evidence.status == 'failed' || evidence.note.size() > 0) &&
           evidence.source in ['manual', 'ci'] &&
           evidence.recordedAt is string &&
@@ -50,7 +51,10 @@ service cloud.firestore {
           artifact.stage == stage &&
           artifact.kind == kind &&
           artifact.content is string &&
-          artifact.source == 'manual' &&
+          artifact.content.size() > 0 &&
+          artifact.content.size() <= 20000 &&
+          (artifact.source == 'manual' ||
+            (stage == 'planning' && artifact.source == 'ai')) &&
           artifact.revision is int && artifact.revision > 0 &&
           artifact.taskRevision is int && artifact.taskRevision > 0 &&
           (!artifact.keys().hasAny(['contextRevision']) ||
@@ -159,6 +163,8 @@ service cloud.firestore {
 
       function validTaskUpdate(task, taskId) {
         return validTaskEnvelope(task, taskId) &&
+          validArtifacts(task.artifacts) &&
+          validChecks(task.validationChecks) &&
           validReviews(task.reviewDecisions);
       }
 
