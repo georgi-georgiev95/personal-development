@@ -298,6 +298,7 @@ export const saveDeliveryContextEntry = (
       ? entries.map((entry) => (entry.id === existing.id ? saved : entry))
       : [...entries, saved],
     contextRevision: (task.contextRevision ?? 0) + 1,
+    revision: task.revision + 1,
     updatedAt: now,
   }
 }
@@ -315,6 +316,7 @@ export const removeDeliveryContextEntry = (
     ...task,
     contextEntries: entries.filter((entry) => entry.id !== id),
     contextRevision: (task.contextRevision ?? 0) + 1,
+    revision: task.revision + 1,
     updatedAt: now,
   }
 }
