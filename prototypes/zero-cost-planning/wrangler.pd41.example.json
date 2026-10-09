@@ -1,0 +1,21 @@
+{
+  "name": "pd41-planning-runtime",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-09",
+  "workers_dev": true,
+  "observability": { "enabled": false },
+  "vars": {
+    "PLANNING_MODE": "deterministic",
+    "FREE_PLAN_CONFIRMED": "false",
+    "FIREBASE_PROJECT_ID": "REPLACE_WITH_EXISTING_TEST_PROJECT",
+    "BETA_UIDS": "REPLACE_WITH_UP_TO_FIVE_TEST_UIDS",
+    "CORS_ORIGINS": "https://REPLACE_WITH_APPROVED_ORIGIN"
+  },
+  "d1_databases": [
+    {
+      "binding": "QUOTA",
+      "database_name": "pd41-planning-quota",
+      "database_id": "REPLACE_WITH_APPROVED_TEST_DATABASE_ID"
+    }
+  ]
+}
