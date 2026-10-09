@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-10-09T18:00:19.313Z",
+  "project": "pd36-planning-test",
+  "validGoogleSignedToken": true,
+  "ownerRead": true,
+  "crossUserDenied": true,
+  "forgedRejected": true,
+  "wrongProjectRejected": true,
+  "expiryRejectedWithFutureClock": true
+}

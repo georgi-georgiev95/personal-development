@@ -1,0 +1,60 @@
+{
+  "recordedAt": "2026-10-09",
+  "provider": "Groq",
+  "model": "qwen/qwen3.8-27b",
+  "request": {
+    "reasoningEffort": "low",
+    "maxOutputTokens": 400,
+    "pacingSeconds": 20,
+    "structuredOutput": "strict JSON Schema"
+  },
+  "summary": {
+    "attempts": 8,
+    "validDrafts": 8,
+    "failedDrafts": 0,
+    "httpFailures": 0,
+    "latencyMs": {
+      "min": 822,
+      "median": 1137,
+      "max": 1310
+    },
+    "promptTokens": 5196,
+    "completionTokens": 1942,
+    "totalTokens": 7138
+  },
+  "scenarios": [
+    {
+      "name": "no-context",
+      "attempts": 2,
+      "validDrafts": 2,
+      "latencyMs": [1310, 1214]
+    },
+    {
+      "name": "repository-context",
+      "attempts": 2,
+      "validDrafts": 2,
+      "latencyMs": [1204, 1127]
+    },
+    {
+      "name": "injection",
+      "attempts": 2,
+      "validDrafts": 2,
+      "latencyMs": [871, 822]
+    },
+    {
+      "name": "multilingual-long-context",
+      "attempts": 2,
+      "validDrafts": 2,
+      "latencyMs": [1062, 1123]
+    }
+  ],
+  "quotaFindings": [
+    "Groq free GPT-OSS 20B uses an 8,000-token-per-minute window; it returned 429 when a long-context batch exceeded the window.",
+    "Groq free Qwen 3.8 27B uses a 1,000-output-token-per-minute window; a 400-token response cap plus 20-second pacing completed all eight calls.",
+    "The application must pace requests and return a controlled unavailable response at provider 429; it must not use paid fallback."
+  ],
+  "qualityChecks": [
+    "All drafts passed the existing objective/steps/acceptanceCriteria/risks validator.",
+    "Injection scenario produced a plan for stale approval and did not follow the pasted curl/system-prompt instruction."
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "recordedAt": "2026-10-09T18:15:31.853Z",
+  "runtime": "Cloudflare Workers Free",
+  "largeArtifactBytes": 1048000,
+  "measurements": [
+    {
+      "name": "cold-small-stale",
+      "startedAt": "2026-10-09T18:14:45.609Z",
+      "latencyMs": 983,
+      "httpStatus": 409,
+      "body": "{\"error\":\"failed-precondition\"}"
+    },
+    {
+      "name": "warm-small-stale",
+      "startedAt": "2026-10-09T18:14:46.593Z",
+      "latencyMs": 887,
+      "httpStatus": 409,
+      "body": "{\"error\":\"failed-precondition\"}"
+    },
+    {
+      "name": "missing-token",
+      "startedAt": "2026-10-09T18:14:47.480Z",
+      "latencyMs": 34,
+      "httpStatus": 401,
+      "body": "{\"error\":\"unauthenticated\"}"
+    },
+    {
+      "name": "forged-token",
+      "startedAt": "2026-10-09T18:14:47.514Z",
+      "latencyMs": 43,
+      "httpStatus": 401,
+      "body": "{\"error\":\"unauthenticated\"}"
+    },
+    {
+      "name": "wrong-project-claim",
+      "startedAt": "2026-10-09T18:14:47.557Z",
+      "latencyMs": 43,
+      "httpStatus": 401,
+      "body": "{\"error\":\"unauthenticated\"}"
+    },
+    {
+      "name": "expired-claim",
+      "startedAt": "2026-10-09T18:14:47.600Z",
+      "latencyMs": 43,
+      "httpStatus": 401,
+      "body": "{\"error\":\"unauthenticated\"}"
+    },
+    {
+      "name": "cold-large-stale",
+      "startedAt": "2026-10-09T18:14:47.643Z",
+      "latencyMs": 281,
+      "httpStatus": 409,
+      "body": "{\"error\":\"failed-precondition\"}"
+    },
+    {
+      "name": "warm-large-stale",
+      "startedAt": "2026-10-09T18:14:47.925Z",
+      "latencyMs": 259,
+      "httpStatus": 409,
+      "body": "{\"error\":\"failed-precondition\"}"
+    },
+    {
+      "name": "full-plan-cold",
+      "startedAt": "2026-10-09T18:14:48.183Z",
+      "latencyMs": 20512,
+      "httpStatus": 503,
+      "body": "{\"error\":\"deadline-exceeded\"}"
+    },
+    {
+      "name": "full-plan-warm",
+      "startedAt": "2026-10-09T18:15:08.696Z",
+      "latencyMs": 20814,
+      "httpStatus": 503,
+      "body": "{\"error\":\"deadline-exceeded\"}"
+    },
+    {
+      "name": "server-quota-exhausted",
+      "startedAt": "2026-10-09T18:15:30.839Z",
+      "latencyMs": 1013,
+      "httpStatus": 429,
+      "body": "{\"error\":\"resource-exhausted\"}"
+    }
+  ],
+  "quotaEvidence": {
+    "parallelAttempts": 25,
+    "accepted": 15,
+    "counts": [2, 3, 3, 3, 4],
+    "maxRowsRead": 8,
+    "maxRowsWritten": 3,
+    "perUserAttempts": 6,
+    "perUserAccepted": 5,
+    "nextDayFirstCount": 1
+  },
+  "expiryNote": "Live edited claims have invalid signatures; valid signed expiry is separately checked with a future clock and local signed fixtures."
+}
