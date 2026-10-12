@@ -1,11 +1,10 @@
-// Disposable PD-36 spike. Build functions first; never imported by the app.
 import {
   generatePlanDraft,
   PLAN_MAX_REQUEST_BYTES,
   PlannerError,
-} from '../../functions/lib/planning.js'
+} from './planning.mjs'
 
-export const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8'
+export const MODEL = 'qwen/qwen3.8-27b'
 export const JWKS_URL =
   'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'
 export const QUOTA_SCHEMA = `CREATE TABLE IF NOT EXISTS usage (
@@ -147,9 +146,30 @@ export function modelRequest(input) {
         }),
       },
     ],
-    max_tokens: 1_200,
+    max_tokens: 400,
     temperature: 0,
-    response_format: { type: 'json_object' },
+    reasoning_effort: 'low',
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'delivery_plan',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['objective', 'steps', 'acceptanceCriteria', 'risks'],
+          properties: {
+            objective: { type: 'string' },
+            steps: { type: 'array', items: { type: 'string' } },
+            acceptanceCriteria: {
+              type: 'array',
+              items: { type: 'string' },
+            },
+            risks: { type: 'array', items: { type: 'string' } },
+          },
+        },
+      },
+    },
   }
   if (encoder.encode(JSON.stringify(request)).length > 16_000) {
     throw new PlannerError(
@@ -162,87 +182,46 @@ export function modelRequest(input) {
 
 export async function callModel(input, env, fetcher = fetch) {
   let result
-  if (env.AI) {
-    // Native binding keeps the deployment free of account API credentials.
-    let timer
-    try {
-      result = await Promise.race([
-        env.AI.run(MODEL, modelRequest(input)),
-        new Promise((_, reject) => {
-          timer = setTimeout(
-            () =>
-              reject(
-                new PlannerError(
-                  'deadline-exceeded',
-                  'Model deadline exceeded.'
-                )
-              ),
-            20_000
-          )
-        }),
-      ])
-    } finally {
-      clearTimeout(timer)
-    }
-  } else {
-    const response = await fetcher(
-      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(env.CLOUDFLARE_ACCOUNT_ID)}/ai/run/${MODEL}`,
+  let response
+  try {
+    response = await fetcher(
+      'https://api.groq.com/openai/v1/chat/completions',
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+          Authorization: `Bearer ${env.GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(modelRequest(input)),
+        body: JSON.stringify({ model: MODEL, ...modelRequest(input) }),
         signal: AbortSignal.timeout(20_000),
       }
     )
-    if (!response.ok) {
-      const error = new PlannerError(
-        'unavailable',
-        'Model inference unavailable.'
-      )
-      error.httpStatus = response.status
-      const details = await response.json().catch(() => null)
-      error.providerErrors =
-        details?.errors?.map(({ code, message }) => ({
-          code,
-          message: String(message).slice(0, 200),
-        })) ?? null
-      throw error
-    }
-    const payload = await response.json()
-    if (!payload.success)
-      throw new PlannerError('unavailable', 'Model inference failed.')
-    result = payload.result
+  } catch (error) {
+    if (error?.name === 'TimeoutError')
+      throw new PlannerError('deadline-exceeded', 'Model deadline exceeded.')
+    throw new PlannerError('unavailable', 'Model inference unavailable.')
   }
-  const rawResponse = result?.response
-  let draft = rawResponse
-  if (typeof draft === 'string') {
-    try {
-      draft = JSON.parse(draft)
-    } catch {
-      draft = null
-    }
-  }
-  return {
-    draft,
-    usage: result?.usage ?? null,
-    ...(draft === null && typeof rawResponse === 'string'
-      ? { rejectedText: rawResponse }
-      : {}),
-  }
-}
-
-export function deterministicPlan(input) {
-  return {
-    objective: input.goal,
-    steps: [
-      `Review the existing ${input.title} flow.`,
-      'Implement and verify the requested change.',
-    ],
-    acceptanceCriteria: ['The requested planning behavior is available.'],
-    risks: [],
+  if (!response.ok)
+    throw new PlannerError('unavailable', 'Model inference unavailable.')
+  const payload = await response.json().catch(() => null)
+  const content = payload?.choices?.[0]?.message?.content
+  if (payload?.choices?.[0]?.message?.refusal)
+    throw new PlannerError(
+      'failed-precondition',
+      'The planning provider could not generate this draft.'
+    )
+  if (typeof content !== 'string')
+    throw new PlannerError(
+      'unavailable',
+      'The planning provider returned an invalid response.'
+    )
+  try {
+    return JSON.parse(content)
+  } catch {
+    throw new PlannerError(
+      'unavailable',
+      'The planning provider returned an invalid draft.'
+    )
   }
 }
 
@@ -322,15 +301,11 @@ export function createWorker(
         return new Response('POST /plan required.', { status: 404 })
       try {
         const beta = env.BETA_UIDS?.split(',').filter(Boolean) ?? []
-        const deterministic = env.PLANNING_MODE === 'deterministic'
         if (
           env.FREE_PLAN_CONFIRMED !== 'true' ||
           !env.FIREBASE_PROJECT_ID ||
-          (!deterministic &&
-            !env.AI &&
-            (!env.CLOUDFLARE_ACCOUNT_ID || !env.CLOUDFLARE_API_TOKEN)) ||
+          !env.GROQ_API_KEY ||
           !env.QUOTA ||
-          !beta.length ||
           beta.length > 5
         ) {
           throw new PlannerError(
@@ -342,7 +317,7 @@ export function createWorker(
           .get('authorization')
           ?.match(/^Bearer (\S+)$/)?.[1]
         const uid = await verify(token, env.FIREBASE_PROJECT_ID)
-        if (!beta.includes(uid))
+        if (beta.length > 0 && !beta.includes(uid))
           return new Response('Private beta only.', { status: 403 })
         const draft = await generatePlanDraft(await readRequest(request), uid, {
           loadTask: async (owner, taskId) => {
@@ -364,10 +339,7 @@ export function createWorker(
             Boolean(
               await env.QUOTA.prepare(RESERVE_SQL).bind(owner, day).first()
             ),
-          generate: async (input) =>
-            deterministic
-              ? deterministicPlan(input)
-              : (await callModel(input, env, fetcher)).draft,
+          generate: async (input) => callModel(input, env, fetcher),
         })
         return respond({ draft }, { status: 200 }, request, env)
       } catch (error) {

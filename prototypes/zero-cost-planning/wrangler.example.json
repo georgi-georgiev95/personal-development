@@ -1,21 +1,20 @@
 {
-  "name": "pd36-planning-spike",
+  "name": "personal-development-planner",
   "main": "worker.mjs",
-  "compatibility_date": "2026-10-09",
+  "compatibility_date": "2026-10-12",
   "workers_dev": true,
   "observability": { "enabled": false },
-  "ai": { "binding": "AI" },
   "vars": {
-    "FREE_PLAN_CONFIRMED": "false",
-    "FIREBASE_PROJECT_ID": "REPLACE_WITH_EXISTING_TEST_PROJECT",
-    "CLOUDFLARE_ACCOUNT_ID": "REPLACE_WITH_EXISTING_FREE_ACCOUNT",
-    "BETA_UIDS": "REPLACE_WITH_UP_TO_FIVE_TEST_UIDS"
+    "FREE_PLAN_CONFIRMED": "true",
+    "FIREBASE_PROJECT_ID": "personal-development-c52b9",
+    "CORS_ORIGINS": "https://georgiev-development.web.app",
+    "BETA_UIDS": ""
   },
   "d1_databases": [
     {
       "binding": "QUOTA",
-      "database_name": "pd36-quota",
-      "database_id": "REPLACE_WITH_APPROVED_TEST_DATABASE_ID"
+      "database_name": "personal-development-usage",
+      "database_id": "3a76cc08-45c4-4aeb-aa53-ee1099f81397"
     }
   ]
 }

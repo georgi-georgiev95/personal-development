@@ -9,11 +9,11 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && pnpm --filter ai-planning-functions build && vite build",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier . --write",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit && pnpm --filter ai-planning-functions typecheck",
+    "typecheck": "tsc -b --noEmit",
     "generate": "node scripts/generate-component.js",
     "test": "vitest",
     "test:run": "vitest run",
@@ -23,8 +23,7 @@
     "build-storybook": "storybook build",
     "dev:emulators": "vite --mode emulator",
     "emulators:start": "firebase emulators:start --config firebase.emulators.json --project demo-pd-28 --only auth,firestore",
-    "test:emulators": "pnpm --filter ai-planning-functions build && AI_PLANNER_MOCK_PROVIDER=true firebase emulators:exec --config firebase.emulators.json --project demo-pd-28 --only auth,firestore,functions \"node --test tests/emulators/*.test.mjs\"",
-    "emulators:start:backend": "pnpm --filter ai-planning-functions build && AI_PLANNER_MOCK_PROVIDER=true firebase emulators:start --config firebase.emulators.json --project demo-pd-28 --only auth,firestore,functions",
+    "worker:dev": "pnpm dlx wrangler dev prototypes/zero-cost-planning/worker.mjs --config prototypes/zero-cost-planning/wrangler.example.json",
     "check:emulator-build": "node scripts/check-emulator-build.mjs"
   },
   "dependencies": {

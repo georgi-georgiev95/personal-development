@@ -306,8 +306,8 @@ resolve: {
 ### Emulators
 
 ```bash
-pnpm test:emulators
-pnpm emulators:start:backend
+pnpm emulators:start
+pnpm worker:dev
 ```
 
 ### Deploy
@@ -316,11 +316,9 @@ pnpm emulators:start:backend
 firebase deploy --only hosting,firestore
 ```
 
-The Hosting/Firestore workflow is automatic on `main`. Firebase Functions use
-the separate, manually approved **Firebase Functions Release** workflow; never
-deploy production Functions without explicit approval. Keep `GROQ_API_KEY` in
-Firebase Secret Manager and use `AI_PLANNER_DISABLED=true` as the server-only
-off switch.
+The Hosting/Firestore workflow is automatic on `main`. The AI planner is a
+separate Cloudflare Worker with hard free-tier quotas; keep `GROQ_API_KEY` in
+Cloudflare Worker secrets and fail closed when the provider is unavailable.
 
 ---
 
