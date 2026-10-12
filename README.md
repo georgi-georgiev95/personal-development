@@ -43,10 +43,11 @@ to `/demo`.
 
 The app keeps Firebase authentication and user services, the shared UI kit,
 Storybook, test infrastructure, GitHub Actions workflows, and the existing
-performance budgets. Follow-up product work can add private
-saved task-to-handoff workflows and AI-assisted planning. Automated coding,
-GitHub/CI-result ingestion, team invitations, billing, and production backend
-rollout are deferred.
+performance budgets. Follow-up product work can add private saved
+task-to-handoff workflows and AI-assisted planning. Automated coding,
+GitHub/CI-result ingestion, team invitations, and billing remain deferred. The
+free planner backend has a separate opt-in release workflow; production rollout
+still requires explicit approval and the documented beta checklist.
 
 See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
 contract](docs/first-release-workflow.md) for the scope and acceptance rules.

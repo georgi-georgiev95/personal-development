@@ -167,7 +167,9 @@ registration and profile management.
   CI workflows, and performance budgets.
 - Follow-up work may add private saved task-to-handoff workflows and
   AI-assisted planning. Automated coding, GitHub/CI-result ingestion, team
-  invitations, billing, and production backend rollout are deferred.
+  invitations, and billing remain deferred. The free planner backend has a
+  separate opt-in release workflow; production rollout still requires explicit
+  approval and the documented beta checklist.
 
 ## Known Patterns
 
