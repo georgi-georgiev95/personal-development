@@ -323,6 +323,21 @@ test('Groq calls use the validated model request', async () => {
   assert.deepEqual(result, draft)
 })
 
+test('provider timeout becomes a controlled deadline error', async () => {
+  await assert.rejects(
+    callModel(
+      { title: 'Task', goal: 'Goal', contextEntries: [] },
+      { GROQ_API_KEY: 'fixture-only' },
+      async () => {
+        const error = new Error('provider timeout')
+        error.name = 'TimeoutError'
+        throw error
+      }
+    ),
+    { code: 'deadline-exceeded' }
+  )
+})
+
 test('CORS preflight and response use the configured allowed origin', async () => {
   const store = quota()
   const calls = []
