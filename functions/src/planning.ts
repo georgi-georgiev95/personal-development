@@ -2,6 +2,7 @@ export const PLAN_MAX_REQUEST_BYTES = 8_192
 export const PLAN_MAX_CONTEXT_ENTRIES = 5
 export const PLAN_MAX_CONTEXT_LENGTH = 12_000
 export const PLAN_DAILY_LIMIT = 5
+export const PLAN_GLOBAL_DAILY_LIMIT = 15
 
 export type PlannerErrorCode =
   | 'unauthenticated'
@@ -62,6 +63,7 @@ export interface PlanningDependencies {
   loadTask: (uid: string, taskId: string) => Promise<PlanningTask | null>
   reserveUsage: (uid: string, date: string) => Promise<boolean>
   generate: (input: PlanGenerationInput) => Promise<unknown>
+  isEnabled?: () => boolean
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -209,6 +211,12 @@ export async function generatePlanDraft(
 ): Promise<PlanDraft> {
   if (!uid)
     throw new PlannerError('unauthenticated', 'Sign in to generate a plan.')
+  if (dependencies.isEnabled && !dependencies.isEnabled()) {
+    throw new PlannerError(
+      'failed-precondition',
+      'Planning is temporarily disabled. Your work is still safe.'
+    )
+  }
   const input = parseInput(data)
   const task = await dependencies.loadTask(uid, input.taskId)
   if (!task || task.id !== input.taskId) {

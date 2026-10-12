@@ -680,7 +680,51 @@ test('authenticated plan generation is owner-scoped, context-versioned, mocked, 
       call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 1 }),
       (error) => error.code === 'functions/resource-exhausted'
     )
-    await deleteUser(auth.currentUser)
+
+    const createQuotaUser = async (label) => {
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        `planner-${label}-${crypto.randomUUID()}@example.test`,
+        'local-only-password'
+      )
+      await setDoc(doc(db, 'workspaces', user.uid), {
+        ownerUid: user.uid,
+        createdAt: serverTimestamp(),
+      })
+      await setDoc(doc(db, 'workspaces', user.uid, 'tasks', 'plan-task'), {
+        ...deliveryTaskFixture('plan-task'),
+        title: 'Quota fixture',
+        goal: 'Verify the shared quota.',
+        contextRevision: 1,
+      })
+      return user
+    }
+
+    const quotaUsers = []
+    for (const label of ['global-a', 'global-b']) {
+      const user = await createQuotaUser(label)
+      quotaUsers.push(user)
+      await Promise.all(
+        Array.from({ length: 5 }, () =>
+          call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 1 })
+        )
+      )
+      await signOut(auth)
+    }
+
+    const blockedUser = await createQuotaUser('global-c')
+    await assert.rejects(
+      call({ taskId: 'plan-task', contextEntryIds: [], contextRevision: 1 }),
+      (error) => error.code === 'functions/resource-exhausted'
+    )
+    await deleteUser(blockedUser)
+
+    for (const user of quotaUsers) {
+      await signInWithEmailAndPassword(auth, user.email, 'local-only-password')
+      await deleteUser(user)
+    }
+    await signInWithEmailAndPassword(auth, owner.email, 'local-only-password')
+    await deleteUser(owner)
   } finally {
     await deleteApp(app)
   }
