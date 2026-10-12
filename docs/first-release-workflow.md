@@ -1,7 +1,7 @@
 # First-release workflow contract
 
-**Status: Proposed for review.** This contract records product assumptions for
-the first release so implementation tickets share one scope and vocabulary.
+**Status: Implemented baseline.** This contract records the first-release
+scope and vocabulary used by implementation tickets.
 
 ## User and outcome
 
@@ -103,7 +103,7 @@ requires a new approval; affected checks are rerun if the work changes.
 
 The first release supports a public simulated demo, personal workspaces, pasted
 repository context, manually recorded implementation and validation evidence,
-and AI-assisted planning. It does not execute code, connect to GitHub, ingest
-CI results, provide team roles or invitations, or bill users. The AI planner
-backend has a separate opt-in release path and remains subject to the
-[free-beta release checklist](free-ai-beta-release.md) and explicit approval.
+and AI-assisted planning through the bounded zero-cost Worker. It does not
+execute code, connect to GitHub, ingest CI results, provide team roles or
+invitations, or bill users. See the [production verification record](production-verification.md)
+for the live release revision and checks.

@@ -46,3 +46,17 @@ The live anonymous endpoint checks also returned `401` for `POST /plan` and
 protected rather than missing with `404`.
 
 No paid fallback is configured and no secret is included in the frontend build.
+
+## Tracking
+
+- [PD-46](https://github.com/georgi-georgiev95/personal-development/issues/101)
+  records the zero-cost hosting decision.
+- [PD-47](https://github.com/georgi-georgiev95/personal-development/issues/102)
+  records the live planner release.
+- [PD-48](https://github.com/georgi-georgiev95/personal-development/issues/103)
+  records the authenticated real-flow verification.
+- [PD-49](https://github.com/georgi-georgiev95/personal-development/issues/104)
+  aligns product messaging and roadmap claims with that state.
+
+PD-44 is not an active ticket. Its relevant integration evidence is retained in
+this record and the linked architecture and zero-cost planning documents.

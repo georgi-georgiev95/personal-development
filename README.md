@@ -1,6 +1,6 @@
 # personal-development
 
-AI Delivery Lab is a product for turning a task into a clear plan, focused implementation, and verified handoff. This repository contains its public product entry, a deterministic simulated demo, and the retained authentication and engineering foundation.
+AI Delivery Lab is a product for turning a task into a clear plan, focused implementation, and verified handoff. This repository contains its public product entry, a deterministic simulated demo, authenticated private workspaces, and live zero-cost AI planning.
 
 ## Package manager
 
@@ -28,7 +28,7 @@ src/
   features/         Feature-owned pages, components, hooks, and styles
     auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
     home/             AI Delivery Lab product entry
-    ai-delivery-lab/  Deterministic simulated workflow demo
+    ai-delivery-lab/  Workflow pages, demo, workspace, and AI planning UI
   entities/         Business entities and services
     user/             User profile service (Firestore)
   shared/           Cross-feature infra — no imports from upper layers
@@ -47,13 +47,12 @@ to `/demo`.
 
 ## Retained foundation and follow-up
 
-The app keeps Firebase authentication and user services, the shared UI kit,
-Storybook, test infrastructure, GitHub Actions workflows, and the existing
-performance budgets. Follow-up product work can add private saved
-task-to-handoff workflows and AI-assisted planning. Automated coding,
+The app includes Firebase authentication, private saved task-to-handoff
+workflows, manual evidence, and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, and billing remain deferred. The
 free planner backend runs as a bounded Cloudflare Worker with hard quotas and
-no paid fallback; see [zero-cost AI planning](docs/zero-cost-ai-planning.md).
+no paid fallback; see [zero-cost AI planning](docs/zero-cost-ai-planning.md) and
+the [production verification record](docs/production-verification.md).
 
 See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
 contract](docs/first-release-workflow.md) for the scope and acceptance rules.

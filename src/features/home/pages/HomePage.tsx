@@ -46,21 +46,24 @@ export const HomePage = () => (
             <li>
               Explore a resettable, simulated workflow without an account.
             </li>
-            <li>Sign in or create an account.</li>
+            <li>Sign in or create an account for a private workspace.</li>
+            <li>Save tasks, context, evidence, and handoff artifacts.</li>
+            <li>Generate and review AI-assisted plans within a task.</li>
           </FeatureList>
         </FeatureCard>
         <FeatureCard>
-          <h3>Planned for the first release</h3>
+          <h3>What the product records</h3>
           <FeatureList>
-            <li>Private workspaces with saved tasks and manual evidence.</li>
-            <li>AI-assisted planning within a task.</li>
+            <li>Implementation work performed outside the product.</li>
+            <li>Manual validation and copied CI evidence.</li>
+            <li>Review decisions and delivery handoffs.</li>
           </FeatureList>
         </FeatureCard>
         <FeatureCard>
           <h3>Outside the release</h3>
           <FeatureList>
             <li>Code execution, GitHub connections, and CI result imports.</li>
-            <li>Team invitations, billing, and production backend rollout.</li>
+            <li>Automated coding, team invitations, and billing.</li>
           </FeatureList>
         </FeatureCard>
       </FeatureGrid>
