@@ -301,20 +301,26 @@ resolve: {
 
 ---
 
-## Firebase Tools (Future)
+## Firebase Tools
 
-### Emulators (Not Set Up Yet)
-
-```bash
-# When configured:
-firebase emulators:start
-```
-
-### Deploy (Future)
+### Emulators
 
 ```bash
-firebase deploy --only hosting
+pnpm test:emulators
+pnpm emulators:start:backend
 ```
+
+### Deploy
+
+```bash
+firebase deploy --only hosting,firestore
+```
+
+The Hosting/Firestore workflow is automatic on `main`. Firebase Functions use
+the separate, manually approved **Firebase Functions Release** workflow; never
+deploy production Functions without explicit approval. Keep `GROQ_API_KEY` in
+Firebase Secret Manager and use `AI_PLANNER_DISABLED=true` as the server-only
+off switch.
 
 ---
 

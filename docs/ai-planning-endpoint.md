@@ -1,8 +1,8 @@
 # AI planning endpoint
 
 The isolated [PD-36 zero-cost feasibility spike](zero-cost-ai-planning.md)
-evaluates zero-cost providers. Its accepted candidate is still pending owner
-approval and does not replace or enable this callable.
+selected the bounded free-beta route. PD-45 adds a separate, opt-in Functions
+release workflow; production availability still requires explicit approval.
 
 PD-33 adds the `generatePlan` Firebase callable in `europe-west1`. It accepts a task ID, selected context-entry IDs, and the context revision. The function verifies Firebase Authentication, checks the workspace owner and task with the Admin SDK, then reads only the selected context entries. The response is an unaccepted draft containing an objective, 2–8 steps, 1–8 acceptance criteria, up to 5 risks, and the server-verified context revision.
 
@@ -28,4 +28,6 @@ To run the Auth, Firestore, and Functions emulators for local app work:
 pnpm emulators:start:backend
 ```
 
-The regular Hosting deployment workflow does not deploy Functions. A backend release and provider secret require a separate review and explicit deployment step.
+The regular Hosting deployment workflow does not deploy Functions. The opt-in
+[free AI beta release checklist](free-ai-beta-release.md) covers the separate
+review, credential check, explicit deployment step, and live verification.

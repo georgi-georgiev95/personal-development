@@ -1,0 +1,59 @@
+name: Firebase Functions Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: Deploy the approved free-planner backend to production
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: ${{ inputs.confirm_production == true }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run backend emulator checks
+        run: pnpm test:emulators
+
+      - name: Build Functions
+        run: pnpm --filter ai-planning-functions build
+
+      - name: Verify provider secret metadata
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: pnpm exec firebase functions:secrets:describe GROQ_API_KEY --non-interactive
+
+      - name: Deploy Functions only
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: pnpm exec firebase deploy --only functions --non-interactive
