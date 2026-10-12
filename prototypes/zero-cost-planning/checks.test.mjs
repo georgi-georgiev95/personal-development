@@ -6,7 +6,6 @@ import {
   createTokenVerifier,
   createWorker,
   callModel,
-  deterministicPlan,
   JWKS_URL,
   MODEL,
   modelRequest,
@@ -104,8 +103,7 @@ function quota() {
 const env = (store) => ({
   FREE_PLAN_CONFIRMED: 'true',
   FIREBASE_PROJECT_ID: 'demo-pd-28',
-  CLOUDFLARE_ACCOUNT_ID: 'fixture-account',
-  CLOUDFLARE_API_TOKEN: 'fixture-only',
+  GROQ_API_KEY: 'fixture-only',
   BETA_UIDS: 'owner,other',
   QUOTA: store,
 })
@@ -202,9 +200,10 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
         return Response.json({ fields: taskFields })
       return new Response('', { status: 403 })
     }
-    assert.ok(url.endsWith(MODEL))
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions')
     const body = JSON.parse(options.body)
-    assert.equal(body.max_tokens, 1200)
+    assert.equal(body.model, MODEL)
+    assert.equal(body.max_tokens, 400)
     assert.equal(
       body.messages[1].content,
       JSON.stringify({
@@ -217,13 +216,16 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
     if (provider === 'error')
       return new Response('private failure', { status: 429 })
     return Response.json({
-      success: true,
-      result: {
-        response: JSON.stringify({
-          ...draft,
-          steps: provider === 'invalid' ? [] : draft.steps,
-        }),
-      },
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              ...draft,
+              steps: provider === 'invalid' ? [] : draft.steps,
+            }),
+          },
+        },
+      ],
     })
   })
   try {
@@ -243,7 +245,12 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
       env(store)
     )
     assert.equal(other.status, 404)
-    assert.equal(calls.filter((url) => url.includes('/ai/run/')).length, 1)
+    assert.equal(
+      calls.filter(
+        (url) => url === 'https://api.groq.com/openai/v1/chat/completions'
+      ).length,
+      1
+    )
     assert.equal(
       (
         await worker.fetch(
@@ -301,27 +308,22 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
   }
 })
 
-test('native AI binding needs no account credential and uses the validated model request', async () => {
+test('Groq calls use the validated model request', async () => {
   const result = await callModel(
     { title: 'Task', goal: 'Goal', contextEntries: [] },
-    {
-      AI: {
-        async run(model, body) {
-          assert.equal(model, MODEL)
-          assert.deepEqual(body.response_format, { type: 'json_object' })
-          assert.equal(body.max_tokens, 1200)
-          return { response: JSON.stringify(draft), usage: { neurons: 1 } }
-        },
-      },
-    },
-    () => {
-      throw Error('REST must not be called')
+    { GROQ_API_KEY: 'fixture-only' },
+    async (url, options) => {
+      assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions')
+      assert.equal(JSON.parse(options.body).model, MODEL)
+      return Response.json({
+        choices: [{ message: { content: JSON.stringify(draft) } }],
+      })
     }
   )
-  assert.deepEqual(result, { draft, usage: { neurons: 1 } })
+  assert.deepEqual(result, draft)
 })
 
-test('deterministic runtime protects CORS without using provider credentials', async () => {
+test('CORS preflight and response use the configured allowed origin', async () => {
   const store = quota()
   const calls = []
   const worker = createWorker(async (url, options) => {
@@ -331,11 +333,12 @@ test('deterministic runtime protects CORS without using provider credentials', a
       return Response.json({ fields: { ownerUid: { stringValue: 'owner' } } })
     if (url.endsWith('/workspaces/owner/tasks/task-1'))
       return Response.json({ fields: taskFields })
-    assert.fail(`Unexpected runtime request: ${url}`)
+    return Response.json({
+      choices: [{ message: { content: JSON.stringify(draft) } }],
+    })
   })
   const runtime = {
     ...env(store),
-    PLANNING_MODE: 'deterministic',
     CORS_ORIGINS: 'https://app.example',
   }
   try {
@@ -359,20 +362,19 @@ test('deterministic runtime protects CORS without using provider credentials', a
     )
     assert.equal(response.status, 200)
     assert.deepEqual((await response.json()).draft, {
-      ...deterministicPlan({
-        title: 'Onboarding',
-        goal: 'Improve onboarding.',
-        contextEntries: [
-          { name: 'README', content: 'Use the existing router.' },
-        ],
-      }),
+      ...draft,
       contextRevision: 2,
     })
     assert.equal(
       response.headers.get('Access-Control-Allow-Origin'),
       'https://app.example'
     )
-    assert.equal(calls.filter((url) => url.includes('/ai/run/')).length, 0)
+    assert.equal(
+      calls.filter(
+        (url) => url === 'https://api.groq.com/openai/v1/chat/completions'
+      ).length,
+      1
+    )
 
     const disallowed = await worker.fetch(
       request(token, input, 'https://evil.example'),

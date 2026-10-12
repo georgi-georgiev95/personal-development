@@ -1,9 +1,4 @@
-import {
-  connectFunctionsEmulator,
-  getFunctions,
-  httpsCallable,
-} from 'firebase/functions'
-import { app } from '@/shared/config/firebase/firebase'
+import { auth } from '@/shared/config/firebase/auth'
 
 export interface DeliveryPlanDraft {
   objective: string
@@ -19,18 +14,36 @@ export interface DeliveryPlanRequest {
   contextRevision: number
 }
 
-const functions = getFunctions(app, 'europe-west1')
+const productionPlannerUrl = import.meta.env.VITE_AI_PLANNER_URL
+const plannerUrl =
+  import.meta.env.DEV && import.meta.env.MODE === 'emulator'
+    ? 'http://127.0.0.1:8787/plan'
+    : productionPlannerUrl
 
-if (import.meta.env.DEV && import.meta.env.MODE === 'emulator') {
-  connectFunctionsEmulator(functions, '127.0.0.1', 5001)
-}
+const plannerError = (message: string): Error => new Error(message)
 
 export async function generateDeliveryPlan(
   request: DeliveryPlanRequest
 ): Promise<DeliveryPlanDraft> {
-  const generatePlan = httpsCallable<DeliveryPlanRequest, DeliveryPlanDraft>(
-    functions,
-    'generatePlan'
-  )
-  return (await generatePlan(request)).data
+  const user = auth.currentUser
+  if (!user) throw plannerError('Sign in to generate a plan.')
+  if (!plannerUrl) throw plannerError('Planning is not configured.')
+
+  const token = await user.getIdToken()
+  const response = await fetch(plannerUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const payload = (await response.json().catch(() => null)) as {
+    draft?: DeliveryPlanDraft
+    error?: string
+  } | null
+  if (!response.ok || !payload?.draft) {
+    throw plannerError(payload?.error ?? 'Could not generate a plan right now.')
+  }
+  return payload.draft
 }

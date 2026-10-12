@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS usage (
+  uid TEXT PRIMARY KEY,
+  day TEXT NOT NULL,
+  count INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS usage_day ON usage(day);

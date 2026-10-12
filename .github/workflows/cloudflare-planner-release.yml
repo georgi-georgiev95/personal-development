@@ -1,0 +1,39 @@
+name: Zero-cost Planner Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_zero_cost:
+        description: Deploy only with hard free-tier limits and no paid fallback
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: ${{ inputs.confirm_zero_cost == true }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Worker configuration
+        run: |
+          if grep -q 'REPLACE_WITH_APPROVED_TEST_DATABASE_ID' prototypes/zero-cost-planning/wrangler.example.json; then
+            echo 'Set the real zero-cost D1 database id before deploying.'
+            exit 1
+          fi
+
+      - name: Deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy prototypes/zero-cost-planning/worker.mjs --config prototypes/zero-cost-planning/wrangler.example.json
+          secrets: |
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}

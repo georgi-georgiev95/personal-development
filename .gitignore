@@ -12,7 +12,6 @@ node_modules*/
 .pnpm-store/
 dist
 dist-ssr
-functions/lib/
 *.local
 coverage
 

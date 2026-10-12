@@ -10,6 +10,12 @@ Use pnpm 10 or newer. Install dependencies with `pnpm install --frozen-lockfile`
 
 See [isolated emulator setup and validation](docs/firebase-emulators.md).
 
+## Architecture and hosting
+
+See the [architecture and hosting guide](docs/architecture.md) for the role of
+the React/Vite frontend, Firebase, Cloudflare Worker/D1, and Groq, including
+why each service is needed and how the zero-cost constraints shape the design.
+
 ## Project Structure
 
 Feature-Sliced Design (FSD) — source is organized by ownership, not file type:
@@ -46,8 +52,8 @@ Storybook, test infrastructure, GitHub Actions workflows, and the existing
 performance budgets. Follow-up product work can add private saved
 task-to-handoff workflows and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, and billing remain deferred. The
-free planner backend has a separate opt-in release workflow; production rollout
-still requires explicit approval and the documented beta checklist.
+free planner backend runs as a bounded Cloudflare Worker with hard quotas and
+no paid fallback; see [zero-cost AI planning](docs/zero-cost-ai-planning.md).
 
 See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
 contract](docs/first-release-workflow.md) for the scope and acceptance rules.

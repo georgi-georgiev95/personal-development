@@ -26,17 +26,14 @@ existing configuration. Production builds ignore emulator mode.
 ## Validation
 
 ```sh
-pnpm test:emulators
 pnpm build --mode emulator
 pnpm check:emulator-build
 pnpm perf
 ```
 
-`test:emulators` starts fresh emulators, runs Auth/Firestore integration and
-profile permission checks, and stops the emulators. Tests require the exact
-loopback host variables and demo project supplied by `emulators:exec`; running
-`node --test tests/emulators/*.test.mjs` directly fails before SDK initialization.
-No live fallback is allowed. If a port is occupied, stop that process before
+The emulators provide disposable Auth and Firestore services for local app
+work. AI planning is tested separately through the local Worker checks. No
+live fallback is allowed. If a port is occupied, stop that process before
 running tests; do not substitute a remote host or live project.
 
 Fixtures use generated `.test` email addresses and local profile data. Rules

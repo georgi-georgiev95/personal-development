@@ -169,13 +169,35 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
     })
 
     const localFetcher = (url, options) =>
-      fetch(
-        url.replace(
-          'https://firestore.googleapis.com',
-          'http://127.0.0.1:8080'
-        ),
-        options
-      )
+      url === 'https://api.groq.com/openai/v1/chat/completions'
+        ? Promise.resolve(
+            Response.json({
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      objective: 'Verify the free runtime endpoint.',
+                      steps: [
+                        'Review the existing Fixture task flow.',
+                        'Implement and verify the requested change.',
+                      ],
+                      acceptanceCriteria: [
+                        'The requested planning behavior is available.',
+                      ],
+                      risks: [],
+                    }),
+                  },
+                },
+              ],
+            })
+          )
+        : fetch(
+            url.replace(
+              'https://firestore.googleapis.com',
+              'http://127.0.0.1:8080'
+            ),
+            options
+          )
     const worker = createWorker(localFetcher, async (token) => {
       assert.equal(token, owner.idToken)
       return owner.localId
@@ -194,9 +216,9 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
         }),
       }),
       {
-        PLANNING_MODE: 'deterministic',
         FREE_PLAN_CONFIRMED: 'true',
         FIREBASE_PROJECT_ID: 'demo-pd-28',
+        GROQ_API_KEY: 'fixture-only',
         BETA_UIDS: owner.localId,
         CORS_ORIGINS: 'https://app.example',
         QUOTA: store,
