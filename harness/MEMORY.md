@@ -165,11 +165,10 @@ registration and profile management.
   routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.
 - Keep the existing auth/user services, UI kit, Storybook, test infrastructure,
   CI workflows, and performance budgets.
-- Follow-up work may add private saved task-to-handoff workflows and
-  AI-assisted planning. Automated coding, GitHub/CI-result ingestion, team
-  invitations, and billing remain deferred. The free planner backend has a
-  separate opt-in release workflow; production rollout still requires explicit
-  approval and the documented beta checklist.
+- Private saved task-to-handoff workflows and AI-assisted planning are live.
+  The planner runs through the bounded zero-cost Cloudflare Worker release.
+  Automated coding, GitHub/CI-result ingestion, team invitations, and billing
+  remain deferred.
 
 ## Known Patterns
 
@@ -227,5 +226,5 @@ pnpm format       # Prettier format
 
 ---
 
-**Last Updated**: 2026-09-30
+**Last Updated**: 2026-10-12
 **Memory Version**: 1.0.0
