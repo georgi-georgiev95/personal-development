@@ -9,12 +9,12 @@ import {
   PlannerError,
 } from './planning.js'
 import type { PlanningTask } from './planning.js'
-import { generateOpenAIPlan } from './openAIProvider.js'
+import { generateGroqPlan } from './groqProvider.js'
 
 if (getApps().length === 0) initializeApp()
 
 const database = getFirestore()
-const openAIKey = defineSecret('OPENAI_API_KEY')
+const groqKey = defineSecret('GROQ_API_KEY')
 
 async function loadOwnedTask(
   uid: string,
@@ -55,7 +55,7 @@ async function reserveUsage(uid: string, date: string): Promise<boolean> {
   })
 }
 
-const generate = (input: Parameters<typeof generateOpenAIPlan>[0]) => {
+const generate = (input: Parameters<typeof generateGroqPlan>[0]) => {
   if (
     process.env.FUNCTIONS_EMULATOR === 'true' &&
     process.env.AI_PLANNER_MOCK_PROVIDER === 'true'
@@ -67,7 +67,7 @@ const generate = (input: Parameters<typeof generateOpenAIPlan>[0]) => {
       risks: [],
     })
   }
-  return generateOpenAIPlan(input, openAIKey.value())
+  return generateGroqPlan(input, groqKey.value())
 }
 
 export const generatePlan = onCall(
@@ -77,7 +77,7 @@ export const generatePlan = onCall(
     maxInstances: 3,
     concurrency: 1,
     memory: '256MiB',
-    secrets: [openAIKey],
+    secrets: [groqKey],
   },
   async (request) => {
     try {

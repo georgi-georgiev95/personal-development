@@ -1,6 +1,8 @@
 import { PlannerError } from './planning.js'
 import type { PlanGenerationInput } from './planning.js'
 
+const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions'
+const GROQ_MODEL = 'qwen/qwen3.8-27b'
 const PLAN_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -13,7 +15,7 @@ const PLAN_SCHEMA = {
   },
 }
 
-export async function generateOpenAIPlan(
+export async function generateGroqPlan(
   input: PlanGenerationInput,
   apiKey: string,
   fetcher: typeof fetch = fetch
@@ -27,7 +29,7 @@ export async function generateOpenAIPlan(
 
   let response: Response
   try {
-    response = await fetcher('https://api.openai.com/v1/chat/completions', {
+    response = await fetcher(GROQ_ENDPOINT, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -35,8 +37,10 @@ export async function generateOpenAIPlan(
       },
       signal: AbortSignal.timeout(20_000),
       body: JSON.stringify({
-        model: 'gpt-4.1-mini',
-        max_completion_tokens: 1_200,
+        model: GROQ_MODEL,
+        temperature: 0,
+        reasoning_effort: 'low',
+        max_tokens: 400,
         response_format: {
           type: 'json_schema',
           json_schema: {
