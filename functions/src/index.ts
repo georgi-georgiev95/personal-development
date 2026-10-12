@@ -5,6 +5,7 @@ import { defineSecret } from 'firebase-functions/params'
 import {
   generatePlanDraft,
   PLAN_DAILY_LIMIT,
+  PLAN_GLOBAL_DAILY_LIMIT,
   PlannerError,
 } from './planning.js'
 import type { PlanningTask } from './planning.js'
@@ -29,14 +30,25 @@ async function loadOwnedTask(
 
 async function reserveUsage(uid: string, date: string): Promise<boolean> {
   const usage = database.doc(`aiPlanningUsage/${uid}`)
+  const globalUsage = database.doc('aiPlanningUsage/global')
   return database.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(usage)
+    const globalSnapshot = await transaction.get(globalUsage)
     const current = snapshot.data()
+    const globalCurrent = globalSnapshot.data()
     const count = current?.date === date ? Number(current.count) || 0 : 0
-    if (count >= PLAN_DAILY_LIMIT) return false
+    const globalCount =
+      globalCurrent?.date === date ? Number(globalCurrent.count) || 0 : 0
+    if (count >= PLAN_DAILY_LIMIT || globalCount >= PLAN_GLOBAL_DAILY_LIMIT)
+      return false
     transaction.set(usage, {
       date,
       count: count + 1,
+      updatedAt: Timestamp.now(),
+    })
+    transaction.set(globalUsage, {
+      date,
+      count: globalCount + 1,
       updatedAt: Timestamp.now(),
     })
     return true
@@ -73,6 +85,7 @@ export const generatePlan = onCall(
         loadTask: loadOwnedTask,
         reserveUsage,
         generate,
+        isEnabled: () => process.env.AI_PLANNER_DISABLED !== 'true',
       })
     } catch (error) {
       if (error instanceof PlannerError) {

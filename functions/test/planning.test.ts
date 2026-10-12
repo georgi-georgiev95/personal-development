@@ -48,6 +48,25 @@ describe('generatePlanDraft', () => {
     expect(deps.generate).not.toHaveBeenCalled()
   })
 
+  it('fails closed when the operator disables planning', async () => {
+    const deps = dependencies({ isEnabled: () => false })
+    await expect(
+      generatePlanDraft(
+        { taskId: 'task-1', contextEntryIds: [], contextRevision: 2 },
+        'user-1',
+        deps
+      )
+    ).rejects.toEqual(
+      new PlannerError(
+        'failed-precondition',
+        'Planning is temporarily disabled. Your work is still safe.'
+      )
+    )
+    expect(deps.loadTask).not.toHaveBeenCalled()
+    expect(deps.reserveUsage).not.toHaveBeenCalled()
+    expect(deps.generate).not.toHaveBeenCalled()
+  })
+
   it('rejects malformed and oversized request data', async () => {
     const deps = dependencies()
     await expect(
