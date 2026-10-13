@@ -5,16 +5,18 @@ scope and vocabulary used by implementation tickets.
 
 ## User and outcome
 
-The first user is a solo developer working in a personal workspace. A task
-moves from an intent to a reviewable handoff. The product helps plan and track
-that work; it does not perform implementation or run checks.
+The first user is a solo developer working in a personal workspace. The main
+experience turns an outcome into an editable implementation brief that can be
+copied, saved, and reopened. The product helps plan and record that work; it
+does not perform implementation or run checks.
 
 ## Terms
 
 - **Workspace:** a user's personal space for repository context and tasks.
 - **Task:** one outcome, with its intent, scope, plan, progress, evidence, and
   handoff.
-- **Stage:** the task's current point in the fixed workflow.
+- **Stage:** an optional task-detail checkpoint retained for delivery history;
+  the brief-first path does not require stage completion.
 - **Artifact:** task material that can be reviewed, such as intent, plan,
   implementation notes, validation evidence, or handoff summary.
 - **Validation result:** a manually recorded check outcome and its evidence
@@ -27,11 +29,12 @@ that work; it does not perform implementation or run checks.
 
 ## Stages and evidence
 
-Tasks follow this sequence: **Discovery → Planning → Implementation →
-Validation → Review → Handoff**. A stage advances when its work is recorded;
-the user advances one stage at a time, and stages do not imply that the product
+Saved task details retain the sequence **Discovery → Planning → Implementation
+→ Validation → Review → Handoff** for users who need a delivery record. A
+stage advances when its work is recorded; stages do not imply that the product
 performed that work. An In progress task can return to the earliest affected
-stage; reopening applies to a task already Handed off.
+stage; reopening applies to a task already Handed off. None of these checkpoints
+is required to generate, edit, copy, save, or reopen a brief.
 
 Implementation is tracking only. The user records work performed elsewhere.
 Repository context is pasted by the user. Validation evidence is explicitly
@@ -82,11 +85,13 @@ this release.
 
 ## Journeys
 
-**Normal:** record intent and pasted repository context in Discovery, create a
-plan, implement elsewhere and record notes, enter manual or copied CI evidence
-in Validation, prepare the handoff summary, submit the revision in Review,
-record approval, then mark Handoff complete. Each transition reflects
-user-recorded work only.
+**Brief-first:** describe the outcome and optional context, generate and edit a
+plan, copy it for repository work, save it privately, and reopen it later. This
+path has no mandatory implementation, validation, review, or handoff forms.
+
+**Delivery detail:** when a user wants a full record, they can continue with
+the optional stages and evidence below. Each transition reflects user-recorded
+work only.
 
 **Missing or failed check:** keep the task in Validation or return it there
 from Review; record the check as Not run or Failed. Add or rerun evidence
@@ -102,8 +107,10 @@ requires a new approval; affected checks are rerun if the work changes.
 ## First-release boundary
 
 The first release supports a public simulated demo, personal workspaces, pasted
-repository context, manually recorded implementation and validation evidence,
-and AI-assisted planning through the bounded zero-cost Worker. It does not
-execute code, connect to GitHub, ingest CI results, provide team roles or
-invitations, or bill users. See the [production verification record](production-verification.md)
-for the live release revision and checks.
+repository context, a brief-first planning path, optional manually recorded
+delivery evidence, and AI-assisted planning through the bounded zero-cost
+Worker. It does not execute code, connect to GitHub, ingest CI results, provide
+team roles or invitations, or bill users. Theme preference is local to the
+browser and does not alter workspace data. See the [beta verification
+checklist](beta-verification.md) and [production verification
+record](production-verification.md) for release status and checks.

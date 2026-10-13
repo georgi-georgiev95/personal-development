@@ -7,7 +7,7 @@ for project conventions, architecture, and build/test workflows.
 ## TDD Skill
 
 When the user invokes `/tdd`, or asks to implement a feature or fix a bug
-"using TDD", follow `.github/skills/tdd/SKILL.md` (RED → GREEN → REFACTOR).
+"using TDD", follow `.agents/skills/tdd/SKILL.md` (RED → GREEN → REFACTOR).
 It only applies to logic in scope for coverage (`src/entities/**`,
 `src/shared/utils/**` per `TESTING.md`) — not UI.
 
