@@ -156,7 +156,8 @@ export const theme: Theme = {
     containerMaxWidth: '1200px',
   },
   font: {
-    family: "'JetBrains Mono', ui-monospace, monospace",
+    family:
+      'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     familyMono: "'JetBrains Mono', ui-monospace, monospace",
   },
   letterSpacing: {

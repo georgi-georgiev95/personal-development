@@ -54,6 +54,7 @@ export function RegisterPage() {
   const [year, setYear] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [repeatPassword, setRepeatPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -92,6 +93,10 @@ export function RegisterPage() {
     }
     if (password.length < 6) {
       setError('Password must be at least 6 characters')
+      return false
+    }
+    if (password !== repeatPassword) {
+      setError('Passwords do not match')
       return false
     }
     return true
@@ -183,7 +188,11 @@ export function RegisterPage() {
             <Eyebrow>// register</Eyebrow>
             <StyledTitle>Create account</StyledTitle>
           </TitleBlock>
-          {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
+          {error && (
+            <ErrorMessage id="register-error" role="alert">
+              {error}
+            </ErrorMessage>
+          )}
           <StyledForm onSubmit={handleSubmit}>
             <FieldLabel>Name</FieldLabel>
             <Row>
@@ -296,6 +305,30 @@ export function RegisterPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </InputWrapper>
+            <FieldLabel htmlFor="register-repeat-password">
+              Repeat password
+            </FieldLabel>
+            <InputWrapper>
+              <InputIcon>{lockIcon}</InputIcon>
+              <StyledInput
+                type="password"
+                id="register-repeat-password"
+                autoComplete="new-password"
+                placeholder="Repeat password"
+                value={repeatPassword}
+                onChange={(e) => {
+                  setRepeatPassword(e.target.value)
+                  setError(null)
+                }}
+                aria-invalid={error === 'Passwords do not match'}
+                aria-describedby={
+                  error === 'Passwords do not match'
+                    ? 'register-error'
+                    : undefined
+                }
                 required
               />
             </InputWrapper>

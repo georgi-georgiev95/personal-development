@@ -83,6 +83,51 @@ export const ArtifactPanel = styled.section`
   }
 `
 
+export const PlanPanel = styled(ArtifactPanel)`
+  width: 100%;
+  max-width: 720px;
+`
+
+export const PlanDocument = styled.div`
+  display: grid;
+  gap: ${theme.spacing.lg};
+  color: ${theme.colors.text};
+  line-height: ${theme.lineHeight.relaxed};
+  overflow-wrap: anywhere;
+
+  h3 {
+    margin: 0 0 ${theme.spacing.sm};
+    color: ${theme.colors.textSecondary};
+    font-size: ${theme.fontSizes.sm};
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  ol,
+  ul {
+    display: grid;
+    gap: ${theme.spacing.sm};
+    margin: 0;
+    padding-left: ${theme.spacing.lg};
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  li::marker {
+    color: ${theme.colors.primary};
+  }
+`
+
 export const ArtifactContent = styled.p`
   margin: 0;
   color: ${theme.colors.text};

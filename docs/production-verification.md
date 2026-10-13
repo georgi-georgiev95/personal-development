@@ -4,7 +4,7 @@ Verification for PD-48 was completed on 2026-10-12 before beta access.
 
 ## PD-56 beta readiness
 
-The simplified brief-first flow is implemented in the current verification
+The simplified plan-first flow is implemented in the current verification
 revision.
 The following repository checks passed on 2026-10-13:
 

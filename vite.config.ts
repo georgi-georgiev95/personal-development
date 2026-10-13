@@ -29,6 +29,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/api/plan': {
+        target:
+          'https://personal-development-planner.g-georgiev9507.workers.dev',
+        changeOrigin: true,
+        rewrite: () => '/plan',
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {

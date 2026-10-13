@@ -4,14 +4,12 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
   createDeliveryTask,
-  removeDeliveryContextEntry,
   saveDeliveryArtifact,
-  saveDeliveryContextEntry,
   type DeliveryTask,
 } from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
 import {
-  TaskBriefPage,
+  TaskPlanPage,
   TaskCreatePage,
   TaskDetailRoute,
   TaskListPage,
@@ -70,8 +68,8 @@ describe('private task creation retry', () => {
   })
 })
 
-describe('saved briefs list', () => {
-  it('shows a useful empty state and reopens saved briefs', () => {
+describe('saved plans list', () => {
+  it('shows a useful empty state and reopens saved plans', () => {
     const task = createDeliveryTask({
       title: 'Improve onboarding',
       goal: 'Make the first step clearer.',
@@ -85,17 +83,17 @@ describe('saved briefs list', () => {
           />
           <Route
             path="/workspace/tasks/:taskId"
-            element={<p>Brief details</p>}
+            element={<p>Plan details</p>}
           />
         </Routes>
       </MemoryRouter>
     )
 
     expect(
-      screen.getByRole('heading', { name: 'Saved briefs' })
+      screen.getByRole('heading', { name: 'Saved plans' })
     ).toBeInTheDocument()
     expect(
-      screen.getByText('No saved briefs yet. Create a brief to save it here.')
+      screen.getByText('No saved plans yet. Create a plan to save it here.')
     ).toBeInTheDocument()
 
     view.rerender(
@@ -110,7 +108,7 @@ describe('saved briefs list', () => {
   })
 })
 
-describe('one-screen private brief generation', () => {
+describe('one-screen private plan generation', () => {
   it('retries a failed save with the same task identity', async () => {
     const user = userEvent.setup()
     const attemptedIds: string[] = []
@@ -123,7 +121,7 @@ describe('one-screen private brief generation', () => {
     })
     generateDeliveryPlan.mockReset()
     generateDeliveryPlan.mockResolvedValue({
-      objective: 'A brief',
+      objective: 'A plan',
       steps: [],
       acceptanceCriteria: [],
       risks: [],
@@ -136,11 +134,7 @@ describe('one-screen private brief generation', () => {
           <Route
             path="/workspace"
             element={
-              <TaskBriefPage
-                onCreate={onCreate}
-                onUpdate={(task) => task}
-                onRemoveContext={() => null}
-              />
+              <TaskPlanPage onCreate={onCreate} onUpdate={(task) => task} />
             }
           />
         </Routes>
@@ -151,15 +145,15 @@ describe('one-screen private brief generation', () => {
       screen.getByLabelText('What do you want to accomplish?'),
       'Recover after a failed save'
     )
-    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('offline')
-    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
 
-    expect(await screen.findByText('A brief')).toBeInTheDocument()
+    expect(await screen.findByText('A plan')).toBeInTheDocument()
     expect(attemptedIds[0]).toBe(attemptedIds[1])
   })
 
-  it('persists input, derives the title, and renders the generated brief inline', async () => {
+  it('persists input, derives the title, and renders the generated plan inline', async () => {
     const user = userEvent.setup()
     const onCreate = vi.fn(async (task: DeliveryTask) => ({
       ...task,
@@ -183,13 +177,7 @@ describe('one-screen private brief generation', () => {
         <Routes>
           <Route
             path="/workspace"
-            element={
-              <TaskBriefPage
-                onCreate={onCreate}
-                onUpdate={onUpdate}
-                onRemoveContext={() => null}
-              />
-            }
+            element={<TaskPlanPage onCreate={onCreate} onUpdate={onUpdate} />}
           />
         </Routes>
       </MemoryRouter>
@@ -199,11 +187,7 @@ describe('one-screen private brief generation', () => {
       screen.getByLabelText('What do you want to accomplish?'),
       'Improve onboarding\nMake the first step clear.'
     )
-    await user.type(
-      screen.getByLabelText('Project context (optional)'),
-      'The app uses a calm canvas.'
-    )
-    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
 
     expect(
       await screen.findByText('Make onboarding clearer.')
@@ -214,17 +198,17 @@ describe('one-screen private brief generation', () => {
         goal: 'Improve onboarding\nMake the first step clear.',
       })
     )
-    expect(onUpdate).toHaveBeenCalled()
+    expect(onUpdate).not.toHaveBeenCalled()
     expect(generateDeliveryPlan).toHaveBeenCalledWith(
       expect.objectContaining({
         taskId: expect.any(String),
-        contextEntryIds: [expect.any(String)],
-        contextRevision: 1,
+        contextEntryIds: [],
+        contextRevision: 0,
       })
     )
   })
 
-  it('edits, copies, and explicitly saves the generated brief', async () => {
+  it('edits, copies, and explicitly saves the generated plan', async () => {
     const user = userEvent.setup()
     let savedTask: DeliveryTask | undefined
     const onCreate = vi.fn(async (task: DeliveryTask) => ({
@@ -253,13 +237,7 @@ describe('one-screen private brief generation', () => {
         <Routes>
           <Route
             path="/workspace"
-            element={
-              <TaskBriefPage
-                onCreate={onCreate}
-                onUpdate={onUpdate}
-                onRemoveContext={() => null}
-              />
-            }
+            element={<TaskPlanPage onCreate={onCreate} onUpdate={onUpdate} />}
           />
         </Routes>
       </MemoryRouter>
@@ -267,9 +245,10 @@ describe('one-screen private brief generation', () => {
 
     await user.type(
       screen.getByLabelText('What do you want to accomplish?'),
-      'Write a brief'
+      'Write a plan'
     )
-    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit plan' }))
     const objective = await screen.findByLabelText('Objective')
     await user.clear(objective)
     await user.type(objective, 'Edited objective')
@@ -277,7 +256,7 @@ describe('one-screen private brief generation', () => {
     expect(writeText).toHaveBeenCalledWith(
       expect.stringContaining('## Objective\nEdited objective')
     )
-    await user.click(screen.getByRole('button', { name: 'Save brief' }))
+    await user.click(screen.getByRole('button', { name: 'Save plan' }))
     expect(
       await screen.findByText('Saved to your private workspace.')
     ).toBeInTheDocument()
@@ -288,7 +267,7 @@ describe('one-screen private brief generation', () => {
 })
 
 describe('private project context', () => {
-  it('sends only the selected context entries when generating a plan', async () => {
+  it('generates from the task without sending previously stored context', async () => {
     const user = userEvent.setup()
     const task = createDeliveryTask({
       title: 'Private task',
@@ -348,15 +327,12 @@ describe('private project context', () => {
       </MemoryRouter>
     )
 
-    await user.click(screen.getByLabelText('AGENTS excerpt'))
-    expect(
-      screen.getByText(/Context selection: 1 of 5 entries/)
-    ).toBeInTheDocument()
+    await user.click(screen.getByText('Delivery details (optional)'))
     await user.click(screen.getByRole('button', { name: 'Generate plan' }))
 
     expect(generateDeliveryPlan).toHaveBeenCalledWith({
       taskId: contextTask.id,
-      contextEntryIds: ['readme'],
+      contextEntryIds: [],
       contextRevision: 1,
     })
   })
@@ -402,8 +378,6 @@ describe('private project context', () => {
                 onCompleteStage={() => task}
                 onReview={() => task}
                 onReopenStage={() => task}
-                onSaveContext={() => task}
-                onRemoveContext={() => task}
               />
             }
           />
@@ -412,88 +386,8 @@ describe('private project context', () => {
     )
 
     expect(
-      screen.getByText(/Project context changed after this plan was saved/)
+      screen.getByText(/This saved plan may be outdated/)
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(/against context revision 1 and save it again/)
-    ).toBeInTheDocument()
-  })
-
-  it('saves, reloads, edits, and removes context without adding it to the demo', async () => {
-    const user = userEvent.setup()
-    let task = createDeliveryTask({
-      title: 'Private task',
-      goal: 'Use context',
-    })
-    const route = () => (
-      <MemoryRouter initialEntries={[`/workspace/tasks/${task.id}`]}>
-        <Routes>
-          <Route
-            path="/workspace/tasks/:taskId"
-            element={
-              <TaskDetailRoute
-                tasks={[task]}
-                basePath="/workspace"
-                onSave={() => task}
-                onSaveArtifact={() => task}
-                onSaveValidationResult={() => task}
-                onCompleteStage={() => task}
-                onReview={() => task}
-                onReopenStage={() => task}
-                onSaveContext={(_id, input) => {
-                  task = saveDeliveryContextEntry(task, input)
-                  return task
-                }}
-                onRemoveContext={(_id, contextId) => {
-                  task = removeDeliveryContextEntry(task, contextId)
-                  return task
-                }}
-              />
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    )
-    const view = render(route())
-
-    expect(
-      screen.getByText(/sent to AI only when you explicitly generate a plan/)
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(/Do not include passwords, tokens/)
-    ).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Add context' }))
-    await user.type(screen.getByLabelText('Context name'), 'README excerpt')
-    await user.type(
-      screen.getByLabelText('Plain-text context'),
-      'Use the existing routing pattern.'
-    )
-    await user.click(screen.getByRole('button', { name: 'Save context' }))
-    view.rerender(route())
-    expect(screen.getByText('README excerpt')).toBeInTheDocument()
-    expect(
-      screen.getByText('Entry revision 1 · Task context revision 1')
-    ).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-    await user.clear(screen.getByLabelText('Plain-text context'))
-    await user.type(
-      screen.getByLabelText('Plain-text context'),
-      'Updated project facts.'
-    )
-    await user.click(screen.getByRole('button', { name: 'Save context' }))
-    view.rerender(route())
-    expect(screen.getByText('Updated project facts.')).toBeInTheDocument()
-    expect(
-      screen.getByText('Entry revision 2 · Task context revision 2')
-    ).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Remove' }))
-    view.rerender(route())
-    expect(
-      screen.getByText('No project context saved yet.')
-    ).toBeInTheDocument()
-    expect(task.contextRevision).toBe(3)
   })
 })
 
@@ -501,7 +395,7 @@ describe('stage artifact editor', () => {
   it('saves literal text, rejects blank input, cancels edits, and keeps notes during navigation', async () => {
     const user = userEvent.setup()
     render(
-      <MemoryRouter initialEntries={['/demo/tasks/new']}>
+      <MemoryRouter initialEntries={['/demo/legacy/new']}>
         <Routes>
           <Route path="/demo/*" element={<AIDeliveryLabPage />} />
         </Routes>
@@ -511,6 +405,7 @@ describe('stage artifact editor', () => {
     await user.type(screen.getByLabelText('Title'), 'Example task')
     await user.type(screen.getByLabelText('Goal'), 'Record a delivery outcome')
     await user.click(screen.getByRole('button', { name: 'Create task' }))
+    await user.click(await screen.findByText('Delivery details (optional)'))
     await screen.findByRole('button', { name: 'Save discovery notes' })
 
     await user.click(
@@ -539,6 +434,7 @@ describe('stage artifact editor', () => {
 
     await user.click(screen.getByRole('link', { name: '← All tasks' }))
     await user.click(screen.getByRole('link', { name: 'Example task' }))
+    await user.click(screen.getByText('Delivery details (optional)'))
     expect(screen.getByText(literalText)).toBeInTheDocument()
   })
 })
@@ -547,7 +443,7 @@ describe('validation results', () => {
   it('labels manual evidence, explains blockers, and marks results stale after work changes', async () => {
     const user = userEvent.setup()
     render(
-      <MemoryRouter initialEntries={['/demo/tasks/new']}>
+      <MemoryRouter initialEntries={['/demo/legacy/new']}>
         <Routes>
           <Route path="/demo/*" element={<AIDeliveryLabPage />} />
         </Routes>
@@ -557,6 +453,7 @@ describe('validation results', () => {
     await user.type(screen.getByLabelText('Title'), 'Validation task')
     await user.type(screen.getByLabelText('Goal'), 'Record actual checks')
     await user.click(screen.getByRole('button', { name: 'Create task' }))
+    await user.click(await screen.findByText('Delivery details (optional)'))
     await screen.findByRole('button', { name: 'Complete stage' })
     await user.click(screen.getByRole('button', { name: 'Complete stage' }))
     await user.click(screen.getByRole('button', { name: 'Complete stage' }))
@@ -603,4 +500,50 @@ describe('validation results', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/current work revision is 2/)).toBeInTheDocument()
   })
+})
+
+it('generates, edits, copies, saves, and reopens a simulated plan without real AI', async () => {
+  const user = userEvent.setup()
+  generateDeliveryPlan.mockClear()
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText },
+  })
+  render(
+    <MemoryRouter initialEntries={['/demo']}>
+      <Routes>
+        <Route path="/demo/*" element={<AIDeliveryLabPage />} />
+      </Routes>
+    </MemoryRouter>
+  )
+  expect(screen.queryByRole('button', { name: 'Complete stage' })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Use sample idea' }))
+  await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+  await user.click(await screen.findByRole('button', { name: 'Edit plan' }))
+  const objective = await screen.findByLabelText('Objective')
+  await user.clear(objective)
+  await user.type(objective, 'Simpler mobile signup')
+  await user.click(screen.getByRole('button', { name: 'Copy Markdown' }))
+  expect(writeText).toHaveBeenCalledWith(
+    expect.stringContaining('Simpler mobile signup')
+  )
+  await user.click(screen.getByRole('button', { name: 'Save plan' }))
+  expect(
+    await screen.findByText('Saved for this demo session. Reloading clears it.')
+  ).toBeInTheDocument()
+  expect(generateDeliveryPlan).not.toHaveBeenCalled()
+  await user.click(screen.getByRole('button', { name: 'Saved plans' }))
+  await user.click(
+    screen.getByRole('link', {
+      name: 'Make my room brighter without spending much.',
+    })
+  )
+  expect(
+    screen.getByText(/Objective\s+Simpler mobile signup/)
+  ).toBeInTheDocument()
+  expect(screen.getByText(/Simulated demo plan/)).toBeInTheDocument()
+  expect(
+    screen.getByText('Delivery details (optional)').closest('details')
+  ).not.toHaveAttribute('open')
 })

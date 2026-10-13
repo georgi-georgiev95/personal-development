@@ -11,15 +11,21 @@ export const Nav = styled.nav`
   position: sticky;
   top: 0;
   z-index: ${theme.zIndex.nav};
+  gap: ${theme.spacing.md};
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+  }
 
   @media (max-width: ${theme.breakpoint.tablet}) {
     padding: 14px ${theme.spacing.md} 0;
-    height: ${theme.layout.navHeightTablet};
+    min-height: ${theme.layout.navHeightTablet};
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     padding: 10px ${theme.spacing.sm} 0;
-    height: ${theme.layout.navHeightMobile};
+    min-height: ${theme.layout.navHeightMobile};
   }
 `
 
@@ -180,38 +186,90 @@ export const NavButton = styled.button`
 `
 
 export const ThemeToggle = styled.button`
-  display: inline-flex;
+  display: grid;
   align-items: center;
-  gap: ${theme.spacing.xs};
-  min-height: 32px;
-  padding: ${theme.spacing.xs} ${theme.spacing.sm};
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.full};
-  color: ${theme.colors.textSecondary};
-  background: ${theme.colors.surface};
-  font: inherit;
-  font-size: ${theme.fontSizes.xs};
+  flex-shrink: 0;
+  width: 48px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   cursor: pointer;
-  transition:
-    color ${theme.transition.fast},
-    border-color ${theme.transition.fast},
-    background ${theme.transition.fast};
 
-  &:hover {
-    color: ${theme.colors.text};
-    border-color: ${theme.colors.primary};
+  span {
+    position: relative;
+    display: block;
+    width: 48px;
+    height: 24px;
+    border-radius: 999px;
+    background: #e8e0d4;
+    outline: 1px solid #82715c;
+    box-shadow:
+      3px 3px 7px rgb(0 0 0 / 12%),
+      -3px -3px 7px rgb(255 255 255 / 65%),
+      inset 0 0 2px rgb(255 230 0 / 30%);
+    pointer-events: none;
+  }
+
+  span::before,
+  span::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    transition:
+      transform 150ms ease-out,
+      opacity 150ms ease-out;
+  }
+
+  span::before {
+    top: 4px;
+    left: 4px;
+    transform: translateX(24px);
+    background: #ffe600;
+    box-shadow:
+      inset 0 0 0 1px #8a7500,
+      0 0 7px 2px rgb(255 230 0 / 35%);
+  }
+
+  span::after {
+    top: 3px;
+    left: 9px;
+    transform: translateX(24px);
+    background: #171715;
+    opacity: 0;
+  }
+
+  &[aria-checked='true'] span {
+    background: #171715;
+    outline: 1px solid #68635b;
+    box-shadow:
+      3px 3px 7px rgb(0 0 0 / 55%),
+      -3px -3px 7px rgb(255 255 255 / 3%);
+  }
+
+  &[aria-checked='true'] span::before {
+    transform: translateX(0);
+    background: #fff;
+    box-shadow: 0 0 4px rgb(255 255 255 / 15%);
+  }
+
+  &[aria-checked='true'] span::after {
+    transform: translateX(0);
+    opacity: 1;
   }
 
   &:focus-visible {
     outline: 2px solid ${theme.colors.primary};
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: 0;
-
-    span {
-      font-size: ${theme.fontSizes.md};
+  @media (prefers-reduced-motion: reduce) {
+    span::before,
+    span::after {
+      transition: none;
     }
   }
 `

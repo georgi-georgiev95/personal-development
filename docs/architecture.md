@@ -13,7 +13,7 @@ Browser
   ├─ Firebase Authentication ── signs users in and issues ID tokens
   └─ Cloudflare Worker /plan
        ├─ verifies the Firebase ID token
-       ├─ reads the user's task/context from Firestore
+       ├─ reads the user's task from Firestore (context support retained for legacy data)
        ├─ enforces the D1 quota
        └─ calls Groq's free-eligible model
 ```
@@ -73,13 +73,13 @@ Worker which Firestore data the requester is allowed to access.
 
 ### Cloud Firestore
 
-Firestore stores user profiles and the user's task/context data. The Worker
+Firestore stores user profiles, task descriptions, saved plans, and legacy context data. The Worker
 uses the Firebase REST API with a verified user token and only reads the task
-and context requested by that user.
+requested by that user. Context-entry requests remain supported only as a legacy backend capability.
 
 Without Firestore, the application would lose its persistent user data and the
-planner would have no shared source of truth for task context. The Worker
-could accept the entire context from the browser, but that would be less
+planner would have no shared source of truth for saved tasks. The Worker
+could accept a task description from the browser, but that would be less
 trustworthy and would not provide the application's existing persistence model.
 
 ### What we deliberately do not use
@@ -98,7 +98,7 @@ backend. It:
 1. validates the request and CORS origin;
 2. verifies the Firebase ID token;
 3. checks the optional beta allowlist;
-4. reads only authorized task/context data from Firestore;
+4. reads only authorized task data from Firestore (legacy context support remains bounded);
 5. applies per-user and global daily limits;
 6. calls Groq;
 7. validates the AI response before returning it.
@@ -143,15 +143,15 @@ portfolio application is meant to showcase.
 
 Each service has one job:
 
-| Service           | Responsibility             | Why it is needed                                  |
-| ----------------- | -------------------------- | ------------------------------------------------- |
-| React/Vite        | UI and browser application | Product experience and static build               |
-| Firebase Hosting  | Static deployment          | Public HTTPS delivery for the SPA                 |
-| Firebase Auth     | Identity                   | User sessions and verifiable ID tokens            |
-| Firestore         | Application data           | Persistent tasks, context, and profiles           |
-| Cloudflare Worker | Backend boundary           | Secrets, authorization, orchestration, and quotas |
-| Cloudflare D1     | Quota persistence          | Reliable distributed daily limits                 |
-| Groq              | AI inference               | Generates the planning draft                      |
+| Service           | Responsibility             | Why it is needed                                      |
+| ----------------- | -------------------------- | ----------------------------------------------------- |
+| React/Vite        | UI and browser application | Product experience and static build                   |
+| Firebase Hosting  | Static deployment          | Public HTTPS delivery for the SPA                     |
+| Firebase Auth     | Identity                   | User sessions and verifiable ID tokens                |
+| Firestore         | Application data           | Persistent tasks, plans, legacy context, and profiles |
+| Cloudflare Worker | Backend boundary           | Secrets, authorization, orchestration, and quotas     |
+| Cloudflare D1     | Quota persistence          | Reliable distributed daily limits                     |
+| Groq              | AI inference               | Generates the planning draft                          |
 
 This is the smallest practical split that keeps the demo public, authenticated,
 persistent, and AI-powered while avoiding Firebase Blaze and avoiding a paid
@@ -168,3 +168,10 @@ provider fallback.
 - No payment method or paid fallback is required for the portfolio demo.
 
 See [zero-cost AI planning](zero-cost-ai-planning.md) for deployment details.
+
+## Current planning UI
+
+Plans are generated from the task description only. Supporting context input,
+document uploads, and repository connections are deferred. Existing context
+records and backend validation remain compatible, but the UI neither edits
+nor selects those records for generation.

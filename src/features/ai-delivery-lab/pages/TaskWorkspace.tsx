@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { DemoJourney } from '@/features/ai-delivery-lab/demoJourneys'
 import { PlanDraftEditor } from '@/features/ai-delivery-lab/pages/PlanDraftEditor'
@@ -9,21 +9,14 @@ import {
   type DeliveryPlanProposal,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
-  DeliveryContextInputError,
   DeliveryTaskConflictError,
   DeliveryTaskInputError,
-  DELIVERY_CONTEXT_MAX_CONTENT_LENGTH,
-  DELIVERY_CONTEXT_MAX_ENTRIES,
-  DELIVERY_CONTEXT_MAX_NAME_LENGTH,
   getDeliveryStageBlocker,
   createDeliveryTask,
   deriveDeliveryTaskTitle,
-  saveDeliveryContextEntry,
   updateDeliveryTask,
   createDeliveryHandoff,
   type DeliveryArtifact,
-  type DeliveryContextEntry,
-  type DeliveryContextInput,
   type DeliveryTask,
   type DeliveryTaskInput,
   type DeliveryReviewer,
@@ -44,6 +37,8 @@ import {
   ArtifactContent,
   ArtifactMeta,
   ArtifactPanel,
+  PlanPanel,
+  PlanDocument,
   Eyebrow,
   Field,
   FieldError,
@@ -75,13 +70,9 @@ interface TaskCreatePageProps {
   basePath?: string
 }
 
-interface TaskBriefPageProps {
+interface TaskPlanPageProps {
   onCreate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
   onUpdate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
-  onRemoveContext: (
-    id: string,
-    contextId: string
-  ) => TaskWrite<DeliveryTask | null>
   basePath?: string
 }
 
@@ -119,14 +110,6 @@ interface TaskDetailPageProps {
     id: string,
     stage: DeliveryStage
   ) => TaskWrite<DeliveryTask | null>
-  onSaveContext?: (
-    id: string,
-    input: DeliveryContextInput
-  ) => TaskWrite<DeliveryTask | null>
-  onRemoveContext?: (
-    id: string,
-    contextId: string
-  ) => TaskWrite<DeliveryTask | null>
   onAcceptPlan?: (
     id: string,
     draft: DeliveryPlanProposal
@@ -153,8 +136,8 @@ const PageHeading = ({
     <Heading>{title}</Heading>
     <Notice role="status">
       {basePath === '/demo'
-        ? 'Demo only: tasks are held in memory and reset when you reload this page.'
-        : 'Briefs are saved in your private workspace and stay separate from the public demo.'}
+        ? 'Simulated demo · no real AI. Plans are temporary and reset on reload.'
+        : 'Plans are saved in your private workspace and stay separate from the public demo.'}
     </Notice>
   </>
 )
@@ -180,18 +163,13 @@ const TaskListContent = ({
   return (
     <TaskPage>
       <Breadcrumb to={basePath}>
-        {basePath === '/demo' ? '← Back to walkthrough' : '← Workspace'}
+        {basePath === '/demo' ? '← Try another plan' : '← Workspace'}
       </Breadcrumb>
-      <PageHeading
-        title={basePath === '/demo' ? 'Delivery tasks' : 'Saved briefs'}
-        basePath={basePath}
-      />
-      <Content
-        aria-label={basePath === '/demo' ? 'Delivery tasks' : 'Saved briefs'}
-      >
+      <PageHeading title="Saved plans" basePath={basePath} />
+      <Content aria-label="Saved plans">
         <Actions>
           <Button onClick={() => navigate(`${basePath}/tasks/new`)}>
-            {basePath === '/demo' ? 'Create task' : 'New brief'}
+            New plan
           </Button>
           {onCreateSample &&
             (['successful', 'changes-requested'] as const).map((journey) => (
@@ -209,13 +187,15 @@ const TaskListContent = ({
         <TaskMeta>
           {onCreateSample
             ? 'Samples contain placeholder notes and no passing evidence. Complete the successful path with real manual evidence and approval; the changes-requested sample has a simulated review decision.'
-            : 'Saved briefs stay private to your workspace. Legacy delivery details remain available when you reopen one.'}
+            : basePath === '/demo'
+              ? 'Plans saved in this demo session disappear on reload.'
+              : 'Only you can see your saved plans.'}
         </TaskMeta>
         {tasks.length === 0 ? (
           <TaskMeta>
             {onCreateSample
               ? 'No tasks yet. Create one to start the demo journey.'
-              : 'No saved briefs yet. Create a brief to save it here.'}
+              : 'No saved plans yet. Create a plan to save it here.'}
           </TaskMeta>
         ) : (
           <TaskList>
@@ -225,7 +205,11 @@ const TaskListContent = ({
                   {task.title}
                 </TaskLink>
                 <TaskMeta>{task.goal}</TaskMeta>
-                <Stage>Current stage: {task.stage}</Stage>
+                {task.artifacts.planning ? (
+                  <TaskMeta>Saved plan</TaskMeta>
+                ) : (
+                  <TaskMeta>Task input only · no plan saved yet</TaskMeta>
+                )}
               </TaskCard>
             ))}
           </TaskList>
@@ -342,41 +326,49 @@ export const TaskCreatePage = ({
   )
 }
 
-export function TaskBriefPage({
+export function TaskPlanPage({
   onCreate,
   onUpdate,
-  onRemoveContext,
   basePath = '/workspace',
-}: TaskBriefPageProps) {
+}: TaskPlanPageProps) {
   const navigate = useNavigate()
+  const demo = basePath === '/demo'
   const request = useRef(0)
+  useEffect(
+    () => () => {
+      request.current += 1
+    },
+    []
+  )
   const pendingTask = useRef<DeliveryTask | null>(null)
   const [goal, setGoal] = useState('')
-  const [context, setContext] = useState('')
   const [draft, setDraft] = useState<DeliveryPlanProposal | null>(null)
   const [state, setState] = useState<'idle' | 'generating'>('idle')
   const [error, setError] = useState('')
   const [savedInput, setSavedInput] = useState(false)
-  const [savedBrief, setSavedBrief] = useState(false)
-  const [briefStatus, setBriefStatus] = useState('')
+  const [savedPlan, setSavedPlan] = useState(false)
+  const [editingPlan, setEditingPlan] = useState(false)
+  const [planStatus, setPlanStatus] = useState('')
 
   const invalidate = () => {
     request.current += 1
     setDraft(null)
+    setEditingPlan(false)
     setError('')
     setState('idle')
     setSavedInput(false)
-    setSavedBrief(false)
-    setBriefStatus('')
+    setSavedPlan(false)
+    setPlanStatus('')
   }
 
   const generate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const token = ++request.current
     setState('generating')
+    setEditingPlan(false)
     setDraft(null)
     setError('')
-    setBriefStatus('')
+    setPlanStatus('')
 
     try {
       const title = deriveDeliveryTaskTitle(goal)
@@ -386,62 +378,56 @@ export function TaskBriefPage({
         : createDeliveryTask({ title, goal })
       if (!current) pendingTask.current = task
       if (task !== current || !task.persistenceRevision)
-        task = task.persistenceRevision
-          ? await onUpdate(task)
-          : await onCreate(task)
+        task =
+          task.persistenceRevision || (demo && current)
+            ? await onUpdate(task)
+            : await onCreate(task)
       pendingTask.current = task
       if (token === request.current) setSavedInput(true)
       if (token !== request.current) return
 
-      const savedContext = task.contextEntries?.find(
-        (entry) => entry.name === 'Brief context'
-      )
-      let contextId = savedContext?.id
-      if (context.trim()) {
-        const updated = saveDeliveryContextEntry(task, {
-          id: contextId,
-          name: 'Brief context',
-          content: context,
-        })
-        task = updated === task ? task : await onUpdate(updated)
-        contextId = task.contextEntries?.find(
-          (entry) => entry.name === 'Brief context'
-        )?.id
-      } else if (savedContext) {
-        task = (await onRemoveContext(task.id, savedContext.id)) ?? task
-        contextId = undefined
-      }
-      if (token !== request.current) return
-      pendingTask.current = task
-
-      const result = await (
-        await import('@/entities/delivery-task/planService')
-      ).generateDeliveryPlan({
-        taskId: task.id,
-        contextEntryIds: contextId ? [contextId] : [],
-        contextRevision: task.contextRevision ?? 0,
-      })
+      const result = demo
+        ? {
+            objective: task.goal,
+            steps: [
+              'Look at what you have and what you can change.',
+              'Choose one small, affordable step and try it.',
+              'Check whether it helps and decide what to do next.',
+            ],
+            acceptanceCriteria: [
+              'The result improves the situation within your time and budget.',
+            ],
+            risks: ['Sample plan only; adjust these steps to your situation.'],
+            contextRevision: task.contextRevision ?? 0,
+          }
+        : await (
+            await import('@/entities/delivery-task/planService')
+          ).generateDeliveryPlan({
+            taskId: task.id,
+            contextEntryIds: [],
+            contextRevision: task.contextRevision ?? 0,
+          })
       if (token !== request.current) return
       setDraft({
         ...result,
         taskId: task.id,
         taskRevision: task.revision,
-        source: 'ai',
+        source: demo ? 'demo' : 'ai',
       })
-      setSavedBrief(false)
+      setSavedPlan(false)
     } catch (caught) {
       if (token === request.current)
         setError(
           caught instanceof Error
             ? caught.message
-            : 'Could not generate a brief. Try again.'
+            : 'Could not generate a plan. Try again.'
         )
     } finally {
       if (token === request.current) setState('idle')
     }
   }
 
-  const briefMarkdown = (proposal: DeliveryPlanProposal): string =>
+  const planMarkdown = (proposal: DeliveryPlanProposal): string =>
     [
       `## Objective\n${proposal.objective.trim()}`,
       `## Steps\n${proposal.steps
@@ -462,40 +448,45 @@ export function TaskBriefPage({
           .join('\n') || 'None recorded.'
       }`,
     ].join('\n\n')
-  const saveBrief = async () => {
+  const savePlan = async () => {
     if (!draft || !pendingTask.current) return
     setError('')
-    setBriefStatus('')
+    setPlanStatus('')
     try {
       const accepted = acceptDeliveryPlan(pendingTask.current, draft)
       const saved = await onUpdate(accepted)
       pendingTask.current = saved
       setDraft({ ...draft, taskRevision: saved.revision })
-      setSavedBrief(true)
-      setBriefStatus('Saved to your private workspace.')
+      setSavedPlan(true)
+      setEditingPlan(false)
+      setPlanStatus(
+        demo
+          ? 'Saved for this demo session. Reloading clears it.'
+          : 'Saved to your private workspace.'
+      )
     } catch (caught) {
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Could not save the brief. Try again.'
+          : 'Could not save the plan. Try again.'
       )
     }
   }
-  const copyBrief = async () => {
+  const copyPlan = async () => {
     if (!draft) return
-    const markdown = briefMarkdown(draft)
+    const markdown = planMarkdown(draft)
     try {
       await navigator.clipboard.writeText(markdown)
-      setBriefStatus('Copied Markdown to the clipboard.')
+      setPlanStatus('Copied Markdown to the clipboard.')
     } catch {
       const link = document.createElement('a')
       link.href = URL.createObjectURL(
         new Blob([markdown], { type: 'text/markdown' })
       )
-      link.download = 'implementation-brief.md'
+      link.download = 'action-plan.md'
       link.click()
       URL.revokeObjectURL(link.href)
-      setBriefStatus(
+      setPlanStatus(
         'Clipboard unavailable; downloaded the Markdown file instead.'
       )
     }
@@ -503,17 +494,34 @@ export function TaskBriefPage({
 
   return (
     <TaskPage>
-      <Breadcrumb to={`${basePath}/tasks`}>← Workspace</Breadcrumb>
-      <PageHeading title="Start with the task" basePath={basePath} />
+      <Breadcrumb to={`${basePath}/tasks`}>← Saved plans</Breadcrumb>
+      <PageHeading
+        title={demo ? 'Try an idea. See a plan.' : 'Start a plan'}
+        basePath={basePath}
+      />
       <Content>
         <TaskForm onSubmit={generate}>
+          {demo && (
+            <Actions>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  invalidate()
+                  setGoal('Make my room brighter without spending much.')
+                }}
+              >
+                Use sample idea
+              </Button>
+            </Actions>
+          )}
           <Field>
-            <label htmlFor="brief-goal">What do you want to accomplish?</label>
+            <label htmlFor="plan-goal">What do you want to accomplish?</label>
             <Textarea
-              id="brief-goal"
-              placeholder="What should be clearer, faster, or easier?"
+              id="plan-goal"
+              placeholder="For example: plan meals for the week, organize my day, or make my room brighter."
               value={goal}
-              rows={8}
+              rows={4}
               required
               onChange={(event) => {
                 setGoal(event.target.value)
@@ -521,124 +529,157 @@ export function TaskBriefPage({
               }}
             />
           </Field>
-          <Field>
-            <label htmlFor="brief-context">Project context (optional)</label>
-            <Textarea
-              id="brief-context"
-              placeholder="Add only the project context needed for a useful brief."
-              value={context}
-              rows={5}
-              maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
-              onChange={(event) => {
-                setContext(event.target.value)
-                invalidate()
-              }}
-              aria-describedby="brief-context-count"
-            />
-            <ArtifactMeta id="brief-context-count">
-              {context.length.toLocaleString()} /{' '}
-              {DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters
-            </ArtifactMeta>
-          </Field>
           {error && <FieldError role="alert">{error}</FieldError>}
           <Actions>
             <Button type="submit" disabled={state === 'generating'}>
-              {state === 'generating' ? 'Generating…' : 'Generate brief'}
+              {state === 'generating' ? 'Generating…' : 'Generate plan'}
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate(`${basePath}/tasks`)}
             >
-              View workspace
+              Saved plans
             </Button>
           </Actions>
           {savedInput && (
             <TaskMeta role="status">
-              Your task input is saved separately from this generated brief.
+              {demo
+                ? 'Sample response · no real AI was used.'
+                : 'Your task input is saved separately from this generated plan.'}
             </TaskMeta>
           )}
         </TaskForm>
         {draft && (
-          <ArtifactPanel aria-label="Generated brief">
-            <h2>Implementation brief</h2>
+          <PlanPanel aria-label="Generated plan">
+            <h2>Your plan</h2>
             <ArtifactMeta>
-              {savedBrief
-                ? 'Saved brief. Edit and save again to update it.'
+              {savedPlan
+                ? 'Saved plan. Edit and save again to update it.'
                 : 'Draft only. Edit it, then save when it is ready.'}
             </ArtifactMeta>
-            {(['objective', 'steps', 'acceptanceCriteria'] as const).map(
-              (field) => (
-                <Field key={field}>
-                  <label htmlFor={`brief-${field}`}>
-                    {field === 'acceptanceCriteria'
-                      ? 'Acceptance criteria'
-                      : field === 'objective'
-                        ? 'Objective'
-                        : 'Steps (one per line)'}
-                  </label>
-                  <Textarea
-                    id={`brief-${field}`}
-                    placeholder={
-                      field === 'objective'
-                        ? 'Summarize the intended outcome.'
-                        : 'Add one item per line.'
-                    }
-                    rows={field === 'objective' ? 3 : 5}
-                    value={
-                      field === 'objective'
-                        ? draft.objective
-                        : draft[field].join('\n')
-                    }
-                    onChange={(event) => {
-                      setDraft({
-                        ...draft,
-                        [field]:
+            {editingPlan ? (
+              <>
+                {(['objective', 'steps', 'acceptanceCriteria'] as const).map(
+                  (field) => (
+                    <Field key={field}>
+                      <label htmlFor={`plan-${field}`}>
+                        {field === 'acceptanceCriteria'
+                          ? 'What success looks like'
+                          : field === 'objective'
+                            ? 'Objective'
+                            : 'Steps (one per line)'}
+                      </label>
+                      <Textarea
+                        id={`plan-${field}`}
+                        placeholder={
                           field === 'objective'
-                            ? event.target.value
-                            : event.target.value.split('\n'),
-                      })
-                      setSavedBrief(false)
-                      setBriefStatus('Unsaved changes.')
-                    }}
-                  />
-                </Field>
-              )
+                            ? 'Summarize the intended outcome.'
+                            : 'Add one item per line.'
+                        }
+                        rows={field === 'objective' ? 3 : 5}
+                        value={
+                          field === 'objective'
+                            ? draft.objective
+                            : draft[field].join('\n')
+                        }
+                        onChange={(event) => {
+                          setDraft({
+                            ...draft,
+                            [field]:
+                              field === 'objective'
+                                ? event.target.value
+                                : event.target.value.split('\n'),
+                          })
+                          setSavedPlan(false)
+                          setPlanStatus('Unsaved changes.')
+                        }}
+                      />
+                    </Field>
+                  )
+                )}
+                <details>
+                  <summary>Risks (optional)</summary>
+                  <Field>
+                    <label htmlFor="plan-risks">Risks (one per line)</label>
+                    <Textarea
+                      id="plan-risks"
+                      placeholder="Add one risk per line, or leave blank."
+                      rows={4}
+                      value={draft.risks.join('\n')}
+                      onChange={(event) => {
+                        setDraft({
+                          ...draft,
+                          risks: event.target.value.split('\n'),
+                        })
+                        setSavedPlan(false)
+                        setPlanStatus('Unsaved changes.')
+                      }}
+                    />
+                  </Field>
+                </details>
+              </>
+            ) : (
+              <PlanDocument>
+                <section>
+                  <h3>Objective</h3>
+                  <p>{draft.objective}</p>
+                </section>
+                <section>
+                  <h3>Steps</h3>
+                  <ol>
+                    {draft.steps
+                      .filter((line) => line.trim())
+                      .map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                  </ol>
+                </section>
+                <section>
+                  <h3>What success looks like</h3>
+                  <ul>
+                    {draft.acceptanceCriteria
+                      .filter((line) => line.trim())
+                      .map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                  </ul>
+                </section>
+                {draft.risks.some((line) => line.trim()) && (
+                  <details>
+                    <summary>Risks</summary>
+                    <ul>
+                      {draft.risks
+                        .filter((line) => line.trim())
+                        .map((line, index) => (
+                          <li key={index}>{line}</li>
+                        ))}
+                    </ul>
+                  </details>
+                )}
+              </PlanDocument>
             )}
-            <details>
-              <summary>Risks (optional)</summary>
-              <Field>
-                <label htmlFor="brief-risks">Risks (one per line)</label>
-                <Textarea
-                  id="brief-risks"
-                  placeholder="Add one risk per line, or leave blank."
-                  rows={4}
-                  value={draft.risks.join('\n')}
-                  onChange={(event) => {
-                    setDraft({
-                      ...draft,
-                      risks: event.target.value.split('\n'),
-                    })
-                    setSavedBrief(false)
-                    setBriefStatus('Unsaved changes.')
-                  }}
-                />
-              </Field>
-            </details>
-            {briefStatus && <TaskMeta role="status">{briefStatus}</TaskMeta>}
+            {planStatus && <TaskMeta role="status">{planStatus}</TaskMeta>}
             <Actions>
-              <Button type="button" onClick={() => void saveBrief()}>
-                Save brief
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setEditingPlan(!editingPlan)}
+              >
+                {editingPlan ? 'Done editing' : 'Edit plan'}
+              </Button>
+              <Button type="button" onClick={() => void savePlan()}>
+                Save plan
               </Button>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => void copyBrief()}
+                onClick={() => void copyPlan()}
               >
                 Copy Markdown
               </Button>
             </Actions>
-          </ArtifactPanel>
+          </PlanPanel>
         )}
       </Content>
     </TaskPage>
@@ -653,8 +694,6 @@ export const TaskDetailRoute = ({
   onReview,
   onCompleteStage,
   onReopenStage,
-  onSaveContext,
-  onRemoveContext,
   onAcceptPlan,
   basePath = '/demo',
   reviewer,
@@ -674,8 +713,6 @@ export const TaskDetailRoute = ({
       onReview={onReview}
       onCompleteStage={onCompleteStage}
       onReopenStage={onReopenStage}
-      onSaveContext={onSaveContext}
-      onRemoveContext={onRemoveContext}
       onAcceptPlan={onAcceptPlan}
       basePath={basePath}
       reviewer={reviewer}
@@ -691,8 +728,6 @@ const TaskDetailPage = ({
   onReview,
   onCompleteStage,
   onReopenStage,
-  onSaveContext,
-  onRemoveContext,
   onAcceptPlan,
   basePath = '/demo',
   reviewer,
@@ -774,359 +809,191 @@ const TaskDetailPage = ({
       <Breadcrumb to={`${basePath}/tasks`}>← All tasks</Breadcrumb>
       <PageHeading title={task.title} basePath={basePath} />
       <Content>
-        <Stage>Current stage: {task.stage}</Stage>
-        {task.stage === 'handoff' &&
-          !getDeliveryStageBlocker(task, 'review') && (
-            <TaskMeta role="status">Ready for handoff.</TaskMeta>
-          )}
-        <StageProgress aria-label="Task delivery stages">
-          {DELIVERY_STAGES.map((stage) => {
-            const stageIndex = DELIVERY_STAGES.indexOf(stage)
-            const status =
-              stageIndex < currentStageIndex
-                ? 'completed'
-                : stageIndex === currentStageIndex
-                  ? 'current'
-                  : 'pending'
-            return (
-              <li key={stage}>
-                <StageChoice
-                  type="button"
-                  $selected={selectedStage === stage}
-                  aria-current={selectedStage === stage ? 'step' : undefined}
-                  onClick={() => selectStage(stage)}
-                >
-                  <span>{stage[0].toUpperCase() + stage.slice(1)}</span>
-                  <span>{status}</span>
-                </StageChoice>
-              </li>
-            )
-          })}
-        </StageProgress>
-        <ReviewDecisions
-          key={task.id + task.reviewDecisions.length}
-          task={task}
-          reviewer={reviewer}
-          editable={task.stage === 'review' && selectedStage === 'review'}
-          onReview={async (input) => {
-            const updated = await onReview(task.id, input)
-            updateStage(updated)
-            return updated
-          }}
-        />
-        <section aria-label={`${selectedStage} stage details`}>
-          {mutationError && (
-            <FieldError role="alert">{mutationError}</FieldError>
-          )}
-          <Stage>
-            {selectedStageStatus} stage: {selectedStage}
-          </Stage>
-          {selectedStageStatus === 'current' && stageBlocker && (
-            <TaskMeta role="note">{stageBlocker}</TaskMeta>
-          )}
-          {selectedStageStatus === 'pending' && (
-            <TaskMeta role="note">Complete earlier stages first.</TaskMeta>
-          )}
-          <StageActions>
-            {selectedStageStatus === 'current' &&
-              selectedStage !== 'review' &&
-              selectedStage !== 'handoff' && (
+        {task.artifacts.planning && (
+          <StageArtifactEditor
+            key={`${task.id}-plan-${task.artifacts.planning.revision}`}
+            taskId={task.id}
+            stage="planning"
+            intentRevision={task.intentRevision}
+            contextRevision={task.contextRevision ?? 0}
+            artifact={task.artifacts.planning}
+            onSave={onSaveArtifact}
+          />
+        )}
+        <details>
+          <summary>Delivery details (optional)</summary>
+          <Stage>Current stage: {task.stage}</Stage>
+          {task.stage === 'handoff' &&
+            !getDeliveryStageBlocker(task, 'review') && (
+              <TaskMeta role="status">Ready for handoff.</TaskMeta>
+            )}
+          <StageProgress aria-label="Task delivery stages">
+            {DELIVERY_STAGES.map((stage) => {
+              const stageIndex = DELIVERY_STAGES.indexOf(stage)
+              const status =
+                stageIndex < currentStageIndex
+                  ? 'completed'
+                  : stageIndex === currentStageIndex
+                    ? 'current'
+                    : 'pending'
+              return (
+                <li key={stage}>
+                  <StageChoice
+                    type="button"
+                    $selected={selectedStage === stage}
+                    aria-current={selectedStage === stage ? 'step' : undefined}
+                    onClick={() => selectStage(stage)}
+                  >
+                    <span>{stage[0].toUpperCase() + stage.slice(1)}</span>
+                    <span>{status}</span>
+                  </StageChoice>
+                </li>
+              )
+            })}
+          </StageProgress>
+          <ReviewDecisions
+            key={task.id + task.reviewDecisions.length}
+            task={task}
+            reviewer={reviewer}
+            editable={task.stage === 'review' && selectedStage === 'review'}
+            onReview={async (input) => {
+              const updated = await onReview(task.id, input)
+              updateStage(updated)
+              return updated
+            }}
+          />
+          <section aria-label={`${selectedStage} stage details`}>
+            {mutationError && (
+              <FieldError role="alert">{mutationError}</FieldError>
+            )}
+            <Stage>
+              {selectedStageStatus} stage: {selectedStage}
+            </Stage>
+            {selectedStageStatus === 'current' && stageBlocker && (
+              <TaskMeta role="note">{stageBlocker}</TaskMeta>
+            )}
+            {selectedStageStatus === 'pending' && (
+              <TaskMeta role="note">Complete earlier stages first.</TaskMeta>
+            )}
+            <StageActions>
+              {selectedStageStatus === 'current' &&
+                selectedStage !== 'review' &&
+                selectedStage !== 'handoff' && (
+                  <Button
+                    disabled={Boolean(stageBlocker)}
+                    onClick={() =>
+                      void runStageMutation(() =>
+                        onCompleteStage(task.id, selectedStage)
+                      )
+                    }
+                  >
+                    Complete stage
+                  </Button>
+                )}
+              {selectedStageStatus === 'completed' && (
                 <Button
-                  disabled={Boolean(stageBlocker)}
+                  variant="secondary"
                   onClick={() =>
                     void runStageMutation(() =>
-                      onCompleteStage(task.id, selectedStage)
+                      onReopenStage(task.id, selectedStage)
                     )
                   }
                 >
-                  Complete stage
+                  Reopen stage
                 </Button>
               )}
-            {selectedStageStatus === 'completed' && (
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  void runStageMutation(() =>
-                    onReopenStage(task.id, selectedStage)
-                  )
+            </StageActions>
+            {selectedStage === 'planning' && onAcceptPlan && (
+              <PlanDraftEditor
+                key={`${task.id}-${task.revision}-${task.contextRevision ?? 0}`}
+                task={task}
+                demo={basePath === '/demo'}
+                onAccept={onAcceptPlan}
+              />
+            )}
+            {selectedStage === 'planning' &&
+            task.artifacts.planning ? null : isArtifactStage(selectedStage) ? (
+              <StageArtifactEditor
+                key={`${task.id}-${selectedStage}-${task.artifacts[selectedStage]?.revision ?? 0}`}
+                taskId={task.id}
+                stage={selectedStage}
+                intentRevision={task.intentRevision}
+                contextRevision={task.contextRevision ?? 0}
+                artifact={task.artifacts[selectedStage]}
+                onSave={onSaveArtifact}
+              />
+            ) : selectedStage === 'validation' ? (
+              <ValidationResults
+                checks={task.validationChecks}
+                taskId={task.id}
+                taskRevision={task.revision}
+                workRevision={task.workRevision}
+                editable={selectedStageStatus === 'current'}
+                onSave={onSaveValidationResult}
+              />
+            ) : (
+              <HandoffExport task={task} />
+            )}
+          </section>
+          <TaskMeta>
+            Created {new Date(task.createdAt).toLocaleString()}
+          </TaskMeta>
+          <TaskForm onSubmit={handleSubmit}>
+            {saveError && <FieldError role="alert">{saveError}</FieldError>}
+            <Field>
+              <label htmlFor="task-title">Title</label>
+              <TextInput
+                id="task-title"
+                placeholder="e.g. Improve onboarding"
+                value={title}
+                onChange={(event) => {
+                  setTitle(event.target.value)
+                  setError(null)
+                  setSaved(false)
+                }}
+                aria-invalid={error?.field === 'title'}
+                aria-describedby={
+                  error?.field === 'title' ? 'title-error' : undefined
                 }
-              >
-                Reopen stage
+              />
+              {error?.field === 'title' && (
+                <FieldError id="title-error" role="alert">
+                  {error.message}
+                </FieldError>
+              )}
+            </Field>
+            <Field>
+              <label htmlFor="task-goal">Goal</label>
+              <Textarea
+                id="task-goal"
+                placeholder="Describe the outcome you want to achieve."
+                value={goal}
+                onChange={(event) => {
+                  setGoal(event.target.value)
+                  setError(null)
+                  setSaved(false)
+                }}
+                aria-invalid={error?.field === 'goal'}
+                aria-describedby={
+                  error?.field === 'goal' ? 'goal-error' : undefined
+                }
+              />
+              {error?.field === 'goal' && (
+                <FieldError id="goal-error" role="alert">
+                  {error.message}
+                </FieldError>
+              )}
+            </Field>
+            <Actions>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
               </Button>
-            )}
-          </StageActions>
-          {selectedStage === 'planning' && onAcceptPlan && (
-            <PlanDraftEditor
-              key={`${task.id}-${task.revision}-${task.contextRevision ?? 0}`}
-              task={task}
-              demo={basePath === '/demo'}
-              onAccept={onAcceptPlan}
-            />
-          )}
-          {isArtifactStage(selectedStage) ? (
-            <StageArtifactEditor
-              key={`${task.id}-${selectedStage}-${task.artifacts[selectedStage]?.revision ?? 0}`}
-              taskId={task.id}
-              stage={selectedStage}
-              intentRevision={task.intentRevision}
-              contextRevision={task.contextRevision ?? 0}
-              artifact={task.artifacts[selectedStage]}
-              onSave={onSaveArtifact}
-            />
-          ) : selectedStage === 'validation' ? (
-            <ValidationResults
-              checks={task.validationChecks}
-              taskId={task.id}
-              taskRevision={task.revision}
-              workRevision={task.workRevision}
-              editable={selectedStageStatus === 'current'}
-              onSave={onSaveValidationResult}
-            />
-          ) : (
-            <HandoffExport task={task} />
-          )}
-        </section>
-        <TaskMeta>Created {new Date(task.createdAt).toLocaleString()}</TaskMeta>
-        <TaskForm onSubmit={handleSubmit}>
-          {saveError && <FieldError role="alert">{saveError}</FieldError>}
-          <Field>
-            <label htmlFor="task-title">Title</label>
-            <TextInput
-              id="task-title"
-              placeholder="e.g. Improve onboarding"
-              value={title}
-              onChange={(event) => {
-                setTitle(event.target.value)
-                setError(null)
-                setSaved(false)
-              }}
-              aria-invalid={error?.field === 'title'}
-              aria-describedby={
-                error?.field === 'title' ? 'title-error' : undefined
-              }
-            />
-            {error?.field === 'title' && (
-              <FieldError id="title-error" role="alert">
-                {error.message}
-              </FieldError>
-            )}
-          </Field>
-          <Field>
-            <label htmlFor="task-goal">Goal</label>
-            <Textarea
-              id="task-goal"
-              placeholder="Describe the outcome you want to achieve."
-              value={goal}
-              onChange={(event) => {
-                setGoal(event.target.value)
-                setError(null)
-                setSaved(false)
-              }}
-              aria-invalid={error?.field === 'goal'}
-              aria-describedby={
-                error?.field === 'goal' ? 'goal-error' : undefined
-              }
-            />
-            {error?.field === 'goal' && (
-              <FieldError id="goal-error" role="alert">
-                {error.message}
-              </FieldError>
-            )}
-          </Field>
-          <Actions>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving…' : 'Save changes'}
-            </Button>
-            {saved && <TaskMeta role="status">Task updated.</TaskMeta>}
-          </Actions>
-        </TaskForm>
-        {onSaveContext && onRemoveContext && (
-          <ProjectContextEditor
-            key={task.id}
-            task={task}
-            onSave={onSaveContext}
-            onRemove={onRemoveContext}
-          />
-        )}
+              {saved && <TaskMeta role="status">Task updated.</TaskMeta>}
+            </Actions>
+          </TaskForm>
+        </details>
       </Content>
     </TaskPage>
-  )
-}
-
-function ProjectContextEditor({
-  task,
-  onSave,
-  onRemove,
-}: {
-  task: DeliveryTask
-  onSave: NonNullable<TaskDetailPageProps['onSaveContext']>
-  onRemove: NonNullable<TaskDetailPageProps['onRemoveContext']>
-}) {
-  const entries = task.contextEntries ?? []
-  const [editing, setEditing] = useState(false)
-  const [editingId, setEditingId] = useState<string | undefined>()
-  const [name, setName] = useState('')
-  const [content, setContent] = useState('')
-  const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  const edit = (entry?: DeliveryContextEntry) => {
-    setEditingId(entry?.id)
-    setName(entry?.name ?? '')
-    setContent(entry?.content ?? '')
-    setError('')
-    setEditing(true)
-  }
-  const cancel = () => {
-    setEditing(false)
-    setEditingId(undefined)
-    setError('')
-  }
-  const handleSave = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setSaving(true)
-    try {
-      const updated = await onSave(task.id, { id: editingId, name, content })
-      if (!updated) throw new Error('Task is no longer available.')
-      cancel()
-    } catch (caught) {
-      setError(
-        caught instanceof DeliveryContextInputError ||
-          caught instanceof DeliveryTaskConflictError
-          ? caught.message
-          : 'Could not save this context. Try again.'
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
-  const handleRemove = async (id: string) => {
-    setSaving(true)
-    setError('')
-    try {
-      const updated = await onRemove(task.id, id)
-      if (!updated) throw new Error('Task is no longer available.')
-      if (editingId === id) cancel()
-    } catch (caught) {
-      setError(
-        caught instanceof DeliveryContextInputError ||
-          caught instanceof DeliveryTaskConflictError
-          ? caught.message
-          : 'Could not remove this context. Try again.'
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <ArtifactPanel aria-label="Project context">
-      <h2>Project context</h2>
-      <ArtifactMeta>
-        Paste plain-text README, AGENTS.md or harness excerpts, or a project
-        structure summary. This does not grant repository access. Your text is
-        sent to AI only when you explicitly generate a plan. Do not include
-        passwords, tokens, or other credentials.
-      </ArtifactMeta>
-      {entries.length === 0 ? (
-        <TaskMeta>No project context saved yet.</TaskMeta>
-      ) : (
-        <TaskList>
-          {entries.map((entry) => (
-            <TaskCard key={entry.id}>
-              <strong>{entry.name}</strong>
-              <ArtifactContent>{entry.content}</ArtifactContent>
-              <ArtifactMeta>
-                Entry revision {entry.revision} · Task context revision{' '}
-                {task.contextRevision ?? 0}
-              </ArtifactMeta>
-              <Actions>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={saving}
-                  onClick={() => edit(entry)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={saving}
-                  onClick={() => void handleRemove(entry.id)}
-                >
-                  Remove
-                </Button>
-              </Actions>
-            </TaskCard>
-          ))}
-        </TaskList>
-      )}
-      {!editing && entries.length < DELIVERY_CONTEXT_MAX_ENTRIES && (
-        <Button type="button" onClick={() => edit()}>
-          Add context
-        </Button>
-      )}
-      {entries.length >= DELIVERY_CONTEXT_MAX_ENTRIES && !editing && (
-        <TaskMeta>
-          Maximum of {DELIVERY_CONTEXT_MAX_ENTRIES} entries reached.
-        </TaskMeta>
-      )}
-      {editing && (
-        <TaskForm onSubmit={handleSave}>
-          <Field>
-            <label htmlFor={`context-name-${task.id}`}>Context name</label>
-            <TextInput
-              id={`context-name-${task.id}`}
-              placeholder="e.g. README excerpt"
-              value={name}
-              maxLength={DELIVERY_CONTEXT_MAX_NAME_LENGTH}
-              onChange={(event) => {
-                setName(event.target.value)
-                setError('')
-              }}
-              required
-            />
-          </Field>
-          <Field>
-            <label htmlFor={`context-content-${task.id}`}>
-              Plain-text context
-            </label>
-            <Textarea
-              id={`context-content-${task.id}`}
-              placeholder="Paste the plain-text context you want to keep with this brief."
-              value={content}
-              rows={8}
-              maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
-              onChange={(event) => {
-                setContent(event.target.value)
-                setError('')
-              }}
-              aria-describedby={`context-count-${task.id}`}
-              required
-            />
-            <ArtifactMeta id={`context-count-${task.id}`}>
-              {content.length.toLocaleString()} /{' '}
-              {DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters
-            </ArtifactMeta>
-          </Field>
-          {error && <FieldError role="alert">{error}</FieldError>}
-          <Actions>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving…' : 'Save context'}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={saving}
-              onClick={cancel}
-            >
-              Cancel
-            </Button>
-          </Actions>
-        </TaskForm>
-      )}
-    </ArtifactPanel>
   )
 }
 
@@ -1384,6 +1251,25 @@ const StageArtifactEditor = ({
   return (
     <ArtifactPanel aria-label={info.title}>
       <h2>{info.title}</h2>
+      {stage === 'planning' && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(
+                editing ? draft : (artifact?.content ?? '')
+              )
+              setError('')
+            } catch {
+              setError('Copy unavailable. Select the plan text to copy it.')
+            }
+          }}
+        >
+          Copy plan
+        </Button>
+      )}
+      {!editing && error && <FieldError role="alert">{error}</FieldError>}
       {editing ? (
         <form onSubmit={handleSubmit}>
           <Field>
@@ -1431,17 +1317,9 @@ const StageArtifactEditor = ({
                 {new Date(artifact.updatedAt).toLocaleString()}
               </ArtifactMeta>
               {stage === 'planning' &&
-                artifact.contextRevision !== undefined && (
-                  <ArtifactMeta>
-                    Uses project context revision {artifact.contextRevision}.
-                  </ArtifactMeta>
-                )}
-              {stage === 'planning' &&
                 (artifact.contextRevision ?? 0) !== contextRevision && (
                   <TaskMeta role="note">
-                    Project context changed after this plan was saved. Review
-                    the plan against context revision {contextRevision} and save
-                    it again to update its reference.
+                    This saved plan may be outdated. Review it before use.
                   </TaskMeta>
                 )}
               {artifact.taskRevision !== intentRevision && (

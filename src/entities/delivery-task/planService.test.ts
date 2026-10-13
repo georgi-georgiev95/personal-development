@@ -82,6 +82,7 @@ describe('generateDeliveryPlan', () => {
   })
 
   it('rejects unauthenticated and unconfigured requests', async () => {
+    vi.stubEnv('VITE_AI_PLANNER_URL', '')
     const unauthenticated = await import('./planService')
     await expect(
       unauthenticated.generateDeliveryPlan({

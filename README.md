@@ -1,7 +1,7 @@
 # personal-development
 
-AI Delivery Lab is a product for turning an outcome into a clear implementation
-brief and, when needed, a verified handoff. This repository contains its
+AI Planner is a product for helping anyone turn an everyday goal or problem into a practical
+action plan they can edit, copy, and save. This repository contains its
 public product entry, a deterministic simulated demo, authenticated private
 workspaces, and live zero-cost AI planning.
 
@@ -30,7 +30,7 @@ src/
     navigation/       Top navigation bar (auth-aware)
   features/         Feature-owned pages, components, hooks, and styles
     auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
-    home/             AI Delivery Lab product entry
+    home/             AI Planner product entry
     ai-delivery-lab/  Workflow pages, demo, workspace, and AI planning UI
   entities/         Business entities and services
     user/             User profile service (Firestore)
@@ -43,26 +43,28 @@ src/
   test/             Test setup and global test utilities
 ```
 
-The product entry is `/`, the simulated walkthrough is `/demo`, and sign-in
+The product entry is `/`, the simulated plan composer is `/demo`, and sign-in
 remains available at `/login` and `/register`. Previous portfolio URLs return
 to the product entry; the former `/engineering/ai-delivery` demo URL forwards
 to `/demo`.
 
 ## Retained foundation and follow-up
 
-The app includes Firebase authentication, private saved briefs, optional
+The app includes Firebase authentication, private saved plans, optional
 task-to-handoff details, manual evidence, and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, and billing remain deferred. The
 free planner backend runs as a bounded Cloudflare Worker with hard quotas and
 no paid fallback; see [zero-cost AI planning](docs/zero-cost-ai-planning.md) and
 the [production verification record](docs/production-verification.md).
 
-The beta's main path is brief-first: describe an outcome, generate a brief,
-edit it, copy it, save it privately, and reopen it later. The older delivery
+The beta's main path is plan-first: describe an outcome, generate a plan,
+edit it, copy it, save it privately, and reopen it later. Examples include
+home improvements, meal planning, organizing time, learning, and work. The older delivery
 detail stages remain available as optional task history; they are not required
-to create or save a brief. Users can switch between the warm light and
+to create or save a plan. Users can switch between the warm light and
 near-black dark themes with the navigation toggle; the choice stays local to
-the browser.
+the browser. Supporting context input, document uploads, and repository
+connections are deferred; planning currently uses the task description only.
 
 See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
 contract](docs/first-release-workflow.md) for the scope and acceptance rules.
@@ -75,7 +77,7 @@ checklist](docs/beta-verification.md).
 | ----------- | ---------------------------------------------------------------------------- |
 | `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)               |
 | `widgets/`  | Reusable UI blocks that use entities/features under the hood (Navigation)    |
-| `features/` | Self-contained user-facing features (auth, home, AI Delivery Lab)            |
+| `features/` | Self-contained user-facing features (auth, home, AI Planner)                 |
 | `entities/` | Business logic that doesn't belong to a single feature (user service, etc.)  |
 | `shared/`   | Truly reusable infra — config, styles, ui-kit, components, utility functions |
 
