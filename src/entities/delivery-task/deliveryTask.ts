@@ -10,6 +10,11 @@ export interface DeliveryTaskInput {
   goal: string
 }
 
+export const deriveDeliveryTaskTitle = (goal: string): string => {
+  const firstLine = goal.trim().split(/\r?\n/, 1)[0].replace(/\s+/g, ' ')
+  return firstLine.slice(0, 80).trim() || 'Untitled task'
+}
+
 export const DELIVERY_STAGES = [
   'discovery',
   'planning',

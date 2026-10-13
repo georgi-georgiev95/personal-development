@@ -10,7 +10,7 @@ import {
   type DeliveryTask,
 } from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
-import { TaskCreatePage, TaskDetailRoute } from './TaskWorkspace'
+import { TaskBriefPage, TaskCreatePage, TaskDetailRoute } from './TaskWorkspace'
 
 const { generateDeliveryPlan } = vi.hoisted(() => ({
   generateDeliveryPlan: vi.fn(),
@@ -62,6 +62,121 @@ describe('private task creation retry', () => {
     expect(await screen.findByText('Saved task details')).toBeInTheDocument()
     expect(attemptedIds).toHaveLength(2)
     expect(attemptedIds[0]).toBe(attemptedIds[1])
+  })
+})
+
+describe('one-screen private brief generation', () => {
+  it('retries a failed save with the same task identity', async () => {
+    const user = userEvent.setup()
+    const attemptedIds: string[] = []
+    let attempts = 0
+    const onCreate = vi.fn(async (task: DeliveryTask) => {
+      attemptedIds.push(task.id)
+      attempts += 1
+      if (attempts === 1) throw new Error('offline')
+      return { ...task, persistenceRevision: 1 }
+    })
+    generateDeliveryPlan.mockReset()
+    generateDeliveryPlan.mockResolvedValue({
+      objective: 'A brief',
+      steps: [],
+      acceptanceCriteria: [],
+      risks: [],
+      contextRevision: 0,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <Routes>
+          <Route
+            path="/workspace"
+            element={
+              <TaskBriefPage
+                onCreate={onCreate}
+                onUpdate={(task) => task}
+                onRemoveContext={() => null}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.type(
+      screen.getByLabelText('What do you want to accomplish?'),
+      'Recover after a failed save'
+    )
+    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('offline')
+    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+
+    expect(await screen.findByText('A brief')).toBeInTheDocument()
+    expect(attemptedIds[0]).toBe(attemptedIds[1])
+  })
+
+  it('persists input, derives the title, and renders the generated brief inline', async () => {
+    const user = userEvent.setup()
+    const onCreate = vi.fn(async (task: DeliveryTask) => ({
+      ...task,
+      persistenceRevision: 1,
+    }))
+    const onUpdate = vi.fn(async (task: DeliveryTask) => ({
+      ...task,
+      persistenceRevision: (task.persistenceRevision ?? 0) + 1,
+    }))
+    generateDeliveryPlan.mockReset()
+    generateDeliveryPlan.mockResolvedValue({
+      objective: 'Make onboarding clearer.',
+      steps: ['Review the first-run flow.'],
+      acceptanceCriteria: ['A new user can start without help.'],
+      risks: ['Copy may need product review.'],
+      contextRevision: 1,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <Routes>
+          <Route
+            path="/workspace"
+            element={
+              <TaskBriefPage
+                onCreate={onCreate}
+                onUpdate={onUpdate}
+                onRemoveContext={() => null}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.type(
+      screen.getByLabelText('What do you want to accomplish?'),
+      'Improve onboarding\nMake the first step clear.'
+    )
+    await user.type(
+      screen.getByLabelText('Project context (optional)'),
+      'The app uses a calm canvas.'
+    )
+    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+
+    expect(
+      await screen.findByText('Make onboarding clearer.')
+    ).toBeInTheDocument()
+    expect(onCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Improve onboarding',
+        goal: 'Improve onboarding\nMake the first step clear.',
+      })
+    )
+    expect(onUpdate).toHaveBeenCalled()
+    expect(generateDeliveryPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: expect.any(String),
+        contextEntryIds: [expect.any(String)],
+        contextRevision: 1,
+      })
+    )
   })
 })
 
