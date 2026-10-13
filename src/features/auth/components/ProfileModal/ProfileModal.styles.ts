@@ -16,7 +16,7 @@ export const AvatarBadge = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(150deg, #2dd4bf, #0f766e);
+  background: ${theme.colors.gradient};
   color: ${theme.colors.textOnAccent};
   font-size: 15px;
   font-weight: 700;
@@ -47,8 +47,8 @@ export const Section = styled.div`
   gap: ${theme.spacing.md};
   padding: 22px;
   border-radius: ${theme.borderRadius.lg};
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid ${theme.colors.border};
+  background: ${theme.colors.cardBg};
 `
 
 export const FieldGrid = styled.div`
@@ -80,9 +80,9 @@ export const Input = styled.input`
   width: 100%;
   padding: 12px 14px;
   border-radius: ${theme.borderRadius.md};
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
+  border: 1px solid ${theme.colors.border};
+  background: ${theme.colors.surface};
+  color: ${theme.colors.text};
   font-family: inherit;
   font-size: 13px;
   box-sizing: border-box;
@@ -91,13 +91,13 @@ export const Input = styled.input`
     box-shadow ${theme.transition.fast};
 
   &:hover {
-    border-color: rgba(45, 212, 191, 0.3);
+    border-color: ${theme.colors.primary};
   }
 
   &:focus {
     outline: none;
     border-color: ${theme.colors.accent};
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.15);
+    box-shadow: 0 0 0 3px ${theme.colors.overlay};
   }
 
   &:disabled {
@@ -122,13 +122,11 @@ export const StatusText = styled.p<{ $variant?: 'info' | 'error' }>`
   border-radius: ${theme.borderRadius.md};
   border: 1px solid
     ${({ $variant }) =>
-      $variant === 'error'
-        ? 'rgba(244, 67, 54, 0.35)'
-        : 'rgba(45, 212, 191, 0.15)'};
+      $variant === 'error' ? theme.colors.error : theme.colors.border};
   background: ${({ $variant }) =>
-    $variant === 'error' ? 'rgba(244, 67, 54, 0.14)' : 'rgba(0, 0, 0, 0.35)'};
+    $variant === 'error' ? theme.colors.errorBg : theme.colors.cardBg};
   color: ${({ $variant }) =>
-    $variant === 'error' ? '#fecaca' : theme.colors.starSecondary};
+    $variant === 'error' ? theme.colors.error : theme.colors.starSecondary};
   font-size: ${theme.fontSizes.sm};
 `
 
@@ -136,7 +134,7 @@ export const FooterHint = styled.span<{ $dirty?: boolean }>`
   margin-right: auto;
   font-size: ${theme.fontSizes.sm};
   color: ${({ $dirty }) =>
-    $dirty ? theme.colors.starSecondary : 'rgba(255, 255, 255, 0.4)'};
+    $dirty ? theme.colors.starSecondary : theme.colors.muted};
   align-self: center;
 `
 
@@ -157,7 +155,7 @@ export const TriggerButton = styled.button`
 
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.2);
+    box-shadow: 0 0 0 3px ${theme.colors.overlay};
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
@@ -173,7 +171,7 @@ export const TriggerAvatar = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(150deg, #2dd4bf, #0f766e);
+  background: ${theme.colors.gradient};
   color: ${theme.colors.textOnAccent};
   font-size: 10px;
   font-weight: 700;
@@ -184,5 +182,5 @@ export const TriggerName = styled.span`
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: #fff;
+  color: ${theme.colors.text};
 `

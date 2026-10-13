@@ -5,7 +5,13 @@ import {
   initPerformanceMetrics,
   consoleReporter,
 } from '@/shared/utils/performanceMetrics'
+import {
+  applyThemePreference,
+  readThemePreference,
+} from '@/shared/styles/themePreference'
 import '@/shared/styles/reset.css'
+
+applyThemePreference(readThemePreference())
 
 // Load-speed and interaction metrics (TTFB/FCP/LCP/CLS/INP). Logged to the
 // console in dev; collected silently in prod — inspect anytime via

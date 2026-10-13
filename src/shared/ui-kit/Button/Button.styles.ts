@@ -46,6 +46,6 @@ export const SecondaryButton = styled.button`
   border: 1px solid ${theme.colors.primary};
 
   &:hover {
-    background: rgba(45, 212, 191, 0.1);
+    background: ${theme.colors.cardBg};
   }
 `

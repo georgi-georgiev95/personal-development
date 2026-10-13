@@ -41,8 +41,8 @@ export const Dialog = styled.div`
     max-width: 420px;
     padding: 32px;
     border-radius: ${theme.borderRadius.xl};
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.85);
+    border-color: ${theme.colors.border};
+    box-shadow: ${theme.boxShadow.card};
 
     &::before,
     &::after {
@@ -55,15 +55,15 @@ export const Dialog = styled.div`
     &::before {
       top: 18px;
       left: 18px;
-      border-top: 1px solid rgba(45, 212, 191, 0.4);
-      border-left: 1px solid rgba(45, 212, 191, 0.4);
+      border-top: 1px solid ${theme.colors.primary};
+      border-left: 1px solid ${theme.colors.primary};
     }
 
     &::after {
       bottom: 18px;
       right: 18px;
-      border-bottom: 1px solid rgba(45, 212, 191, 0.4);
-      border-right: 1px solid rgba(45, 212, 191, 0.4);
+      border-bottom: 1px solid ${theme.colors.primary};
+      border-right: 1px solid ${theme.colors.primary};
     }
   }
 `

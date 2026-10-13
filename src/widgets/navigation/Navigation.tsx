@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/components/useAuth'
 import { Skeleton } from '@/shared/ui-kit'
+import { useThemePreference } from '@/shared/styles/themePreference'
 import {
   Nav,
   NavLeft,
@@ -16,6 +17,7 @@ import {
   NavSep,
   NavLink,
   NavButton,
+  ThemeToggle,
 } from './Navigation.styles'
 
 // ProfileModal reaches Firestore through the user entity; loading it lazily
@@ -37,6 +39,7 @@ export function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, loading, signOut } = useAuth()
+  const { mode, toggle } = useThemePreference()
 
   const handleClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -61,6 +64,16 @@ export function Navigation() {
         </NavBrandLink>
       </NavLeft>
       <NavRight>
+        <ThemeToggle
+          type="button"
+          role="switch"
+          aria-checked={mode === 'light'}
+          aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} theme`}
+          onClick={toggle}
+        >
+          <span aria-hidden="true">{mode === 'light' ? '☀' : '☾'}</span>
+          {mode === 'light' ? 'Light theme' : 'Dark theme'}
+        </ThemeToggle>
         <NavLinks aria-label="Primary navigation">
           <NavLink
             href="/"
