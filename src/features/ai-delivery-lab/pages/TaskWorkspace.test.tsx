@@ -10,7 +10,12 @@ import {
   type DeliveryTask,
 } from '@/entities/delivery-task'
 import { AIDeliveryLabPage } from './AIDeliveryLabPage'
-import { TaskBriefPage, TaskCreatePage, TaskDetailRoute } from './TaskWorkspace'
+import {
+  TaskBriefPage,
+  TaskCreatePage,
+  TaskDetailRoute,
+  TaskListPage,
+} from './TaskWorkspace'
 
 const { generateDeliveryPlan } = vi.hoisted(() => ({
   generateDeliveryPlan: vi.fn(),
@@ -62,6 +67,46 @@ describe('private task creation retry', () => {
     expect(await screen.findByText('Saved task details')).toBeInTheDocument()
     expect(attemptedIds).toHaveLength(2)
     expect(attemptedIds[0]).toBe(attemptedIds[1])
+  })
+})
+
+describe('saved briefs list', () => {
+  it('shows a useful empty state and reopens saved briefs', () => {
+    const task = createDeliveryTask({
+      title: 'Improve onboarding',
+      goal: 'Make the first step clearer.',
+    })
+    const view = render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <Routes>
+          <Route
+            path="/workspace"
+            element={<TaskListPage tasks={[]} basePath="/workspace" />}
+          />
+          <Route
+            path="/workspace/tasks/:taskId"
+            element={<p>Brief details</p>}
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    expect(
+      screen.getByRole('heading', { name: 'Saved briefs' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('No saved briefs yet. Create a brief to save it here.')
+    ).toBeInTheDocument()
+
+    view.rerender(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <TaskListPage tasks={[task]} basePath="/workspace" />
+      </MemoryRouter>
+    )
+    expect(screen.getByRole('link', { name: task.title })).toHaveAttribute(
+      'href',
+      `/workspace/tasks/${task.id}`
+    )
   })
 })
 

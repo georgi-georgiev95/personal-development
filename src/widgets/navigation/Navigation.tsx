@@ -77,13 +77,25 @@ export function Navigation() {
             Demo
           </NavLink>
           {user && (
-            <NavLink
-              href="/workspace"
-              $active={location.pathname.startsWith('/workspace')}
-              onClick={(e) => handleClick(e, '/workspace')}
-            >
-              Workspace
-            </NavLink>
+            <>
+              <NavLink
+                href="/workspace/tasks/new"
+                $active={location.pathname === '/workspace/tasks/new'}
+                onClick={(e) => handleClick(e, '/workspace/tasks/new')}
+              >
+                New brief
+              </NavLink>
+              <NavLink
+                href="/workspace/tasks"
+                $active={
+                  location.pathname === '/workspace' ||
+                  location.pathname.startsWith('/workspace/tasks')
+                }
+                onClick={(e) => handleClick(e, '/workspace/tasks')}
+              >
+                Saved briefs
+              </NavLink>
+            </>
           )}
         </NavLinks>
         <NavAuthRow>

@@ -30,7 +30,6 @@ import {
 } from '@/entities/delivery-task/deliveryTaskRepository'
 import { ensurePersonalWorkspace } from '@/entities/workspace'
 import {
-  TaskCreatePage,
   TaskBriefPage,
   TaskDetailRoute,
   TaskListPage,
@@ -197,6 +196,14 @@ function OwnedWorkspace({
     <Routes>
       <Route
         index
+        element={<TaskListPage tasks={tasks} basePath={BASE_PATH} />}
+      />
+      <Route
+        path="tasks"
+        element={<TaskListPage tasks={tasks} basePath={BASE_PATH} />}
+      />
+      <Route
+        path="tasks/new"
         element={
           <TaskBriefPage
             onCreate={createTask}
@@ -218,14 +225,6 @@ function OwnedWorkspace({
             basePath={BASE_PATH}
           />
         }
-      />
-      <Route
-        path="tasks"
-        element={<TaskListPage tasks={tasks} basePath={BASE_PATH} />}
-      />
-      <Route
-        path="tasks/new"
-        element={<TaskCreatePage onCreate={createTask} basePath={BASE_PATH} />}
       />
       <Route
         path="tasks/:taskId"

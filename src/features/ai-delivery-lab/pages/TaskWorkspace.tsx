@@ -154,7 +154,7 @@ const PageHeading = ({
     <Notice role="status">
       {basePath === '/demo'
         ? 'Demo only: tasks are held in memory and reset when you reload this page.'
-        : 'Tasks are saved in your private workspace and stay separate from the public demo.'}
+        : 'Briefs are saved in your private workspace and stay separate from the public demo.'}
     </Notice>
   </>
 )
@@ -182,11 +182,16 @@ const TaskListContent = ({
       <Breadcrumb to={basePath}>
         {basePath === '/demo' ? '← Back to walkthrough' : '← Workspace'}
       </Breadcrumb>
-      <PageHeading title="Delivery tasks" basePath={basePath} />
-      <Content aria-label="Delivery tasks">
+      <PageHeading
+        title={basePath === '/demo' ? 'Delivery tasks' : 'Saved briefs'}
+        basePath={basePath}
+      />
+      <Content
+        aria-label={basePath === '/demo' ? 'Delivery tasks' : 'Saved briefs'}
+      >
         <Actions>
           <Button onClick={() => navigate(`${basePath}/tasks/new`)}>
-            Create task
+            {basePath === '/demo' ? 'Create task' : 'New brief'}
           </Button>
           {onCreateSample &&
             (['successful', 'changes-requested'] as const).map((journey) => (
@@ -204,13 +209,13 @@ const TaskListContent = ({
         <TaskMeta>
           {onCreateSample
             ? 'Samples contain placeholder notes and no passing evidence. Complete the successful path with real manual evidence and approval; the changes-requested sample has a simulated review decision.'
-            : 'Personal tasks and their stage progress are saved to this workspace.'}
+            : 'Saved briefs stay private to your workspace. Legacy delivery details remain available when you reopen one.'}
         </TaskMeta>
         {tasks.length === 0 ? (
           <TaskMeta>
             {onCreateSample
               ? 'No tasks yet. Create one to start the demo journey.'
-              : 'No saved tasks yet. Create one to start your workflow.'}
+              : 'No saved briefs yet. Create a brief to save it here.'}
           </TaskMeta>
         ) : (
           <TaskList>
