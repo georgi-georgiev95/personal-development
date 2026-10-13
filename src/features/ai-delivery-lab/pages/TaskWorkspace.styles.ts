@@ -5,10 +5,11 @@ import { theme } from '@/shared/styles/theme'
 export const TaskPage = styled.main`
   width: min(100%, ${theme.layout.containerMaxWidth});
   margin: 0 auto;
-  padding: ${theme.spacing.lg};
+  padding: clamp(${theme.spacing.md}, 4vw, ${theme.spacing.xl})
+    clamp(${theme.spacing.md}, 5vw, ${theme.spacing.lg});
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    padding: ${theme.spacing.md};
+    padding: ${theme.spacing.md} ${theme.spacing.sm};
   }
 `
 
@@ -36,14 +37,16 @@ export const Eyebrow = styled.p`
 export const Heading = styled.h1`
   margin: 0;
   color: ${theme.colors.text};
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: clamp(2rem, 7vw, 3.5rem);
   line-height: ${theme.lineHeight.tight};
 `
 
 export const Notice = styled.p`
   margin: ${theme.spacing.md} 0 0;
-  padding: ${theme.spacing.sm} ${theme.spacing.md};
-  border-left: 2px solid ${theme.colors.primary};
+  padding: ${theme.spacing.md};
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.lg};
+  background: ${theme.colors.cardBg};
   color: ${theme.colors.textSecondary};
   font-size: ${theme.fontSizes.sm};
   line-height: ${theme.lineHeight.relaxed};
@@ -58,7 +61,7 @@ export const Content = styled.section`
 export const ArtifactPanel = styled.section`
   display: grid;
   gap: ${theme.spacing.md};
-  padding: ${theme.spacing.md};
+  padding: clamp(${theme.spacing.md}, 4vw, ${theme.spacing.lg});
   border: 1px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.md};
   background: ${theme.colors.surface};
@@ -120,7 +123,7 @@ export const TaskList = styled.ul`
 `
 
 export const TaskCard = styled.li`
-  padding: ${theme.spacing.md};
+  padding: ${theme.spacing.lg};
   border: 1px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.md};
   background: ${theme.colors.surface};
@@ -148,6 +151,7 @@ export const TaskMeta = styled.p`
 export const TaskForm = styled.form`
   display: grid;
   gap: ${theme.spacing.md};
+  width: 100%;
   max-width: 720px;
 `
 
@@ -156,21 +160,30 @@ export const Field = styled.div`
   gap: ${theme.spacing.xs};
   color: ${theme.colors.text};
   font-size: ${theme.fontSizes.sm};
+
+  label {
+    font-weight: 600;
+  }
 `
 
 export const TextInput = styled.input`
   width: 100%;
   min-height: 44px;
-  padding: ${theme.spacing.sm};
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
   border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.md};
+  border-radius: ${theme.borderRadius.lg};
   color: ${theme.colors.textInverse};
   background: ${theme.colors.cardBg};
   font: inherit;
 
+  &::placeholder {
+    color: ${theme.colors.muted};
+  }
+
   &:focus-visible {
     outline: 2px solid ${theme.colors.primary};
-    outline-offset: 2px;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px ${theme.colors.starGlow};
   }
 `
 
@@ -179,20 +192,25 @@ export const ValidationSelect = styled.select`
   min-height: 44px;
   padding: ${theme.spacing.sm};
   border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.md};
+  border-radius: ${theme.borderRadius.lg};
   color: ${theme.colors.textInverse};
   background: ${theme.colors.cardBg};
   font: inherit;
 
   &:focus-visible {
     outline: 2px solid ${theme.colors.primary};
-    outline-offset: 2px;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px ${theme.colors.starGlow};
   }
 `
 
 export const FieldError = styled.p`
   margin: 0;
+  padding: ${theme.spacing.sm} ${theme.spacing.md};
+  border-radius: ${theme.borderRadius.md};
+  background: ${theme.colors.errorBg};
   color: ${theme.colors.error};
+  line-height: ${theme.lineHeight.relaxed};
 `
 
 export const Actions = styled.div`

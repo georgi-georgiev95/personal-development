@@ -6,7 +6,7 @@ export const Nav = styled.nav`
   align-items: flex-start;
   justify-content: space-between;
   padding: 20px 40px 0;
-  height: ${theme.layout.navHeight};
+  min-height: ${theme.layout.navHeight};
   background: transparent;
   position: sticky;
   top: 0;
@@ -92,6 +92,7 @@ export const NavRight = styled.div`
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
+  min-width: 0;
 `
 
 export const NavAuthRow = styled.div`
@@ -104,13 +105,15 @@ export const NavLinks = styled.div`
   display: flex;
   align-items: center;
   gap: 18px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 
   @media (max-width: ${theme.breakpoint.tablet}) {
     gap: ${theme.spacing.sm};
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
-    gap: ${theme.spacing.xs};
+    gap: ${theme.spacing.xs} ${theme.spacing.sm};
   }
 `
 
@@ -131,7 +134,8 @@ export const NavLink = styled.a<{ $active?: boolean }>`
   text-decoration: none;
   font-size: ${theme.fontSizes.sm};
   font-weight: ${({ $active }) => ($active ? 600 : 400)};
-  color: ${({ $active }) => ($active ? '#fff' : 'rgba(255, 255, 255, 0.75)')};
+  color: ${({ $active }) =>
+    $active ? theme.colors.text : theme.colors.textSecondary};
   letter-spacing: ${theme.letterSpacing.wide};
   text-transform: uppercase;
   border-bottom: 1px solid
@@ -148,6 +152,7 @@ export const NavLink = styled.a<{ $active?: boolean }>`
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: ${theme.fontSizes.xs};
+    letter-spacing: 0.03em;
   }
 `
 

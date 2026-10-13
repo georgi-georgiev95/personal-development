@@ -282,6 +282,7 @@ export const TaskCreatePage = ({
             <label htmlFor="task-title">Title</label>
             <TextInput
               id="task-title"
+              placeholder="e.g. Improve onboarding"
               value={title}
               onChange={(event) => {
                 setTitle(event.target.value)
@@ -304,6 +305,7 @@ export const TaskCreatePage = ({
             <label htmlFor="task-goal">Goal</label>
             <Textarea
               id="task-goal"
+              placeholder="Describe the outcome you want to achieve."
               value={goal}
               onChange={(event) => {
                 setGoal(event.target.value)
@@ -509,6 +511,7 @@ export function TaskBriefPage({
             <label htmlFor="brief-goal">What do you want to accomplish?</label>
             <Textarea
               id="brief-goal"
+              placeholder="What should be clearer, faster, or easier?"
               value={goal}
               rows={8}
               required
@@ -522,6 +525,7 @@ export function TaskBriefPage({
             <label htmlFor="brief-context">Project context (optional)</label>
             <Textarea
               id="brief-context"
+              placeholder="Add only the project context needed for a useful brief."
               value={context}
               rows={5}
               maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
@@ -575,6 +579,11 @@ export function TaskBriefPage({
                   </label>
                   <Textarea
                     id={`brief-${field}`}
+                    placeholder={
+                      field === 'objective'
+                        ? 'Summarize the intended outcome.'
+                        : 'Add one item per line.'
+                    }
                     rows={field === 'objective' ? 3 : 5}
                     value={
                       field === 'objective'
@@ -602,6 +611,7 @@ export function TaskBriefPage({
                 <label htmlFor="brief-risks">Risks (one per line)</label>
                 <Textarea
                   id="brief-risks"
+                  placeholder="Add one risk per line, or leave blank."
                   rows={4}
                   value={draft.risks.join('\n')}
                   onChange={(event) => {
@@ -883,6 +893,7 @@ const TaskDetailPage = ({
             <label htmlFor="task-title">Title</label>
             <TextInput
               id="task-title"
+              placeholder="e.g. Improve onboarding"
               value={title}
               onChange={(event) => {
                 setTitle(event.target.value)
@@ -904,6 +915,7 @@ const TaskDetailPage = ({
             <label htmlFor="task-goal">Goal</label>
             <Textarea
               id="task-goal"
+              placeholder="Describe the outcome you want to achieve."
               value={goal}
               onChange={(event) => {
                 setGoal(event.target.value)
@@ -1066,6 +1078,7 @@ function ProjectContextEditor({
             <label htmlFor={`context-name-${task.id}`}>Context name</label>
             <TextInput
               id={`context-name-${task.id}`}
+              placeholder="e.g. README excerpt"
               value={name}
               maxLength={DELIVERY_CONTEXT_MAX_NAME_LENGTH}
               onChange={(event) => {
@@ -1081,6 +1094,7 @@ function ProjectContextEditor({
             </label>
             <Textarea
               id={`context-content-${task.id}`}
+              placeholder="Paste the plain-text context you want to keep with this brief."
               value={content}
               rows={8}
               maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
