@@ -24,9 +24,9 @@ export const SkeletonBase = styled.span<{
   border-radius: ${({ $radius }) => $radius};
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.06) 25%,
-    rgba(255, 255, 255, 0.14) 37%,
-    rgba(255, 255, 255, 0.06) 63%
+    ${theme.colors.cardBg} 25%,
+    ${theme.colors.border} 37%,
+    ${theme.colors.cardBg} 63%
   );
   background-size: 400% 100%;
   animation: ui-kit-skeleton-shimmer 1.4s ease-in-out infinite;
