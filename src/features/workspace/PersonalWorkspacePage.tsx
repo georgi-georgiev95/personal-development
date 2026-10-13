@@ -49,8 +49,10 @@ function SignedOutWorkspace() {
   return (
     <WorkspacePage aria-labelledby="workspace-heading">
       <Eyebrow>// personal workspace</Eyebrow>
-      <Heading id="workspace-heading">Sign in to continue</Heading>
-      <Message>Your workspace is private to your account.</Message>
+      <Heading id="workspace-heading">Start a private brief</Heading>
+      <Message>
+        Sign in to generate and save briefs in your private workspace.
+      </Message>
       <WorkspaceLink to="/login">Sign in</WorkspaceLink>
       <WorkspaceLink to="/register">Create an account</WorkspaceLink>
     </WorkspacePage>

@@ -22,6 +22,7 @@ import {
   Row,
   StyledSelect,
   FormContent,
+  FieldLabel,
 } from './RegisterPage.styled'
 
 const MONTHS = [
@@ -184,6 +185,7 @@ export function RegisterPage() {
           </TitleBlock>
           {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
+            <FieldLabel>Name</FieldLabel>
             <Row>
               <InputWrapper>
                 <InputIcon>{personIcon}</InputIcon>
@@ -210,11 +212,12 @@ export function RegisterPage() {
                 />
               </InputWrapper>
             </Row>
+            <FieldLabel htmlFor="register-username">Username</FieldLabel>
             <InputWrapper>
               <InputIcon>{personIcon}</InputIcon>
               <StyledInput
                 type="text"
-                aria-label="Username"
+                id="register-username"
                 autoComplete="username"
                 placeholder="Username"
                 value={username}
@@ -222,6 +225,7 @@ export function RegisterPage() {
                 required
               />
             </InputWrapper>
+            <FieldLabel>Date of birth</FieldLabel>
             <Row>
               <StyledSelect
                 aria-label="Day of birth"
@@ -269,11 +273,12 @@ export function RegisterPage() {
                 ))}
               </StyledSelect>
             </Row>
+            <FieldLabel htmlFor="register-email">Email</FieldLabel>
             <InputWrapper>
               <InputIcon>{emailIcon}</InputIcon>
               <StyledInput
                 type="email"
-                aria-label="Email"
+                id="register-email"
                 autoComplete="email"
                 placeholder="Email"
                 value={email}
@@ -281,11 +286,12 @@ export function RegisterPage() {
                 required
               />
             </InputWrapper>
+            <FieldLabel htmlFor="register-password">Password</FieldLabel>
             <InputWrapper>
               <InputIcon>{lockIcon}</InputIcon>
               <StyledInput
                 type="password"
-                aria-label="Password"
+                id="register-password"
                 autoComplete="new-password"
                 placeholder="Password"
                 value={password}

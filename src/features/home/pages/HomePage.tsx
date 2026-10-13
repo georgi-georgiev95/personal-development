@@ -15,23 +15,26 @@ import {
 export const HomePage = () => (
   <ProductPage>
     <Eyebrow>// AI Delivery Lab</Eyebrow>
-    <Heading>Turn a development task into a reviewable handoff.</Heading>
+    <Heading>Turn an idea into a useful implementation brief.</Heading>
     <Intro>
-      A task-to-handoff workflow for solo developers: clarify the goal, plan the
-      work, record implementation and manual validation, then prepare a clear
-      handoff. The product tracks work; it does not run code or checks.
+      Clarify what you want to change, shape a small plan, and carry a focused
+      brief into your own development work. The product records your thinking;
+      it does not write code or run checks.
     </Intro>
-    <ActionLink to="/demo" $primary>
-      Explore the public demo →
+    <ActionLink to="/workspace/tasks/new" $primary>
+      Start a private brief →
     </ActionLink>
-    <ActionLink to="/login">Sign in</ActionLink>
+    <ActionLink to="/demo">See a simulated brief</ActionLink>
+    <ActionLink to="/login">Sign in to save your work</ActionLink>
 
     <Section aria-labelledby="workflow-heading">
       <SectionHeading id="workflow-heading">The workflow</SectionHeading>
       <Workflow>
-        <li>Capture the task goal, scope, and repository context.</li>
-        <li>Shape a small plan and record implementation done elsewhere.</li>
-        <li>Enter manual validation evidence, review, and hand off.</li>
+        <li>Describe the outcome and the context that matters.</li>
+        <li>
+          Review a concise implementation brief with practical next steps.
+        </li>
+        <li>Save it privately, then take the work into your own repository.</li>
       </Workflow>
     </Section>
 
@@ -43,20 +46,22 @@ export const HomePage = () => (
         <FeatureCard>
           <h3>Available now</h3>
           <FeatureList>
+            <li>Try a resettable, simulated brief without an account.</li>
             <li>
-              Explore a resettable, simulated workflow without an account.
+              Sign in or create an account before generating or saving for real.
             </li>
-            <li>Sign in or create an account for a private workspace.</li>
             <li>Save tasks, context, evidence, and handoff artifacts.</li>
-            <li>Generate and review AI-assisted plans within a task.</li>
+            <li>
+              Generate and review AI-assisted plans within your workspace.
+            </li>
           </FeatureList>
         </FeatureCard>
         <FeatureCard>
           <h3>What the product records</h3>
           <FeatureList>
+            <li>Your goal, context, plan, and acceptance criteria.</li>
             <li>Implementation work performed outside the product.</li>
-            <li>Manual validation and copied CI evidence.</li>
-            <li>Review decisions and delivery handoffs.</li>
+            <li>Manual validation and delivery handoffs.</li>
           </FeatureList>
         </FeatureCard>
         <FeatureCard>

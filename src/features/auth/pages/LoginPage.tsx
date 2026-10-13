@@ -19,6 +19,7 @@ import {
   StyledLink,
   ErrorMessage,
   FormContent,
+  FieldLabel,
 } from './LoginPage.styled'
 
 export function LoginPage() {
@@ -75,6 +76,7 @@ export function LoginPage() {
           </TitleBlock>
           {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
           <StyledForm onSubmit={handleSubmit}>
+            <FieldLabel htmlFor="login-email">Email</FieldLabel>
             <InputWrapper>
               <InputIcon>
                 <svg
@@ -93,7 +95,7 @@ export function LoginPage() {
               </InputIcon>
               <StyledInput
                 type="email"
-                aria-label="Email"
+                id="login-email"
                 autoComplete="email"
                 placeholder="Email"
                 value={email}
@@ -101,6 +103,7 @@ export function LoginPage() {
                 required
               />
             </InputWrapper>
+            <FieldLabel htmlFor="login-password">Password</FieldLabel>
             <InputWrapper>
               <InputIcon>
                 <svg
@@ -119,7 +122,7 @@ export function LoginPage() {
               </InputIcon>
               <StyledInput
                 type="password"
-                aria-label="Password"
+                id="login-password"
                 autoComplete="current-password"
                 placeholder="Password"
                 value={password}
