@@ -178,6 +178,68 @@ describe('one-screen private brief generation', () => {
       })
     )
   })
+
+  it('edits, copies, and explicitly saves the generated brief', async () => {
+    const user = userEvent.setup()
+    let savedTask: DeliveryTask | undefined
+    const onCreate = vi.fn(async (task: DeliveryTask) => ({
+      ...task,
+      persistenceRevision: 1,
+    }))
+    const onUpdate = vi.fn(async (task: DeliveryTask) => {
+      savedTask = { ...task, persistenceRevision: 2 }
+      return savedTask
+    })
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    generateDeliveryPlan.mockResolvedValue({
+      objective: 'Original objective',
+      steps: ['First step'],
+      acceptanceCriteria: ['First criterion'],
+      risks: [],
+      contextRevision: 0,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <Routes>
+          <Route
+            path="/workspace"
+            element={
+              <TaskBriefPage
+                onCreate={onCreate}
+                onUpdate={onUpdate}
+                onRemoveContext={() => null}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await user.type(
+      screen.getByLabelText('What do you want to accomplish?'),
+      'Write a brief'
+    )
+    await user.click(screen.getByRole('button', { name: 'Generate brief' }))
+    const objective = await screen.findByLabelText('Objective')
+    await user.clear(objective)
+    await user.type(objective, 'Edited objective')
+    await user.click(screen.getByRole('button', { name: 'Copy Markdown' }))
+    expect(writeText).toHaveBeenCalledWith(
+      expect.stringContaining('## Objective\nEdited objective')
+    )
+    await user.click(screen.getByRole('button', { name: 'Save brief' }))
+    expect(
+      await screen.findByText('Saved to your private workspace.')
+    ).toBeInTheDocument()
+    expect(savedTask?.artifacts.planning?.content).toContain(
+      'Objective\nEdited objective'
+    )
+  })
 })
 
 describe('private project context', () => {
