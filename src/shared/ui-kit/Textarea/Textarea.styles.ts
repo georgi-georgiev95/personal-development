@@ -3,24 +3,27 @@ import { theme } from '@/shared/styles/theme'
 
 export const TextareaField = styled.textarea`
   width: 100%;
-  min-height: 80px;
-  padding: ${theme.spacing.sm};
+  min-height: 120px;
+  padding: ${theme.spacing.md};
   font-family: ${theme.font.family};
   font-size: ${theme.fontSizes.sm};
   color: ${theme.colors.textInverse};
   background: ${theme.colors.cardBg};
   border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.md};
+  border-radius: ${theme.borderRadius.lg};
   resize: vertical;
-  transition: border-color ${theme.transition.fast};
+  transition:
+    border-color ${theme.transition.fast},
+    box-shadow ${theme.transition.fast};
 
   &::placeholder {
     color: ${theme.colors.muted};
   }
 
-  &:focus {
+  &:focus-visible {
     outline: none;
     border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 3px ${theme.colors.starGlow};
   }
 
   &:disabled {
