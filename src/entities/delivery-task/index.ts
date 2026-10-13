@@ -1,5 +1,6 @@
 export {
   createDeliveryTask,
+  deriveDeliveryTaskTitle,
   DeliveryArtifactInputError,
   DeliveryContextInputError,
   DeliveryTaskConflictError,

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   completeDeliveryTaskStage,
   createDeliveryTask,
+  deriveDeliveryTaskTitle,
   DeliveryArtifactInputError,
   DeliveryContextInputError,
   DELIVERY_CONTEXT_MAX_CONTENT_LENGTH,
@@ -59,6 +60,13 @@ const makeReviewTask = () =>
   )
 
 describe('createDeliveryTask', () => {
+  it('derives a compact internal title from the task description', () => {
+    expect(
+      deriveDeliveryTaskTitle('  Improve the onboarding flow\nWith details')
+    ).toBe('Improve the onboarding flow')
+    expect(deriveDeliveryTaskTitle('   ')).toBe('Untitled task')
+  })
+
   it('trims and creates a distinct task at discovery', () => {
     const first = createDeliveryTask({ title: '  First  ', goal: '  Goal  ' })
     const second = createDeliveryTask({ title: 'Second', goal: 'Other goal' })

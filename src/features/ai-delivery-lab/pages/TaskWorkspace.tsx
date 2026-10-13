@@ -16,6 +16,9 @@ import {
   DELIVERY_CONTEXT_MAX_NAME_LENGTH,
   getDeliveryStageBlocker,
   createDeliveryTask,
+  deriveDeliveryTaskTitle,
+  saveDeliveryContextEntry,
+  updateDeliveryTask,
   createDeliveryHandoff,
   type DeliveryArtifact,
   type DeliveryContextEntry,
@@ -68,6 +71,16 @@ interface TaskListPageProps {
 
 interface TaskCreatePageProps {
   onCreate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  basePath?: string
+}
+
+interface TaskBriefPageProps {
+  onCreate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  onUpdate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  onRemoveContext: (
+    id: string,
+    contextId: string
+  ) => TaskWrite<DeliveryTask | null>
   basePath?: string
 }
 
@@ -316,6 +329,185 @@ export const TaskCreatePage = ({
             </Button>
           </Actions>
         </TaskForm>
+      </Content>
+    </TaskPage>
+  )
+}
+
+export function TaskBriefPage({
+  onCreate,
+  onUpdate,
+  onRemoveContext,
+  basePath = '/workspace',
+}: TaskBriefPageProps) {
+  const navigate = useNavigate()
+  const request = useRef(0)
+  const pendingTask = useRef<DeliveryTask | null>(null)
+  const [goal, setGoal] = useState('')
+  const [context, setContext] = useState('')
+  const [draft, setDraft] = useState<DeliveryPlanProposal | null>(null)
+  const [state, setState] = useState<'idle' | 'generating'>('idle')
+  const [error, setError] = useState('')
+  const [savedInput, setSavedInput] = useState(false)
+
+  const invalidate = () => {
+    request.current += 1
+    setDraft(null)
+    setError('')
+    setState('idle')
+    setSavedInput(false)
+  }
+
+  const generate = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const token = ++request.current
+    setState('generating')
+    setDraft(null)
+    setError('')
+
+    try {
+      const title = deriveDeliveryTaskTitle(goal)
+      const current = pendingTask.current
+      let task = current
+        ? updateDeliveryTask(current, { title, goal })
+        : createDeliveryTask({ title, goal })
+      if (!current) pendingTask.current = task
+      if (task !== current || !task.persistenceRevision)
+        task = task.persistenceRevision
+          ? await onUpdate(task)
+          : await onCreate(task)
+      pendingTask.current = task
+      if (token === request.current) setSavedInput(true)
+      if (token !== request.current) return
+
+      const savedContext = task.contextEntries?.find(
+        (entry) => entry.name === 'Brief context'
+      )
+      let contextId = savedContext?.id
+      if (context.trim()) {
+        const updated = saveDeliveryContextEntry(task, {
+          id: contextId,
+          name: 'Brief context',
+          content: context,
+        })
+        task = updated === task ? task : await onUpdate(updated)
+        contextId = task.contextEntries?.find(
+          (entry) => entry.name === 'Brief context'
+        )?.id
+      } else if (savedContext) {
+        task = (await onRemoveContext(task.id, savedContext.id)) ?? task
+        contextId = undefined
+      }
+      if (token !== request.current) return
+      pendingTask.current = task
+
+      const result = await (
+        await import('@/entities/delivery-task/planService')
+      ).generateDeliveryPlan({
+        taskId: task.id,
+        contextEntryIds: contextId ? [contextId] : [],
+        contextRevision: task.contextRevision ?? 0,
+      })
+      if (token !== request.current) return
+      setDraft({
+        ...result,
+        taskId: task.id,
+        taskRevision: task.revision,
+        source: 'ai',
+      })
+    } catch (caught) {
+      if (token === request.current)
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : 'Could not generate a brief. Try again.'
+        )
+    } finally {
+      if (token === request.current) setState('idle')
+    }
+  }
+
+  return (
+    <TaskPage>
+      <Breadcrumb to={`${basePath}/tasks`}>← Workspace</Breadcrumb>
+      <PageHeading title="Start with the task" basePath={basePath} />
+      <Content>
+        <TaskForm onSubmit={generate}>
+          <Field>
+            <label htmlFor="brief-goal">What do you want to accomplish?</label>
+            <Textarea
+              id="brief-goal"
+              value={goal}
+              rows={8}
+              required
+              onChange={(event) => {
+                setGoal(event.target.value)
+                invalidate()
+              }}
+            />
+          </Field>
+          <Field>
+            <label htmlFor="brief-context">Project context (optional)</label>
+            <Textarea
+              id="brief-context"
+              value={context}
+              rows={5}
+              maxLength={DELIVERY_CONTEXT_MAX_CONTENT_LENGTH}
+              onChange={(event) => {
+                setContext(event.target.value)
+                invalidate()
+              }}
+              aria-describedby="brief-context-count"
+            />
+            <ArtifactMeta id="brief-context-count">
+              {context.length.toLocaleString()} /{' '}
+              {DELIVERY_CONTEXT_MAX_CONTENT_LENGTH.toLocaleString()} characters
+            </ArtifactMeta>
+          </Field>
+          {error && <FieldError role="alert">{error}</FieldError>}
+          <Actions>
+            <Button type="submit" disabled={state === 'generating'}>
+              {state === 'generating' ? 'Generating…' : 'Generate brief'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate(`${basePath}/tasks`)}
+            >
+              View workspace
+            </Button>
+          </Actions>
+          {savedInput && (
+            <TaskMeta role="status">
+              Your task input is saved separately from this generated brief.
+            </TaskMeta>
+          )}
+        </TaskForm>
+        {draft && (
+          <ArtifactPanel aria-label="Generated brief">
+            <h2>Generated brief</h2>
+            <ArtifactMeta>
+              Draft only. It is not saved as a delivery artifact yet.
+            </ArtifactMeta>
+            <ArtifactContent>{draft.objective}</ArtifactContent>
+            <TaskList>
+              <TaskCard>
+                <strong>Steps</strong>
+                <ArtifactContent>{draft.steps.join('\n')}</ArtifactContent>
+              </TaskCard>
+              <TaskCard>
+                <strong>Acceptance criteria</strong>
+                <ArtifactContent>
+                  {draft.acceptanceCriteria.join('\n')}
+                </ArtifactContent>
+              </TaskCard>
+              <TaskCard>
+                <strong>Risks</strong>
+                <ArtifactContent>{draft.risks.join('\n')}</ArtifactContent>
+              </TaskCard>
+            </TaskList>
+          </ArtifactPanel>
+        )}
       </Content>
     </TaskPage>
   )

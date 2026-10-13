@@ -31,6 +31,7 @@ import {
 import { ensurePersonalWorkspace } from '@/entities/workspace'
 import {
   TaskCreatePage,
+  TaskBriefPage,
   TaskDetailRoute,
   TaskListPage,
   UnknownTaskPage,
@@ -94,6 +95,14 @@ function OwnedWorkspace({
       saved,
       ...current.filter((item) => item.id !== saved.id),
     ])
+    return saved
+  }
+
+  const updateSavedTask = async (task: DeliveryTask) => {
+    const saved = await saveWorkspaceDeliveryTask(uid, task, 'update')
+    setTasks((current) =>
+      current.map((item) => (item.id === task.id ? saved : item))
+    )
     return saved
   }
 
@@ -188,7 +197,27 @@ function OwnedWorkspace({
     <Routes>
       <Route
         index
-        element={<TaskListPage tasks={tasks} basePath={BASE_PATH} />}
+        element={
+          <TaskBriefPage
+            onCreate={createTask}
+            onUpdate={updateSavedTask}
+            onRemoveContext={async (id, contextId) => {
+              const task = tasks.find((item) => item.id === id)
+              if (!task) return null
+              const updated = removeDeliveryContextEntry(task, contextId)
+              const saved = await saveWorkspaceDeliveryTask(
+                uid,
+                updated,
+                'update'
+              )
+              setTasks((current) =>
+                current.map((item) => (item.id === id ? saved : item))
+              )
+              return saved
+            }}
+            basePath={BASE_PATH}
+          />
+        }
       />
       <Route
         path="tasks"
