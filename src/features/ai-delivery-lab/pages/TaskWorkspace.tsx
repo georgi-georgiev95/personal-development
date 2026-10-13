@@ -5,6 +5,7 @@ import { PlanDraftEditor } from '@/features/ai-delivery-lab/pages/PlanDraftEdito
 import {
   DELIVERY_STAGES,
   ARTIFACT_SOURCE_LABELS,
+  acceptDeliveryPlan,
   type DeliveryPlanProposal,
   DELIVERY_REVIEW_RETURN_STAGES,
   DeliveryArtifactInputError,
@@ -349,6 +350,8 @@ export function TaskBriefPage({
   const [state, setState] = useState<'idle' | 'generating'>('idle')
   const [error, setError] = useState('')
   const [savedInput, setSavedInput] = useState(false)
+  const [savedBrief, setSavedBrief] = useState(false)
+  const [briefStatus, setBriefStatus] = useState('')
 
   const invalidate = () => {
     request.current += 1
@@ -356,6 +359,8 @@ export function TaskBriefPage({
     setError('')
     setState('idle')
     setSavedInput(false)
+    setSavedBrief(false)
+    setBriefStatus('')
   }
 
   const generate = async (event: FormEvent<HTMLFormElement>) => {
@@ -364,6 +369,7 @@ export function TaskBriefPage({
     setState('generating')
     setDraft(null)
     setError('')
+    setBriefStatus('')
 
     try {
       const title = deriveDeliveryTaskTitle(goal)
@@ -415,6 +421,7 @@ export function TaskBriefPage({
         taskRevision: task.revision,
         source: 'ai',
       })
+      setSavedBrief(false)
     } catch (caught) {
       if (token === request.current)
         setError(
@@ -424,6 +431,66 @@ export function TaskBriefPage({
         )
     } finally {
       if (token === request.current) setState('idle')
+    }
+  }
+
+  const briefMarkdown = (proposal: DeliveryPlanProposal): string =>
+    [
+      `## Objective\n${proposal.objective.trim()}`,
+      `## Steps\n${proposal.steps
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => `- ${line}`)
+        .join('\n')}`,
+      `## Acceptance criteria\n${proposal.acceptanceCriteria
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => `- ${line}`)
+        .join('\n')}`,
+      `## Risks\n${
+        proposal.risks
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => `- ${line}`)
+          .join('\n') || 'None recorded.'
+      }`,
+    ].join('\n\n')
+  const saveBrief = async () => {
+    if (!draft || !pendingTask.current) return
+    setError('')
+    setBriefStatus('')
+    try {
+      const accepted = acceptDeliveryPlan(pendingTask.current, draft)
+      const saved = await onUpdate(accepted)
+      pendingTask.current = saved
+      setDraft({ ...draft, taskRevision: saved.revision })
+      setSavedBrief(true)
+      setBriefStatus('Saved to your private workspace.')
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : 'Could not save the brief. Try again.'
+      )
+    }
+  }
+  const copyBrief = async () => {
+    if (!draft) return
+    const markdown = briefMarkdown(draft)
+    try {
+      await navigator.clipboard.writeText(markdown)
+      setBriefStatus('Copied Markdown to the clipboard.')
+    } catch {
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(
+        new Blob([markdown], { type: 'text/markdown' })
+      )
+      link.download = 'implementation-brief.md'
+      link.click()
+      URL.revokeObjectURL(link.href)
+      setBriefStatus(
+        'Clipboard unavailable; downloaded the Markdown file instead.'
+      )
     }
   }
 
@@ -485,27 +552,77 @@ export function TaskBriefPage({
         </TaskForm>
         {draft && (
           <ArtifactPanel aria-label="Generated brief">
-            <h2>Generated brief</h2>
+            <h2>Implementation brief</h2>
             <ArtifactMeta>
-              Draft only. It is not saved as a delivery artifact yet.
+              {savedBrief
+                ? 'Saved brief. Edit and save again to update it.'
+                : 'Draft only. Edit it, then save when it is ready.'}
             </ArtifactMeta>
-            <ArtifactContent>{draft.objective}</ArtifactContent>
-            <TaskList>
-              <TaskCard>
-                <strong>Steps</strong>
-                <ArtifactContent>{draft.steps.join('\n')}</ArtifactContent>
-              </TaskCard>
-              <TaskCard>
-                <strong>Acceptance criteria</strong>
-                <ArtifactContent>
-                  {draft.acceptanceCriteria.join('\n')}
-                </ArtifactContent>
-              </TaskCard>
-              <TaskCard>
-                <strong>Risks</strong>
-                <ArtifactContent>{draft.risks.join('\n')}</ArtifactContent>
-              </TaskCard>
-            </TaskList>
+            {(['objective', 'steps', 'acceptanceCriteria'] as const).map(
+              (field) => (
+                <Field key={field}>
+                  <label htmlFor={`brief-${field}`}>
+                    {field === 'acceptanceCriteria'
+                      ? 'Acceptance criteria'
+                      : field === 'objective'
+                        ? 'Objective'
+                        : 'Steps (one per line)'}
+                  </label>
+                  <Textarea
+                    id={`brief-${field}`}
+                    rows={field === 'objective' ? 3 : 5}
+                    value={
+                      field === 'objective'
+                        ? draft.objective
+                        : draft[field].join('\n')
+                    }
+                    onChange={(event) => {
+                      setDraft({
+                        ...draft,
+                        [field]:
+                          field === 'objective'
+                            ? event.target.value
+                            : event.target.value.split('\n'),
+                      })
+                      setSavedBrief(false)
+                      setBriefStatus('Unsaved changes.')
+                    }}
+                  />
+                </Field>
+              )
+            )}
+            <details>
+              <summary>Risks (optional)</summary>
+              <Field>
+                <label htmlFor="brief-risks">Risks (one per line)</label>
+                <Textarea
+                  id="brief-risks"
+                  rows={4}
+                  value={draft.risks.join('\n')}
+                  onChange={(event) => {
+                    setDraft({
+                      ...draft,
+                      risks: event.target.value.split('\n'),
+                    })
+                    setSavedBrief(false)
+                    setBriefStatus('Unsaved changes.')
+                  }}
+                />
+              </Field>
+            </details>
+            {briefStatus && <TaskMeta role="status">{briefStatus}</TaskMeta>}
+            <Actions>
+              <Button type="button" onClick={() => void saveBrief()}>
+                Save brief
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void copyBrief()}
+              >
+                Copy Markdown
+              </Button>
+            </Actions>
           </ArtifactPanel>
         )}
       </Content>
