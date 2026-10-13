@@ -4,9 +4,9 @@
 
 ## Project Identity
 
-**Name**: AI Delivery Lab
+**Name**: AI Planner
 **Type**: React + TypeScript product with a deterministic workflow demo
-**Purpose**: Help users move a task from intent through planning and implementation to a verified handoff
+**Purpose**: Help anyone use AI to turn everyday goals and problems into practical action plans
 **Target Platforms**: Desktop (≥1024px), Tablet (768-1023px), Mobile (<768px)
 
 ## Technology Stack
@@ -35,7 +35,7 @@
 src/
 ├── app/           # Application shell (App.tsx, routes)
 ├── widgets/       # Composite UI widgets (navigation)
-├── features/      # Feature modules (auth, home, AI Delivery Lab)
+├── features/      # Feature modules (auth, home, AI Planner)
 ├── entities/      # Domain entities (user)
 ├── shared/        # Shared code
 │   ├── components/  # Reusable React components
@@ -154,19 +154,21 @@ export { ComponentName } from './ComponentName'
 - **Firestore**: `src/shared/config/firebase/db.ts`
 - **User Service**: `src/entities/user/userService.ts`
 
-Auth is optional for browsing the AI Delivery Lab. Sign-in enables account
+Auth is optional for browsing the AI Planner. Sign-in enables account
 registration and profile management.
 
 ### Current Product Direction
 
-- `/` is the AI Delivery Lab product entry; `/demo` is a deterministic
+- `/` is the AI Planner product entry; `/demo` is a deterministic
   simulated walkthrough and performs no automated work.
 - `/login` and `/register` retain the existing sign-in flow. Old portfolio
   routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.
 - Keep the existing auth/user services, UI kit, Storybook, test infrastructure,
   CI workflows, and performance budgets.
-- The main beta path is a private brief: users describe an outcome, generate
-  and edit a plan, copy it, save it, and reopen it. Delivery stages and
+- The main beta path is a private plan: users describe an outcome, generate
+  and edit a plan, copy it, save it, and reopen it. Supporting context input and document/repository connections
+  are deferred; the UI sends an empty context-entry selection. Existing stored
+  context remains compatible. Delivery stages and
   handoff evidence remain optional task detail. AI-assisted planning runs
   through the bounded zero-cost Cloudflare Worker release.
 - Theme preference is a local light/dark choice; it does not change workspace

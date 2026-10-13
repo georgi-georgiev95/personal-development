@@ -5,18 +5,18 @@ scope and vocabulary used by implementation tickets.
 
 ## User and outcome
 
-The first user is a solo developer working in a personal workspace. The main
-experience turns an outcome into an editable implementation brief that can be
+The main audience is anyone using AI to solve everyday problems at home, at
+work, or while learning. The main experience turns a goal into an editable action plan that can be
 copied, saved, and reopened. The product helps plan and record that work; it
-does not perform implementation or run checks.
+does not carry out the actions on the user’s behalf.
 
 ## Terms
 
-- **Workspace:** a user's personal space for repository context and tasks.
+- **Workspace:** a user's personal space for tasks and saved plans.
 - **Task:** one outcome, with its intent, scope, plan, progress, evidence, and
   handoff.
 - **Stage:** an optional task-detail checkpoint retained for delivery history;
-  the brief-first path does not require stage completion.
+  the plan-first path does not require stage completion.
 - **Artifact:** task material that can be reviewed, such as intent, plan,
   implementation notes, validation evidence, or handoff summary.
 - **Validation result:** a manually recorded check outcome and its evidence
@@ -34,10 +34,10 @@ Saved task details retain the sequence **Discovery → Planning → Implementati
 stage advances when its work is recorded; stages do not imply that the product
 performed that work. An In progress task can return to the earliest affected
 stage; reopening applies to a task already Handed off. None of these checkpoints
-is required to generate, edit, copy, save, or reopen a brief.
+is required to generate, edit, copy, save, or reopen a plan.
 
 Implementation is tracking only. The user records work performed elsewhere.
-Repository context is pasted by the user. Validation evidence is explicitly
+Supporting context input is deferred. Validation evidence is explicitly
 identified as one of:
 
 - **Manual:** entered by the user, including a check they ran elsewhere.
@@ -69,8 +69,8 @@ this release.
   off explicitly.
 - Users can edit task intent, scope, plan, implementation notes, artifacts,
   required checks, check results/evidence, review notes, and handoff summary;
-  they advance the current stage one step at a time. Workspace name and pasted
-  repository context are also editable.
+  they advance the current stage one step at a time. Existing repository context is retained as legacy data; it is not editable
+  or sent with new planning requests through the UI.
 - Changing task intent, scope, plan, implementation notes, artifacts, pasted
   repository context used by the task, required checks, or check results/evidence
   creates a new revision. A change to a **Pending** revision withdraws review
@@ -85,7 +85,7 @@ this release.
 
 ## Journeys
 
-**Brief-first:** describe the outcome and optional context, generate and edit a
+**Plan-first:** describe the outcome, generate and edit a
 plan, copy it for repository work, save it privately, and reopen it later. This
 path has no mandatory implementation, validation, review, or handoff forms.
 
@@ -106,10 +106,11 @@ requires a new approval; affected checks are rerun if the work changes.
 
 ## First-release boundary
 
-The first release supports a public simulated demo, personal workspaces, pasted
-repository context, a brief-first planning path, optional manually recorded
+The first release supports a public simulated demo, personal workspaces,
+a plan-first planning path, optional manually recorded
 delivery evidence, and AI-assisted planning through the bounded zero-cost
-Worker. It does not execute code, connect to GitHub, ingest CI results, provide
+Worker. Supporting context input, document uploads, and repository connections
+are deferred. New planning requests send no context entries. It does not execute code, connect to GitHub, ingest CI results, provide
 team roles or invitations, or bill users. Theme preference is local to the
 browser and does not alter workspace data. See the [beta verification
 checklist](beta-verification.md) and [production verification

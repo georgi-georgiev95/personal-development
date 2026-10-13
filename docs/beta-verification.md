@@ -1,6 +1,6 @@
 # Beta verification checklist
 
-This is the smallest release checklist for the brief-first beta. It keeps
+This is the smallest release checklist for the plan-first beta. It keeps
 automated evidence separate from the live checks that require an authorized
 production session.
 
@@ -32,7 +32,7 @@ explicitly approved:
   it, save it, reload, and reopen it;
 - switching light/dark themes preserves in-progress input and the selected
   mode after reload;
-- two accounts cannot read or update each other's saved briefs;
+- two accounts cannot read or update each other's saved plans;
 - failed saves, stale responses, planner quota errors, and mobile keyboard
   navigation remain safe and legible.
 

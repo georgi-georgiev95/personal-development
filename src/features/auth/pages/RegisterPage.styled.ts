@@ -6,7 +6,7 @@ export const StyledRegisterBox = styled.div`
   flex: 1;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: ${theme.spacing.md};
 `
@@ -21,8 +21,6 @@ export const StyledRegisterCard = styled.div`
   background: ${theme.colors.surface};
   border: 1px solid ${theme.colors.border};
   box-shadow: ${theme.boxShadow.card};
-  max-height: 90vh;
-  overflow-y: auto;
 
   &::before,
   &::after {

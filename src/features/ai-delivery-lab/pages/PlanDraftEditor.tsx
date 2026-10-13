@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   isDeliveryPlanCurrent,
-  DELIVERY_CONTEXT_MAX_ENTRIES,
   type DeliveryPlanProposal,
   type DeliveryTask,
 } from '@/entities/delivery-task'
@@ -12,11 +11,7 @@ import {
   ArtifactPanel,
   Field,
   FieldError,
-  TaskCard,
-  TaskList,
 } from '@/features/ai-delivery-lab/pages/TaskWorkspace.styles'
-
-const PLAN_CONTEXT_MAX_LENGTH = 12_000
 
 export function PlanDraftEditor({
   task,
@@ -34,17 +29,6 @@ export function PlanDraftEditor({
   const [draft, setDraft] = useState<DeliveryPlanProposal | null>(null)
   const [state, setState] = useState<'idle' | 'generating' | 'saving'>('idle')
   const [error, setError] = useState('')
-  const entries = task.contextEntries ?? []
-  const [selectedIds, setSelectedIds] = useState(() =>
-    entries.map((entry) => entry.id)
-  )
-  const selectedLength = entries.reduce(
-    (total, entry) =>
-      selectedIds.includes(entry.id) ? total + entry.content.length : total,
-    0
-  )
-  const selectionTooLarge = selectedLength > PLAN_CONTEXT_MAX_LENGTH
-
   useEffect(
     () => () => {
       request.current += 1
@@ -58,18 +42,7 @@ export function PlanDraftEditor({
     setError('')
     setState('idle')
   }
-  const toggleContext = (id: string) => {
-    setSelectedIds((current) => {
-      const next = current.includes(id)
-        ? current.filter((selectedId) => selectedId !== id)
-        : [...current, id]
-      setDraft(null)
-      setError('')
-      return next
-    })
-  }
   const generate = async () => {
-    if (selectionTooLarge) return
     const token = ++request.current
     setState('generating')
     setError('')
@@ -78,22 +51,20 @@ export function PlanDraftEditor({
         ? {
             objective: task.goal,
             steps: [
-              'Review the task and project context.',
-              'Make the smallest change that meets the goal.',
+              'Review the task and intended outcome.',
+              'Choose a small, practical step toward the goal.',
             ],
             acceptanceCriteria: [
-              'Verify the outcome against the goal and record actual evidence.',
+              'Check whether the result brings you closer to your goal.',
             ],
-            risks: [
-              'Fixture response only; no code was changed and no checks were run.',
-            ],
+            risks: ['Sample response only; no actions have been carried out.'],
             contextRevision: task.contextRevision ?? 0,
           }
         : await (
             await import('@/entities/delivery-task/planService')
           ).generateDeliveryPlan({
             taskId: task.id,
-            contextEntryIds: selectedIds,
+            contextEntryIds: [],
             contextRevision: task.contextRevision ?? 0,
           })
       if (token !== request.current) return
@@ -141,51 +112,10 @@ export function PlanDraftEditor({
       <ArtifactMeta>
         {demo
           ? 'Simulated demo · fixture response · no paid AI usage.'
-          : 'Choose which saved project context to send to AI.'}{' '}
+          : 'Generate a plan from your task description.'}{' '}
         Review and edit the draft before accepting. Your saved plan stays
-        unchanged until then. No code is implemented and no validation is run.
+        unchanged until then. You choose which steps to take.
       </ArtifactMeta>
-      {entries.length > 0 && (
-        <>
-          <ArtifactMeta>
-            Context selection: {selectedIds.length} of{' '}
-            {DELIVERY_CONTEXT_MAX_ENTRIES} entries ·{' '}
-            {selectedLength.toLocaleString()} /{' '}
-            {PLAN_CONTEXT_MAX_LENGTH.toLocaleString()} characters
-          </ArtifactMeta>
-          <TaskList aria-label="Plan context selection">
-            {entries.map((entry) => {
-              const selected = selectedIds.includes(entry.id)
-              const exceedsLimit =
-                !selected &&
-                selectedLength + entry.content.length > PLAN_CONTEXT_MAX_LENGTH
-              return (
-                <TaskCard key={entry.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      disabled={state !== 'idle' || exceedsLimit}
-                      onChange={() => toggleContext(entry.id)}
-                    />{' '}
-                    {entry.name}
-                  </label>
-                  <ArtifactMeta>
-                    {entry.content.length.toLocaleString()} characters
-                    {exceedsLimit && ' · exceeds the remaining budget'}
-                  </ArtifactMeta>
-                </TaskCard>
-              )
-            })}
-          </TaskList>
-          {selectionTooLarge && (
-            <FieldError role="alert">
-              Deselect context until the selection is within the 12,000
-              character limit.
-            </FieldError>
-          )}
-        </>
-      )}
       {state === 'generating' && (
         <ArtifactMeta role="status">Generating a plan…</ArtifactMeta>
       )}
@@ -193,15 +123,15 @@ export function PlanDraftEditor({
       {draft ? (
         <>
           <ArtifactMeta>
-            {demo ? 'Simulated demo draft' : 'AI-generated draft'} · Context
-            revision {draft.contextRevision} · Not accepted
+            {demo ? 'Simulated demo draft' : 'AI-generated draft'} · Not
+            accepted
           </ArtifactMeta>
           {(['objective', 'steps', 'acceptanceCriteria', 'risks'] as const).map(
             (field) => (
               <Field key={field}>
                 <label htmlFor={`plan-${field}`}>
                   {field === 'acceptanceCriteria'
-                    ? 'Acceptance criteria'
+                    ? 'What success looks like'
                     : field === 'objective'
                       ? 'Objective'
                       : field === 'steps'
@@ -252,10 +182,7 @@ export function PlanDraftEditor({
               Cancel generation
             </Button>
           ) : (
-            <Button
-              disabled={selectionTooLarge}
-              onClick={() => void generate()}
-            >
+            <Button onClick={() => void generate()}>
               {error ? 'Retry generation' : 'Generate plan'}
             </Button>
           )}

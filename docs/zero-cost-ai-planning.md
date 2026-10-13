@@ -5,10 +5,24 @@ Spark plan. AI planning runs through the Cloudflare Worker in
 `prototypes/zero-cost-planning/worker.mjs`; Firebase Functions are not used.
 
 The Worker verifies Firebase ID tokens, reads only the signed-in user's task
-and selected context through Firestore REST, enforces five attempts per user
+through Firestore REST, enforces five attempts per user
 and fifteen attempts globally per UTC day, calls Groq's free-eligible model,
 and validates the returned draft. It fails closed when the provider or a free
 quota is unavailable. No paid fallback is configured.
+
+Supporting context input, document uploads, and repository connections are
+currently deferred. The UI sends no context entries. The backend retains
+bounded context support for compatibility with stored task data; the 12,000
+character limit remains in place for that legacy capability.
+
+## Local app setup
+
+Set `VITE_AI_PLANNER_URL=/api/plan` in `.env.development.local` and restart the Vite server.
+The development-only proxy forwards authenticated requests to the deployed
+planner, avoiding cross-origin browser requests from localhost. This uses the
+real planner and its existing quotas; it does not provide simulated results.
+Emulator mode continues to use the local Worker at port 8787. Production builds
+must use the deployed HTTPS planner URL, as configured in the hosting workflow.
 
 ## Local checks
 

@@ -11,11 +11,8 @@ import {
   recordDeliveryReviewDecision,
   recordDeliveryValidationResult,
   saveDeliveryArtifact,
-  saveDeliveryContextEntry,
-  removeDeliveryContextEntry,
   updateDeliveryTask,
   type DeliveryArtifactStage,
-  type DeliveryContextInput,
   type DeliveryReviewInput,
   type DeliveryStage,
   type DeliveryTask,
@@ -30,7 +27,7 @@ import {
 } from '@/entities/delivery-task/deliveryTaskRepository'
 import { ensurePersonalWorkspace } from '@/entities/workspace'
 import {
-  TaskBriefPage,
+  TaskPlanPage,
   TaskDetailRoute,
   TaskListPage,
   UnknownTaskPage,
@@ -49,9 +46,9 @@ function SignedOutWorkspace() {
   return (
     <WorkspacePage aria-labelledby="workspace-heading">
       <Eyebrow>// personal workspace</Eyebrow>
-      <Heading id="workspace-heading">Start a private brief</Heading>
+      <Heading id="workspace-heading">Start a private plan</Heading>
       <Message>
-        Sign in to generate and save briefs in your private workspace.
+        Sign in to generate and save plans in your private workspace.
       </Message>
       <WorkspaceLink to="/login">Sign in</WorkspaceLink>
       <WorkspaceLink to="/register">Create an account</WorkspaceLink>
@@ -141,14 +138,8 @@ function OwnedWorkspace({
     content: string
   ) => updateTask(id, (task) => saveDeliveryArtifact(task, stage, content))
 
-  const saveContext = (id: string, input: DeliveryContextInput) =>
-    updateTask(id, (task) => saveDeliveryContextEntry(task, input))
-
   const acceptPlan = (id: string, draft: DeliveryPlanProposal) =>
     updateTask(id, (task) => acceptDeliveryPlan(task, draft))
-
-  const removeContext = (id: string, contextId: string) =>
-    updateTask(id, (task) => removeDeliveryContextEntry(task, contextId))
 
   const saveValidationResult = (
     id: string,
@@ -207,23 +198,9 @@ function OwnedWorkspace({
       <Route
         path="tasks/new"
         element={
-          <TaskBriefPage
+          <TaskPlanPage
             onCreate={createTask}
             onUpdate={updateSavedTask}
-            onRemoveContext={async (id, contextId) => {
-              const task = tasks.find((item) => item.id === id)
-              if (!task) return null
-              const updated = removeDeliveryContextEntry(task, contextId)
-              const saved = await saveWorkspaceDeliveryTask(
-                uid,
-                updated,
-                'update'
-              )
-              setTasks((current) =>
-                current.map((item) => (item.id === id ? saved : item))
-              )
-              return saved
-            }}
             basePath={BASE_PATH}
           />
         }
@@ -242,8 +219,6 @@ function OwnedWorkspace({
             onReview={reviewTask}
             onCompleteStage={completeStage}
             onReopenStage={reopenStage}
-            onSaveContext={saveContext}
-            onRemoveContext={removeContext}
           />
         }
       />

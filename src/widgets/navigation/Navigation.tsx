@@ -7,9 +7,7 @@ import {
   Nav,
   NavLeft,
   NavBrandLink,
-  NavBrandPrefix,
   NavBrandName,
-  NavCursor,
   NavRight,
   NavLinks,
   NavAuthRow,
@@ -58,22 +56,10 @@ export function Navigation() {
     <Nav>
       <NavLeft>
         <NavBrandLink href="/" onClick={(e) => handleClick(e, '/')}>
-          <NavBrandPrefix>~/</NavBrandPrefix>
-          <NavBrandName>AI Delivery Lab</NavBrandName>
-          <NavCursor />
+          <NavBrandName>AI Planner</NavBrandName>
         </NavBrandLink>
       </NavLeft>
       <NavRight>
-        <ThemeToggle
-          type="button"
-          role="switch"
-          aria-checked={mode === 'light'}
-          aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} theme`}
-          onClick={toggle}
-        >
-          <span aria-hidden="true">{mode === 'light' ? '☀' : '☾'}</span>
-          {mode === 'light' ? 'Light theme' : 'Dark theme'}
-        </ThemeToggle>
         <NavLinks aria-label="Primary navigation">
           <NavLink
             href="/"
@@ -96,20 +82,31 @@ export function Navigation() {
                 $active={location.pathname === '/workspace/tasks/new'}
                 onClick={(e) => handleClick(e, '/workspace/tasks/new')}
               >
-                New brief
+                New plan
               </NavLink>
               <NavLink
                 href="/workspace/tasks"
                 $active={
                   location.pathname === '/workspace' ||
-                  location.pathname.startsWith('/workspace/tasks')
+                  (location.pathname.startsWith('/workspace/tasks') &&
+                    location.pathname !== '/workspace/tasks/new')
                 }
                 onClick={(e) => handleClick(e, '/workspace/tasks')}
               >
-                Saved briefs
+                Saved plans
               </NavLink>
             </>
           )}
+          <ThemeToggle
+            type="button"
+            role="switch"
+            aria-checked={mode === 'dark'}
+            aria-label="Dark theme"
+            title={`Switch to ${mode === 'light' ? 'dark' : 'light'} theme`}
+            onClick={toggle}
+          >
+            <span aria-hidden="true" />
+          </ThemeToggle>
         </NavLinks>
         <NavAuthRow>
           {loading ? null : user ? (

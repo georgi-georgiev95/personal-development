@@ -3,7 +3,7 @@ import { theme } from '@/shared/styles/theme'
 
 export const TextareaField = styled.textarea`
   width: 100%;
-  min-height: 120px;
+  min-height: 96px;
   padding: ${theme.spacing.md};
   font-family: ${theme.font.family};
   font-size: ${theme.fontSizes.sm};
@@ -11,7 +11,9 @@ export const TextareaField = styled.textarea`
   background: ${theme.colors.cardBg};
   border: 1px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.lg};
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
+  line-height: ${theme.lineHeight.relaxed};
   transition:
     border-color ${theme.transition.fast},
     box-shadow ${theme.transition.fast};
