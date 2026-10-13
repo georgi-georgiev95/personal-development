@@ -19,8 +19,8 @@ export const StyledLoginCard = styled.div`
   padding: 40px 32px 32px;
   border-radius: ${theme.borderRadius.xl};
   background: ${theme.colors.surface};
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 40px 90px -20px rgba(0, 0, 0, 0.85);
+  border: 1px solid ${theme.colors.border};
+  box-shadow: ${theme.boxShadow.card};
 
   &::before,
   &::after {
@@ -33,15 +33,15 @@ export const StyledLoginCard = styled.div`
   &::before {
     top: 18px;
     right: 18px;
-    border-top: 1px solid rgba(45, 212, 191, 0.4);
-    border-right: 1px solid rgba(45, 212, 191, 0.4);
+    border-top: 1px solid ${theme.colors.primary};
+    border-right: 1px solid ${theme.colors.primary};
   }
 
   &::after {
     bottom: 18px;
     left: 18px;
-    border-bottom: 1px solid rgba(45, 212, 191, 0.4);
-    border-left: 1px solid rgba(45, 212, 191, 0.4);
+    border-bottom: 1px solid ${theme.colors.primary};
+    border-left: 1px solid ${theme.colors.primary};
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
@@ -69,11 +69,11 @@ export const Eyebrow = styled.p`
 
 export const StyledTitle = styled.h2`
   margin: 0;
-  color: #fff;
+  color: ${theme.colors.text};
   font-family: ${theme.font.family};
   font-weight: 700;
   font-size: 26px;
-  text-shadow: 0 0 26px rgba(45, 212, 191, 0.35);
+  text-shadow: none;
 
   @media (max-width: ${theme.breakpoint.mobile}) {
     font-size: 22px;
@@ -84,6 +84,13 @@ export const StyledForm = styled.form`
   display: flex;
   flex-direction: column;
   gap: 12px;
+`
+
+export const FieldLabel = styled.label`
+  margin-top: ${theme.spacing.xs};
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.sm};
+  font-weight: 600;
 `
 
 export const InputWrapper = styled.div`
@@ -97,7 +104,7 @@ export const InputIcon = styled.span`
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(45, 212, 191, 0.75);
+  color: ${theme.colors.primary};
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -107,10 +114,10 @@ export const InputIcon = styled.span`
 export const StyledInput = styled.input`
   width: 100%;
   padding: 13px 14px 13px 38px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #fff;
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.sm};
+  background: ${theme.colors.cardBg};
+  color: ${theme.colors.text};
   font-size: 13px;
   font-family: inherit;
   outline: none;
@@ -120,8 +127,8 @@ export const StyledInput = styled.input`
   box-sizing: border-box;
 
   &:focus {
-    border-color: ${theme.colors.accent};
-    box-shadow: 0 0 12px rgba(45, 212, 191, 0.18);
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 3px ${theme.colors.overlay};
   }
 
   &::placeholder {
@@ -134,8 +141,8 @@ export const StyledButton = styled.button`
   margin-top: 6px;
   padding: 14px;
   border: none;
-  border-radius: 5px;
-  background: ${theme.colors.gradient};
+  border-radius: ${theme.borderRadius.sm};
+  background: ${theme.colors.primary};
   color: ${theme.colors.textOnAccent};
   font-size: 14px;
   font-weight: 700;
@@ -147,7 +154,7 @@ export const StyledButton = styled.button`
   font-family: inherit;
 
   &:hover:not(:disabled) {
-    box-shadow: 0 0 24px rgba(45, 212, 191, 0.3);
+    box-shadow: ${theme.boxShadow.sm};
     transform: translateY(-1px);
   }
 
@@ -165,7 +172,7 @@ export const BottomText = styled.p`
   margin: 18px 0 0;
   width: 100%;
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: ${theme.colors.textSecondary};
   font-size: ${theme.fontSizes.sm};
 `
 
@@ -185,9 +192,9 @@ export const ErrorMessage = styled.div`
   padding: ${theme.spacing.sm};
   margin-bottom: ${theme.spacing.sm};
   border-radius: ${theme.borderRadius.md};
-  background: rgba(244, 67, 54, 0.15);
-  border: 1px solid rgba(244, 67, 54, 0.25);
-  color: #fca5a5;
+  background: ${theme.colors.errorBg};
+  border: 1px solid ${theme.colors.error};
+  color: ${theme.colors.error};
   font-weight: bold;
   font-size: ${theme.fontSizes.sm};
   text-align: center;

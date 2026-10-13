@@ -181,19 +181,19 @@ const DemoWalkthrough = () => {
 
   return (
     <DetailPage>
-      <BackLink to="/">← AI Delivery Lab</BackLink>
-      <Eyebrow>// ai delivery lab</Eyebrow>
-      <Heading>Make the harness visible.</Heading>
+      <BackLink to="/">← Home</BackLink>
+      <Eyebrow>// public example</Eyebrow>
+      <Heading>See a simulated implementation brief.</Heading>
       <SimulatedNote>
-        Simulated demo · no automated work is performed
+        Public example · simulated content · nothing is saved
       </SimulatedNote>
       <Intro>
-        A deterministic walkthrough of how repository-aware AI assistance can
-        move a task from intent to a verified handoff.
+        A deterministic preview of the short path from an idea to a focused
+        plan. It uses no real AI, account data, or persistent workspace.
       </Intro>
 
       <Section>
-        <SectionHeading>Mock delivery run</SectionHeading>
+        <SectionHeading>Example brief</SectionHeading>
         <DetailText>
           <strong>{mockTask.title}</strong> — {mockTask.goal}
         </DetailText>
@@ -245,10 +245,10 @@ const DemoWalkthrough = () => {
       </Section>
 
       <Section>
-        <SectionHeading>Demo tasks</SectionHeading>
+        <SectionHeading>Try the resettable example</SectionHeading>
         <DetailText>
-          Create tasks, browse their details, and record a simple goal in this
-          temporary demo workspace.
+          Add a sample task or browse the temporary demo workspace. Reloading
+          clears everything, and none of it reaches your private workspace.
         </DetailText>
         <ResetButton type="button" onClick={() => navigate('/demo/tasks')}>
           Browse demo tasks
