@@ -165,10 +165,13 @@ registration and profile management.
   routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.
 - Keep the existing auth/user services, UI kit, Storybook, test infrastructure,
   CI workflows, and performance budgets.
-- Private saved task-to-handoff workflows and AI-assisted planning are live.
-  The planner runs through the bounded zero-cost Cloudflare Worker release.
-  Automated coding, GitHub/CI-result ingestion, team invitations, and billing
-  remain deferred.
+- The main beta path is a private brief: users describe an outcome, generate
+  and edit a plan, copy it, save it, and reopen it. Delivery stages and
+  handoff evidence remain optional task detail. AI-assisted planning runs
+  through the bounded zero-cost Cloudflare Worker release.
+- Theme preference is a local light/dark choice; it does not change workspace
+  data. Automated coding, GitHub/CI-result ingestion, team invitations, and
+  billing remain deferred.
 
 ## Known Patterns
 

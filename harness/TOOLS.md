@@ -326,7 +326,9 @@ Cloudflare Worker secrets and fail closed when the provider is unavailable.
 
 ### Branch Strategy
 
-Currently: Direct commits to `main` (personal project)
+Start ticket work on a GitHub-linked `feature/` or `bugfix/` branch, push it to
+`origin`, and open a pull request against `main`. Do not commit directly to
+`main` for ticket work.
 
 ### Commit Messages
 
@@ -408,13 +410,16 @@ Run in order, every time, before opening a PR:
 pnpm lint
 pnpm typecheck
 pnpm format
+pnpm coverage
 pnpm build
+pnpm perf
 ```
 
-All four must be green. A failure here means CI will fail and the deploy
-will fail — fix it locally first, then re-run the full sequence.
+All six must be green, in that order. Run `pnpm perf` after `pnpm build`. A
+failure here means CI will fail and the deploy may fail — fix it locally first,
+then re-run the full sequence.
 
 ---
 
-**Last Updated**: 2026-06-29  
+**Last Updated**: 2026-10-13
 **Version**: 1.0.0

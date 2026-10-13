@@ -1,6 +1,9 @@
 # personal-development
 
-AI Delivery Lab is a product for turning a task into a clear plan, focused implementation, and verified handoff. This repository contains its public product entry, a deterministic simulated demo, authenticated private workspaces, and live zero-cost AI planning.
+AI Delivery Lab is a product for turning an outcome into a clear implementation
+brief and, when needed, a verified handoff. This repository contains its
+public product entry, a deterministic simulated demo, authenticated private
+workspaces, and live zero-cost AI planning.
 
 ## Package manager
 
@@ -47,15 +50,24 @@ to `/demo`.
 
 ## Retained foundation and follow-up
 
-The app includes Firebase authentication, private saved task-to-handoff
-workflows, manual evidence, and AI-assisted planning. Automated coding,
+The app includes Firebase authentication, private saved briefs, optional
+task-to-handoff details, manual evidence, and AI-assisted planning. Automated coding,
 GitHub/CI-result ingestion, team invitations, and billing remain deferred. The
 free planner backend runs as a bounded Cloudflare Worker with hard quotas and
 no paid fallback; see [zero-cost AI planning](docs/zero-cost-ai-planning.md) and
 the [production verification record](docs/production-verification.md).
 
+The beta's main path is brief-first: describe an outcome, generate a brief,
+edit it, copy it, save it privately, and reopen it later. The older delivery
+detail stages remain available as optional task history; they are not required
+to create or save a brief. Users can switch between the warm light and
+near-black dark themes with the navigation toggle; the choice stays local to
+the browser.
+
 See the [product roadmap](ROADMAP.md) and the [proposed first-release workflow
 contract](docs/first-release-workflow.md) for the scope and acceptance rules.
+The current verification status is recorded in the [beta verification
+checklist](docs/beta-verification.md).
 
 ## Layer Responsibilities
 

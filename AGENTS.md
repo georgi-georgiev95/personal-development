@@ -21,7 +21,10 @@ Follow system and developer instructions above both.
 
 ## Project-local skills
 
-Custom skills for this project are stored in `.agents/skills/` and are available by their `$` names: `$github-ticket`, `$tdd`, and `$ui-kit`.
+Custom skills for this project are stored in `.agents/skills/` and are
+available by their `$` names. This includes ticket setup, ponytail
+implementation, review, handoff, PR, TDD, UI-kit, and other skills listed in
+that directory.
 
 ## TDD Skill
 

@@ -9,6 +9,9 @@ contract](docs/first-release-workflow.md).
    and manual implementation and validation evidence.
 3. ✅ AI-assisted planning within the task workflow through the bounded
    zero-cost Worker release.
+4. 🔄 Brief-first beta verification and release readiness. Automated regression,
+   security, coverage, build, and performance checks pass; live acceptance and
+   production deployment still require an explicitly authorized run.
 
 Code execution, GitHub connection, CI-result ingestion, team invitations,
 billing, and automated coding remain deferred beyond this release.

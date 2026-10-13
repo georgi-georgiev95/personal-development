@@ -15,17 +15,18 @@ src/
 ├── app/                    # App shell (App, routes)
 │   ├── App.tsx
 │   ├── App.styles.ts
-│   ├── routes.tsx
-│   └── routes.styles.ts
+│   └── routes.tsx
 ├── features/               # Feature modules
 │   ├── auth/               # Authentication (Login, Register, AuthProvider)
-│   └── home/               # AI Delivery Lab product entry
+│   ├── home/               # AI Delivery Lab product entry
+│   └── ai-delivery-lab/     # Demo, workspace, and AI planning UI
+├── widgets/                # Composite app-wide UI (Navigation)
 ├── shared/                 # Shared code
-│   ├── components/         # Reusable components (Navigation, ErrorBoundary)
+│   ├── components/         # Reusable presentational components
 │   ├── config/             # Firebase config
-│   ├── services/           # API/services (userService)
-│   ├── styles/             # Global styles + theme
-│   └── utils/              # Utility functions
+│   ├── styles/              # Global reset + semantic theme tokens
+│   ├── ui-kit/              # Reusable design-system controls
+│   └── utils/               # Utility functions
 ├── main.tsx                # Entry point
 └── test/                   # Test setup
 ```
@@ -52,7 +53,9 @@ export const Container = styled.div`
 `
 ```
 
-**No ThemeProvider.** Import `theme` as a plain JS object. **No inline styles** — always use `.styles.ts` files.
+**No ThemeProvider.** Import `theme` as a plain JS object. The selected light
+or near-black dark mode is applied through shared CSS variables and a local
+browser preference. **No inline styles** — always use `.styles.ts` files.
 
 ---
 
@@ -112,11 +115,18 @@ pnpm format          # Prettier
 
 ## Routing
 
-| Path        | Component      | Auth required |
-| ----------- | -------------- | ------------- |
-| `/`         | `HomePage`     | No            |
-| `/login`    | `LoginPage`    | No            |
-| `/register` | `RegisterPage` | No            |
+| Path           | Component               | Auth required |
+| -------------- | ----------------------- | ------------- |
+| `/`            | `HomePage`              | No            |
+| `/demo/*`      | `AIDeliveryLabPage`     | No            |
+| `/login`       | `LoginPage`             | No            |
+| `/register`    | `RegisterPage`          | No            |
+| `/workspace/*` | `PersonalWorkspacePage` | Yes           |
+
+The main workspace is brief-first: describe an outcome, generate and edit a
+plan, copy it, save it privately, and reopen it later. Delivery stages and
+handoff evidence are optional task detail; the public demo is simulated and
+resettable.
 
 ---
 

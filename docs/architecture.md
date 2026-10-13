@@ -33,10 +33,11 @@ The frontend uses:
 - Linaria for the project's typed, build-time CSS;
 - Firebase Web SDK for Authentication and Firestore access.
 
-The browser is responsible for rendering the product, authenticating the user,
-and sending an authenticated planning request. It is not a safe place for
-provider API keys, quota enforcement, or privileged database access because
-everything shipped to the browser can be inspected and modified by the user.
+The browser is responsible for rendering the brief-first product experience,
+authenticating the user, applying the local light/dark preference, and sending
+an authenticated planning request. It is not a safe place for provider API
+keys, quota enforcement, or privileged database access because everything
+shipped to the browser can be inspected and modified by the user.
 
 The frontend calls the Worker through `VITE_AI_PLANNER_URL`. In local emulator
 mode it uses `http://127.0.0.1:8787/plan`; in the deployed application it uses:
