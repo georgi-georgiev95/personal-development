@@ -26,7 +26,7 @@ To feed the converter, a dedicated library build was added:
 
 ## Re-sync risks
 
-- **The app's real `package.json` (`personal-development`) is never
+- **The app's real `package.json` (`daywise`) is never
   modified** — `dist-ds-lib/package.json` is a synthetic stub written fresh
   by `build-ds-lib.sh` every run. Don't add a `types`/`main` field to the
   real root `package.json` for this purpose; it isn't needed and would leak

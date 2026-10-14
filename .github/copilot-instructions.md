@@ -1,8 +1,8 @@
-# Copilot / AI Agent Instructions — AI Delivery Lab
+# Copilot / AI Agent Instructions — Daywise
 
 ## What This App Is
 
-An AI Delivery Lab product with a deterministic workflow demo and optional authentication. Built with React, TypeScript, and Vite.
+Daywise is a planning product with a deterministic workflow demo and optional authentication. Built with React, TypeScript, and Vite.
 
 **Target platforms:** Desktop (>=1024px), Tablet (768-1023px), Mobile (<768px).
 
@@ -18,7 +18,7 @@ src/
 │   └── routes.tsx
 ├── features/               # Feature modules
 │   ├── auth/               # Authentication (Login, Register, AuthProvider)
-│   ├── home/               # AI Delivery Lab product entry
+│   ├── home/               # Daywise product entry
 │   └── ai-delivery-lab/     # Demo, workspace, and AI planning UI
 ├── widgets/                # Composite app-wide UI (Navigation)
 ├── shared/                 # Shared code

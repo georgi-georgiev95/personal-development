@@ -4,7 +4,7 @@
 
 ## Project Identity
 
-**Name**: AI Planner
+**Name**: Daywise
 **Type**: React + TypeScript product with a deterministic workflow demo
 **Purpose**: Help anyone use AI to turn everyday goals and problems into practical action plans
 **Target Platforms**: Desktop (≥1024px), Tablet (768-1023px), Mobile (<768px)
@@ -35,7 +35,7 @@
 src/
 ├── app/           # Application shell (App.tsx, routes)
 ├── widgets/       # Composite UI widgets (navigation)
-├── features/      # Feature modules (auth, home, AI Planner)
+├── features/      # Feature modules (auth, home, Daywise)
 ├── entities/      # Domain entities (user)
 ├── shared/        # Shared code
 │   ├── components/  # Reusable React components
@@ -154,12 +154,12 @@ export { ComponentName } from './ComponentName'
 - **Firestore**: `src/shared/config/firebase/db.ts`
 - **User Service**: `src/entities/user/userService.ts`
 
-Auth is optional for browsing the AI Planner. Sign-in enables account
+Auth is optional for browsing the Daywise. Sign-in enables account
 registration and profile management.
 
 ### Current Product Direction
 
-- `/` is the AI Planner product entry; `/demo` is a deterministic
+- `/` is the Daywise product entry; `/demo` is a deterministic
   simulated walkthrough and performs no automated work.
 - `/login` and `/register` retain the existing sign-in flow. Old portfolio
   routes return to `/`, and `/engineering/ai-delivery` forwards to `/demo`.

@@ -107,8 +107,8 @@ export function PlanDraftEditor({
   }
 
   return (
-    <ArtifactPanel aria-label="Generate plan">
-      <h2>Generate plan</h2>
+    <ArtifactPanel aria-label="Find next steps">
+      <h2>Find next steps</h2>
       <ArtifactMeta>
         {demo
           ? 'Simulated demo · fixture response · no paid AI usage.'
@@ -183,7 +183,7 @@ export function PlanDraftEditor({
             </Button>
           ) : (
             <Button onClick={() => void generate()}>
-              {error ? 'Retry generation' : 'Generate plan'}
+              {error ? 'Retry generation' : 'Find next steps'}
             </Button>
           )}
         </Actions>

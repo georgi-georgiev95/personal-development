@@ -90,10 +90,12 @@ describe('saved plans list', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: 'Saved plans' })
+      screen.getByRole('heading', { name: 'Saved ideas' })
     ).toBeInTheDocument()
     expect(
-      screen.getByText('No saved plans yet. Create a plan to save it here.')
+      screen.getByText(
+        'No saved ideas yet. Start with a question and save your next steps here.'
+      )
     ).toBeInTheDocument()
 
     view.rerender(
@@ -145,9 +147,9 @@ describe('one-screen private plan generation', () => {
       screen.getByLabelText('What do you want to accomplish?'),
       'Recover after a failed save'
     )
-    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+    await user.click(screen.getByRole('button', { name: 'Find next steps' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('offline')
-    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+    await user.click(screen.getByRole('button', { name: 'Find next steps' }))
 
     expect(await screen.findByText('A plan')).toBeInTheDocument()
     expect(attemptedIds[0]).toBe(attemptedIds[1])
@@ -187,7 +189,7 @@ describe('one-screen private plan generation', () => {
       screen.getByLabelText('What do you want to accomplish?'),
       'Improve onboarding\nMake the first step clear.'
     )
-    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+    await user.click(screen.getByRole('button', { name: 'Find next steps' }))
 
     expect(
       await screen.findByText('Make onboarding clearer.')
@@ -247,8 +249,8 @@ describe('one-screen private plan generation', () => {
       screen.getByLabelText('What do you want to accomplish?'),
       'Write a plan'
     )
-    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
-    await user.click(await screen.findByRole('button', { name: 'Edit plan' }))
+    await user.click(screen.getByRole('button', { name: 'Find next steps' }))
+    await user.click(await screen.findByRole('button', { name: 'Edit steps' }))
     const objective = await screen.findByLabelText('Objective')
     await user.clear(objective)
     await user.type(objective, 'Edited objective')
@@ -256,7 +258,7 @@ describe('one-screen private plan generation', () => {
     expect(writeText).toHaveBeenCalledWith(
       expect.stringContaining('## Objective\nEdited objective')
     )
-    await user.click(screen.getByRole('button', { name: 'Save plan' }))
+    await user.click(screen.getByRole('button', { name: 'Save steps' }))
     expect(
       await screen.findByText('Saved to your private workspace.')
     ).toBeInTheDocument()
@@ -328,7 +330,7 @@ describe('private project context', () => {
     )
 
     await user.click(screen.getByText('Delivery details (optional)'))
-    await user.click(screen.getByRole('button', { name: 'Generate plan' }))
+    await user.click(screen.getByRole('button', { name: 'Find next steps' }))
 
     expect(generateDeliveryPlan).toHaveBeenCalledWith({
       taskId: contextTask.id,
@@ -519,8 +521,8 @@ it('generates, edits, copies, saves, and reopens a simulated plan without real A
   )
   expect(screen.queryByRole('button', { name: 'Complete stage' })).toBeNull()
   await user.click(screen.getByRole('button', { name: 'Use sample idea' }))
-  await user.click(screen.getByRole('button', { name: 'Generate plan' }))
-  await user.click(await screen.findByRole('button', { name: 'Edit plan' }))
+  await user.click(screen.getByRole('button', { name: 'Find next steps' }))
+  await user.click(await screen.findByRole('button', { name: 'Edit steps' }))
   const objective = await screen.findByLabelText('Objective')
   await user.clear(objective)
   await user.type(objective, 'Simpler mobile signup')
@@ -528,12 +530,12 @@ it('generates, edits, copies, saves, and reopens a simulated plan without real A
   expect(writeText).toHaveBeenCalledWith(
     expect.stringContaining('Simpler mobile signup')
   )
-  await user.click(screen.getByRole('button', { name: 'Save plan' }))
+  await user.click(screen.getByRole('button', { name: 'Save steps' }))
   expect(
     await screen.findByText('Saved for this demo session. Reloading clears it.')
   ).toBeInTheDocument()
   expect(generateDeliveryPlan).not.toHaveBeenCalled()
-  await user.click(screen.getByRole('button', { name: 'Saved plans' }))
+  await user.click(screen.getByRole('button', { name: 'Saved ideas' }))
   await user.click(
     screen.getByRole('link', {
       name: 'Make my room brighter without spending much.',

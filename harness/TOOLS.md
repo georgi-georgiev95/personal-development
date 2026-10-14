@@ -316,7 +316,7 @@ pnpm worker:dev
 firebase deploy --only hosting,firestore
 ```
 
-The Hosting/Firestore workflow is automatic on `main`. The AI planner is a
+The Hosting/Firestore workflow is automatic on `main`. The Daywise planning backend is a
 separate Cloudflare Worker with hard free-tier quotas; keep `GROQ_API_KEY` in
 Cloudflare Worker secrets and fail closed when the provider is unavailable.
 
