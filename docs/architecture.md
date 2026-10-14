@@ -1,6 +1,6 @@
 # Architecture and hosting
 
-AI Delivery Lab is a portfolio application. Its infrastructure is intentionally
+Daywise helps people turn everyday goals and problems into practical action plans. Its infrastructure is intentionally
 small, split into a static web application, Firebase's free application
 services, and a free-eligible AI planning edge service.
 

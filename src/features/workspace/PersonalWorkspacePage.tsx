@@ -45,10 +45,10 @@ const BASE_PATH = '/workspace'
 function SignedOutWorkspace() {
   return (
     <WorkspacePage aria-labelledby="workspace-heading">
-      <Eyebrow>// personal workspace</Eyebrow>
-      <Heading id="workspace-heading">Start a private plan</Heading>
+      <Eyebrow>Your Daywise space</Eyebrow>
+      <Heading id="workspace-heading">Start with a question</Heading>
       <Message>
-        Sign in to generate and save plans in your private workspace.
+        Sign in to Daywise to find your next steps and save them privately.
       </Message>
       <WorkspaceLink to="/login">Sign in</WorkspaceLink>
       <WorkspaceLink to="/register">Create an account</WorkspaceLink>

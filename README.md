@@ -1,6 +1,6 @@
-# personal-development
+# Daywise
 
-AI Planner is a product for helping anyone turn an everyday goal or problem into a practical
+Daywise is a product for helping anyone turn an everyday goal or problem into a practical
 action plan they can edit, copy, and save. This repository contains its
 public product entry, a deterministic simulated demo, authenticated private
 workspaces, and live zero-cost AI planning.
@@ -30,7 +30,7 @@ src/
     navigation/       Top navigation bar (auth-aware)
   features/         Feature-owned pages, components, hooks, and styles
     auth/             Login/Register pages, AuthProvider, ProfileModal, route guards
-    home/             AI Planner product entry
+    home/             Daywise product entry
     ai-delivery-lab/  Workflow pages, demo, workspace, and AI planning UI
   entities/         Business entities and services
     user/             User profile service (Firestore)
@@ -77,7 +77,7 @@ checklist](docs/beta-verification.md).
 | ----------- | ---------------------------------------------------------------------------- |
 | `app/`      | Routing, app shell, top-level providers (AuthProvider, Router)               |
 | `widgets/`  | Reusable UI blocks that use entities/features under the hood (Navigation)    |
-| `features/` | Self-contained user-facing features (auth, home, AI Planner)                 |
+| `features/` | Self-contained user-facing features (auth, home, Daywise)                    |
 | `entities/` | Business logic that doesn't belong to a single feature (user service, etc.)  |
 | `shared/`   | Truly reusable infra — config, styles, ui-kit, components, utility functions |
 

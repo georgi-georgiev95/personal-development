@@ -40,4 +40,8 @@ export const AppContent = styled.main`
   overflow-y: auto;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 767px) {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
 `

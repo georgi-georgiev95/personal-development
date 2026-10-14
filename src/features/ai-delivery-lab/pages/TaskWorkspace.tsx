@@ -131,13 +131,13 @@ const PageHeading = ({
 }) => (
   <>
     <Eyebrow>
-      // {basePath === '/demo' ? 'demo workspace' : 'private workspace'}
+      {basePath === '/demo' ? 'demo workspace' : 'private workspace'}
     </Eyebrow>
     <Heading>{title}</Heading>
     <Notice role="status">
       {basePath === '/demo'
-        ? 'Simulated demo · no real AI. Plans are temporary and reset on reload.'
-        : 'Plans are saved in your private workspace and stay separate from the public demo.'}
+        ? 'Sample responses · no real AI. Your ideas and steps reset on reload.'
+        : 'Your ideas and next steps stay private in your Daywise space.'}
     </Notice>
   </>
 )
@@ -163,13 +163,13 @@ const TaskListContent = ({
   return (
     <TaskPage>
       <Breadcrumb to={basePath}>
-        {basePath === '/demo' ? '← Try another plan' : '← Workspace'}
+        {basePath === '/demo' ? '← Try another idea' : '← Workspace'}
       </Breadcrumb>
-      <PageHeading title="Saved plans" basePath={basePath} />
-      <Content aria-label="Saved plans">
+      <PageHeading title="Saved ideas" basePath={basePath} />
+      <Content aria-label="Saved ideas">
         <Actions>
           <Button onClick={() => navigate(`${basePath}/tasks/new`)}>
-            New plan
+            Ask a question
           </Button>
           {onCreateSample &&
             (['successful', 'changes-requested'] as const).map((journey) => (
@@ -188,14 +188,14 @@ const TaskListContent = ({
           {onCreateSample
             ? 'Samples contain placeholder notes and no passing evidence. Complete the successful path with real manual evidence and approval; the changes-requested sample has a simulated review decision.'
             : basePath === '/demo'
-              ? 'Plans saved in this demo session disappear on reload.'
-              : 'Only you can see your saved plans.'}
+              ? 'Ideas saved in this demo session disappear on reload.'
+              : 'Only you can see your saved ideas and next steps.'}
         </TaskMeta>
         {tasks.length === 0 ? (
           <TaskMeta>
             {onCreateSample
               ? 'No tasks yet. Create one to start the demo journey.'
-              : 'No saved plans yet. Create a plan to save it here.'}
+              : 'No saved ideas yet. Start with a question and save your next steps here.'}
           </TaskMeta>
         ) : (
           <TaskList>
@@ -206,9 +206,9 @@ const TaskListContent = ({
                 </TaskLink>
                 <TaskMeta>{task.goal}</TaskMeta>
                 {task.artifacts.planning ? (
-                  <TaskMeta>Saved plan</TaskMeta>
+                  <TaskMeta>Saved steps</TaskMeta>
                 ) : (
-                  <TaskMeta>Task input only · no plan saved yet</TaskMeta>
+                  <TaskMeta>Idea only · no steps saved yet</TaskMeta>
                 )}
               </TaskCard>
             ))}
@@ -397,7 +397,7 @@ export function TaskPlanPage({
             acceptanceCriteria: [
               'The result improves the situation within your time and budget.',
             ],
-            risks: ['Sample plan only; adjust these steps to your situation.'],
+            risks: ['Sample steps only; adjust them to your situation.'],
             contextRevision: task.contextRevision ?? 0,
           }
         : await (
@@ -420,7 +420,7 @@ export function TaskPlanPage({
         setError(
           caught instanceof Error
             ? caught.message
-            : 'Could not generate a plan. Try again.'
+            : 'Could not find next steps. Try again.'
         )
     } finally {
       if (token === request.current) setState('idle')
@@ -468,7 +468,7 @@ export function TaskPlanPage({
       setError(
         caught instanceof Error
           ? caught.message
-          : 'Could not save the plan. Try again.'
+          : 'Could not save your steps. Try again.'
       )
     }
   }
@@ -483,7 +483,7 @@ export function TaskPlanPage({
       link.href = URL.createObjectURL(
         new Blob([markdown], { type: 'text/markdown' })
       )
-      link.download = 'action-plan.md'
+      link.download = 'daywise-next-steps.md'
       link.click()
       URL.revokeObjectURL(link.href)
       setPlanStatus(
@@ -494,15 +494,32 @@ export function TaskPlanPage({
 
   return (
     <TaskPage>
-      <Breadcrumb to={`${basePath}/tasks`}>← Saved plans</Breadcrumb>
+      <Breadcrumb to={`${basePath}/tasks`}>← Saved ideas</Breadcrumb>
       <PageHeading
-        title={demo ? 'Try an idea. See a plan.' : 'Start a plan'}
+        title={
+          demo ? 'Try an idea. Find a first step.' : 'Start with a question'
+        }
         basePath={basePath}
       />
       <Content>
         <TaskForm onSubmit={generate}>
+          <Field className="goal-field">
+            <label htmlFor="plan-goal">What do you want to accomplish?</label>
+            <Textarea
+              id="plan-goal"
+              className="goal-input"
+              placeholder="For example: plan meals for the week, organize my day, or make my room brighter."
+              value={goal}
+              rows={4}
+              required
+              onChange={(event) => {
+                setGoal(event.target.value)
+                invalidate()
+              }}
+            />
+          </Field>
           {demo && (
-            <Actions>
+            <Actions className="sample-actions">
               <Button
                 type="button"
                 variant="secondary"
@@ -515,47 +532,33 @@ export function TaskPlanPage({
               </Button>
             </Actions>
           )}
-          <Field>
-            <label htmlFor="plan-goal">What do you want to accomplish?</label>
-            <Textarea
-              id="plan-goal"
-              placeholder="For example: plan meals for the week, organize my day, or make my room brighter."
-              value={goal}
-              rows={4}
-              required
-              onChange={(event) => {
-                setGoal(event.target.value)
-                invalidate()
-              }}
-            />
-          </Field>
           {error && <FieldError role="alert">{error}</FieldError>}
-          <Actions>
+          <Actions className="form-actions">
             <Button type="submit" disabled={state === 'generating'}>
-              {state === 'generating' ? 'Generating…' : 'Generate plan'}
+              {state === 'generating' ? 'Generating…' : 'Find next steps'}
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate(`${basePath}/tasks`)}
             >
-              Saved plans
+              Saved ideas
             </Button>
           </Actions>
           {savedInput && (
             <TaskMeta role="status">
               {demo
                 ? 'Sample response · no real AI was used.'
-                : 'Your task input is saved separately from this generated plan.'}
+                : 'Your original question is saved separately from these suggested steps.'}
             </TaskMeta>
           )}
         </TaskForm>
         {draft && (
-          <PlanPanel aria-label="Generated plan">
-            <h2>Your plan</h2>
+          <PlanPanel aria-label="Suggested next steps">
+            <h2>Your next steps</h2>
             <ArtifactMeta>
               {savedPlan
-                ? 'Saved plan. Edit and save again to update it.'
+                ? 'Saved steps. Edit and save again to update them.'
                 : 'Draft only. Edit it, then save when it is ready.'}
             </ArtifactMeta>
             {editingPlan ? (
@@ -666,10 +669,10 @@ export function TaskPlanPage({
                 variant="secondary"
                 onClick={() => setEditingPlan(!editingPlan)}
               >
-                {editingPlan ? 'Done editing' : 'Edit plan'}
+                {editingPlan ? 'Done editing' : 'Edit steps'}
               </Button>
               <Button type="button" onClick={() => void savePlan()}>
-                Save plan
+                Save steps
               </Button>
               <Button
                 type="button"

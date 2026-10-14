@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom'
 import { theme } from '@/shared/styles/theme'
 
 export const TaskPage = styled.main`
-  width: min(100%, ${theme.layout.containerMaxWidth});
+  width: min(100%, 1040px);
   margin: 0 auto;
   padding: clamp(${theme.spacing.md}, 4vw, ${theme.spacing.xl})
     clamp(${theme.spacing.md}, 5vw, ${theme.spacing.lg});
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    padding: ${theme.spacing.md} ${theme.spacing.sm};
+  @media (max-width: 767px) {
+    padding: 24px 20px 32px;
   }
 `
 
@@ -39,23 +39,33 @@ export const Heading = styled.h1`
   color: ${theme.colors.text};
   font-size: clamp(2rem, 7vw, 3.5rem);
   line-height: ${theme.lineHeight.tight};
+  letter-spacing: ${theme.letterSpacing.tight};
+
+  @media (max-width: 767px) {
+    max-width: 12ch;
+    text-wrap: balance;
+    font-size: clamp(2rem, 7.5vw, 2.75rem);
+    line-height: 1.12;
+  }
 `
 
 export const Notice = styled.p`
+  display: block;
+  width: min(100%, 640px);
+  max-width: 100%;
   margin: ${theme.spacing.md} 0 0;
-  padding: ${theme.spacing.md};
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.lg};
-  background: ${theme.colors.cardBg};
+  padding: 0 0 0 12px;
+  border-left: 2px solid ${theme.colors.primary};
   color: ${theme.colors.textSecondary};
-  font-size: ${theme.fontSizes.sm};
+  font-size: 13px;
   line-height: ${theme.lineHeight.relaxed};
 `
 
 export const Content = styled.section`
   display: grid;
   gap: ${theme.spacing.md};
-  margin-top: ${theme.spacing.xl};
+  width: min(100%, 780px);
+  margin-top: ${theme.spacing.lg};
 `
 
 export const ArtifactPanel = styled.section`
@@ -195,9 +205,73 @@ export const TaskMeta = styled.p`
 
 export const TaskForm = styled.form`
   display: grid;
-  gap: ${theme.spacing.md};
+  gap: ${theme.spacing.lg};
   width: 100%;
-  max-width: 720px;
+  max-width: 780px;
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid ${theme.colors.border};
+  border-radius: ${theme.borderRadius.xl};
+  background: ${theme.colors.surface};
+  box-shadow: ${theme.boxShadow.sm};
+
+  textarea.goal-input {
+    min-height: 148px;
+    padding: 14px 0;
+    border: 0;
+    border-bottom: 1px solid ${theme.colors.border};
+    border-radius: 0;
+    background: transparent;
+    resize: none;
+    font-size: 16px;
+
+    &:focus-visible {
+      border-color: ${theme.colors.primary};
+      box-shadow: none;
+    }
+  }
+
+  .goal-field label {
+    font-size: ${theme.fontSizes.md};
+    font-weight: 600;
+  }
+
+  @media (max-width: 767px) {
+    gap: 20px;
+    padding: 20px;
+    border-radius: 12px;
+
+    textarea.goal-input {
+      min-height: 120px;
+    }
+
+    .goal-field label {
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .form-actions button {
+      min-height: 48px;
+      font-size: 14px;
+    }
+
+    .form-actions button + button {
+      border: 0;
+      color: ${theme.colors.textSecondary};
+    }
+  }
+
+  .sample-actions button {
+    min-height: 32px;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+  }
 `
 
 export const Field = styled.div`

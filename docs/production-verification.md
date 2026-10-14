@@ -32,7 +32,7 @@ production deployment was performed by this verification pass.
 
 Using a signed-in production session and the private workspace:
 
-1. Created `AI planner smoke test`.
+1. Created a planner smoke-test task before the Daywise rename.
 2. Completed Discovery.
 3. Generated a real AI draft through the Worker.
 4. Edited the generated objective.

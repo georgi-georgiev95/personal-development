@@ -3,41 +3,33 @@ import { theme } from '@/shared/styles/theme'
 
 export const Nav = styled.nav`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 20px 40px 0;
+  padding: 0 clamp(24px, 5vw, 72px);
   min-height: ${theme.layout.navHeight};
-  background: transparent;
+  background: ${theme.colors.background};
   position: sticky;
   top: 0;
   z-index: ${theme.zIndex.nav};
   gap: ${theme.spacing.md};
   flex-shrink: 0;
 
-  @media (max-width: 480px) {
-    flex-wrap: wrap;
-  }
-
   @media (max-width: ${theme.breakpoint.tablet}) {
-    padding: 14px ${theme.spacing.md} 0;
+    padding: 0 28px;
     min-height: ${theme.layout.navHeightTablet};
   }
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    padding: 10px ${theme.spacing.sm} 0;
-    min-height: ${theme.layout.navHeightMobile};
+  @media (max-width: 767px) {
+    padding: 0 20px;
+    min-height: 64px;
+    flex-wrap: wrap;
+    row-gap: 8px;
   }
 `
 
 export const NavLeft = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 6px;
-
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    padding-top: 11px;
-  }
+  align-items: center;
 `
 
 export const NavBrandLink = styled.a`
@@ -95,31 +87,98 @@ export const NavCursor = styled.span`
 
 export const NavRight = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: ${theme.spacing.lg};
   min-width: 0;
+
+  @media (max-width: 767px) {
+    gap: ${theme.spacing.sm};
+  }
 `
 
 export const NavAuthRow = styled.div`
   display: flex;
   align-items: center;
   gap: 18px;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 `
 
 export const NavLinks = styled.div`
   display: flex;
   align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  gap: clamp(16px, 2.2vw, 32px);
+  flex-wrap: nowrap;
   justify-content: flex-end;
 
   @media (max-width: ${theme.breakpoint.tablet}) {
     gap: ${theme.spacing.sm};
   }
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    gap: ${theme.spacing.xs} ${theme.spacing.sm};
+  @media (max-width: 767px) {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: ${theme.zIndex.nav};
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    justify-content: stretch;
+    min-height: calc(62px + env(safe-area-inset-bottom));
+    padding: 6px 8px env(safe-area-inset-bottom);
+    border-top: 1px solid ${theme.colors.border};
+    background: ${theme.colors.surface};
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 5%);
+
+    > a {
+      display: grid;
+      place-items: center;
+      min-height: 48px;
+      padding: 0 2px;
+      border: 0;
+      font-size: 10px;
+      letter-spacing: 0.03em;
+      text-align: center;
+      text-transform: none;
+    }
+
+    > button {
+      display: none;
+    }
+  }
+`
+
+export const ProfileNavItem = styled.div`
+  @media (max-width: 767px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    button {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-width: 0;
+      min-height: 48px;
+    }
+
+    button span:last-child {
+      max-width: 76px;
+      overflow: hidden;
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    button span:first-child {
+      width: 22px;
+      height: 22px;
+      font-size: 9px;
+    }
   }
 `
 
@@ -156,9 +215,108 @@ export const NavLink = styled.a<{ $active?: boolean }>`
     color: ${theme.colors.heroText};
   }
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
-    font-size: ${theme.fontSizes.xs};
-    letter-spacing: 0.03em;
+  @media (max-width: 767px) {
+    font-size: ${theme.fontSizes.sm};
+  }
+`
+
+export const MenuToggle = styled.button`
+  display: none;
+  border: 1px solid ${theme.colors.border};
+  border-radius: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  color: ${theme.colors.text};
+  background: ${theme.colors.surface};
+  font: inherit;
+  font-size: ${theme.fontSizes.sm};
+  cursor: pointer;
+
+  @media (max-width: 767px) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+`
+
+export const MenuBackdrop = styled.button`
+  position: fixed;
+  inset: 64px 0 0;
+  z-index: calc(${theme.zIndex.nav} + 1);
+  border: 0;
+  background: rgb(0 0 0 / 28%);
+  cursor: default;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+`
+
+export const MobileMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: calc(${theme.zIndex.nav} + 2);
+  width: 100%;
+  padding: 16px 20px 20px;
+  border-top: 1px solid ${theme.colors.border};
+  border-bottom: 1px solid ${theme.colors.border};
+  background: ${theme.colors.surface};
+  box-shadow: ${theme.boxShadow.md};
+
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 12px;
+    color: ${theme.colors.text};
+    font-size: 14px;
+  }
+
+  > div + div {
+    display: grid;
+    gap: 4px;
+    padding-top: 12px;
+    border-top: 1px solid ${theme.colors.border};
+  }
+
+  > div + div > span {
+    padding: 4px 12px 8px;
+    color: ${theme.colors.textSecondary};
+    font-size: 12px;
+  }
+
+  a,
+  button:not([role='switch']) {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    color: ${theme.colors.text};
+    font-size: 14px;
+    letter-spacing: 0;
+    text-decoration: none;
+    text-transform: none;
+    text-align: left;
+  }
+
+  a:last-child {
+    color: ${theme.colors.textOnAccent};
+    background: ${theme.colors.primary};
+    font-weight: 600;
+  }
+
+  a:hover,
+  button:not([role='switch']):hover {
+    opacity: 0.85;
+  }
+
+  @media (min-width: 768px) {
+    display: none;
   }
 `
 
@@ -179,7 +337,7 @@ export const NavButton = styled.button`
     color: ${theme.colors.text};
   }
 
-  @media (max-width: ${theme.breakpoint.mobile}) {
+  @media (max-width: 767px) {
     min-height: 44px;
     padding: 10px 0;
   }
@@ -187,89 +345,29 @@ export const NavButton = styled.button`
 
 export const ThemeToggle = styled.button`
   display: grid;
-  align-items: center;
+  place-items: center;
   flex-shrink: 0;
-  width: 48px;
+  width: 44px;
   height: 44px;
   padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
+  border: 1px solid ${theme.colors.border};
+  border-radius: 8px;
+  background: ${theme.colors.surface};
+  color: ${theme.colors.text};
   cursor: pointer;
 
-  span {
-    position: relative;
-    display: block;
-    width: 48px;
-    height: 24px;
-    border-radius: 999px;
-    background: #e8e0d4;
-    outline: 1px solid #82715c;
-    box-shadow:
-      3px 3px 7px rgb(0 0 0 / 12%),
-      -3px -3px 7px rgb(255 255 255 / 65%),
-      inset 0 0 2px rgb(255 230 0 / 30%);
-    pointer-events: none;
-  }
-
-  span::before,
-  span::after {
-    content: '';
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    transition:
-      transform 150ms ease-out,
-      opacity 150ms ease-out;
-  }
-
   span::before {
-    top: 4px;
-    left: 4px;
-    transform: translateX(24px);
-    background: #ffe600;
-    box-shadow:
-      inset 0 0 0 1px #8a7500,
-      0 0 7px 2px rgb(255 230 0 / 35%);
-  }
-
-  span::after {
-    top: 3px;
-    left: 9px;
-    transform: translateX(24px);
-    background: #171715;
-    opacity: 0;
-  }
-
-  &[aria-checked='true'] span {
-    background: #171715;
-    outline: 1px solid #68635b;
-    box-shadow:
-      3px 3px 7px rgb(0 0 0 / 55%),
-      -3px -3px 7px rgb(255 255 255 / 3%);
+    content: '☀';
+    font-size: 23px;
+    line-height: 1;
   }
 
   &[aria-checked='true'] span::before {
-    transform: translateX(0);
-    background: #fff;
-    box-shadow: 0 0 4px rgb(255 255 255 / 15%);
-  }
-
-  &[aria-checked='true'] span::after {
-    transform: translateX(0);
-    opacity: 1;
+    content: '☾';
   }
 
   &:focus-visible {
     outline: 2px solid ${theme.colors.primary};
     outline-offset: 3px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    span::before,
-    span::after {
-      transition: none;
-    }
   }
 `

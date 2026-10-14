@@ -2,7 +2,6 @@ import {
   ActionLink,
   Actions,
   Example,
-  ExampleInput,
   Eyebrow,
   Heading,
   Intro,
@@ -13,36 +12,32 @@ import {
 export function HomePage() {
   return (
     <ProductPage>
-      <Eyebrow>AI Planner</Eyebrow>
-      <Heading>Turn everyday problems into a clear plan.</Heading>
-      <Intro>
-        Tell AI what you want to achieve. Get practical steps you can edit,
-        copy, and save.
-      </Intro>
-      <Actions>
-        <ActionLink to="/workspace/tasks/new" $primary>
-          Start a plan →
-        </ActionLink>
-        <ActionLink to="/demo">Try the demo</ActionLink>
-      </Actions>
-      <Example aria-label="Example idea and plan">
-        <ExampleInput>
-          <Eyebrow>Your idea</Eyebrow>
-          <h2>“Make my room brighter.”</h2>
-        </ExampleInput>
-        <div>
-          <Eyebrow>Your plan</Eyebrow>
-          <ol>
-            <li>Check what blocks the light</li>
-            <li>Try a low-cost change</li>
-            <li>Compare before and after</li>
-          </ol>
-          <p>✓ A brighter room, within your budget.</p>
-        </div>
+      <div>
+        <Eyebrow>A little help, when you need it</Eyebrow>
+        <Heading>Make sense of what’s next.</Heading>
+        <Intro>
+          Bring a goal, a question, or something you’re stuck on. We’ll help you
+          find a clear first step.
+        </Intro>
+        <Actions>
+          <ActionLink to="/workspace/tasks/new" $primary>
+            Start with a question
+          </ActionLink>
+          <ActionLink to="/demo">See how it works</ActionLink>
+        </Actions>
+      </div>
+      <Example aria-label="Example idea and next steps">
+        <Eyebrow>A simple first step</Eyebrow>
+        <h2>I want my room to feel brighter.</h2>
+        <ol>
+          <li>Notice what already brings light into the room</li>
+          <li>Choose one easy change that fits your budget</li>
+          <li>Try it, then decide if you want to do more</li>
+        </ol>
       </Example>
       <Section>
-        Sign in for AI-generated plans and private saving. The demo uses sample
-        responses and resets on reload. You choose which steps to take.
+        Sign in to find your next steps and save them privately. The demo uses
+        sample responses and resets on reload. You choose which steps to take.
       </Section>
     </ProductPage>
   )

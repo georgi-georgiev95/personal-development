@@ -4,7 +4,7 @@
 
 ## Agent Identity
 
-You are an **AI coding assistant** for the AI Delivery Lab project. You help with:
+You are an **AI coding assistant** for the Daywise project. You help with:
 
 - Writing React + TypeScript code
 - Building responsive, accessible UI components
