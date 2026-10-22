@@ -187,6 +187,37 @@ service cloud.firestore {
       }
     }
 
+    match /sudokuScores/{resultId} {
+      function validScore() {
+        let score = request.resource.data;
+        let day = int(score.completedAt.toMillis() / 86400000);
+        let base = score.difficulty == 'easy' ? 1000 : (score.difficulty == 'medium' ? 2000 : 3000);
+        let bonus = score.elapsedSeconds < 600 ? 600 - score.elapsedSeconds : 0;
+        return score.keys().hasOnly(['playerId', 'name', 'puzzle', 'mode', 'difficulty',
+            'elapsedSeconds', 'mistakes', 'score', 'day', 'week', 'month', 'createdAt', 'completedAt']) &&
+          score.playerId is string &&
+          ((request.auth != null && score.playerId == request.auth.uid) ||
+            (request.auth == null && score.playerId.matches('guest_[a-f0-9-]{36}'))) &&
+          score.name is string && score.name.size() >= 2 && score.name.size() <= 24 &&
+          score.puzzle is string && score.puzzle.matches('[0-9]{81}') &&
+          score.mode in ['classic', 'killer'] && score.difficulty in ['easy', 'medium', 'hard'] &&
+          score.elapsedSeconds is int && score.elapsedSeconds >= 1 && score.elapsedSeconds <= 31536000 &&
+          score.mistakes is int && score.mistakes >= 0 && score.mistakes < 3 &&
+          score.score is int && score.score == base + bonus - score.mistakes * 100 &&
+          score.day == day && score.week == int((day + 3) / 7) &&
+          score.completedAt is timestamp && score.completedAt.toMillis() >= 0 &&
+          score.completedAt <= request.time + duration.value(60, 's') &&
+          score.month == score.completedAt.year() * 12 + score.completedAt.month() - 1 &&
+          score.createdAt == request.time &&
+          resultId == score.playerId + '_' + score.mode + '_' + score.puzzle;
+      }
+      allow get: if true;
+      allow list: if request.query.limit != null && request.query.limit <= 20;
+      // Community results are client reported; names and scores are public.
+      allow create: if validScore();
+      allow update, delete: if false;
+    }
+
     match /users/{uid} {
       // A user can read and write only their own profile document
       allow read, write: if request.auth != null && request.auth.uid == uid;

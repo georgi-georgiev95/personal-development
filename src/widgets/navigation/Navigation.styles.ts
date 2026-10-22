@@ -124,7 +124,7 @@ export const NavLinks = styled.div`
     left: 0;
     z-index: ${theme.zIndex.nav};
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     justify-content: stretch;
     min-height: calc(62px + env(safe-area-inset-bottom));
