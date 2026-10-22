@@ -7,6 +7,15 @@ export const Page = styled.section`
   padding: clamp(24px, 5vw, 64px) clamp(16px, 5vw, 48px) 96px;
   color: ${theme.colors.text};
 
+  @media (min-width: 801px) {
+    --sudoku-board-size: min(
+      clamp(320px, calc(100svh - 280px), 560px),
+      calc((100vw - 104px) * 0.58)
+    );
+    width: min(100%, calc(var(--sudoku-board-size) * 1.65 + 88px));
+    padding: 16px 32px 32px;
+  }
+
   @media (max-width: 800px) {
     padding: 10px 12px calc(84px + env(safe-area-inset-bottom));
   }
@@ -36,6 +45,21 @@ export const Header = styled.header`
     display: none;
   }
 
+  @media (min-width: 801px) {
+    margin-bottom: 8px;
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    p,
+    span {
+      display: none;
+    }
+  }
+
   @media (max-width: 620px) {
     align-items: start;
     flex-direction: column;
@@ -54,6 +78,12 @@ export const DifficultyBar = styled.nav`
   color: ${theme.colors.textSecondary};
   font-size: clamp(15px, 1.8vw, 22px);
   font-weight: 650;
+
+  @media (min-width: 801px) {
+    gap: 20px;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
 
   @media (max-width: 800px) {
     flex-wrap: wrap;
@@ -123,6 +153,11 @@ export const Layout = styled.div`
   grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
   align-items: start;
   gap: clamp(20px, 4vw, 40px);
+
+  @media (min-width: 801px) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.65fr);
+    gap: 24px;
+  }
 
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
@@ -379,6 +414,13 @@ export const Controls = styled.aside`
     grid-column: 1 / -1;
   }
 
+  @media (min-width: 801px) {
+    height: var(--sudoku-board-size);
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 12px;
+  }
+
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -403,6 +445,13 @@ export const NewPuzzle = styled.div`
     min-height: clamp(58px, 7vw, 92px);
     font-size: clamp(18px, 2.2vw, 28px);
   }
+
+  @media (min-width: 801px) {
+    button {
+      min-height: clamp(44px, calc(var(--sudoku-board-size) * 0.09), 52px);
+      font-size: 16px;
+    }
+  }
 `
 
 export const NumberPad = styled.div`
@@ -416,7 +465,9 @@ export const NumberPad = styled.div`
     border-radius: ${theme.borderRadius.md};
     color: ${theme.colors.primary};
     background: ${theme.colors.cardBg};
-    font: 500 clamp(24px, 4vw, 60px) ${theme.font.family};
+    font: 400 clamp(24px, 4vw, 60px) ${theme.font.family};
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
     cursor: pointer;
   }
 
@@ -433,6 +484,17 @@ export const NumberPad = styled.div`
   button:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+
+  @media (min-width: 801px) {
+    min-height: 0;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+
+    button {
+      min-height: 0;
+      padding: 0;
+      font-size: clamp(24px, calc(var(--sudoku-board-size) * 0.06), 36px);
+    }
   }
 
   @media (max-width: 800px) {
@@ -489,6 +551,11 @@ export const ControlButton = styled.button`
     color: ${theme.colors.primary};
     background: ${theme.colors.cardBg};
     text-align: center;
+
+    @media (min-width: 801px) {
+      width: clamp(44px, calc(var(--sudoku-board-size) * 0.12), 72px);
+      padding: 10px;
+    }
 
     svg {
       width: 100%;
