@@ -97,6 +97,13 @@ export function Navigation() {
           >
             My space
           </NavLink>
+          <NavLink
+            href="/sudoku"
+            $active={location.pathname === '/sudoku'}
+            onClick={(e) => handleClick(e, '/sudoku')}
+          >
+            Sudoku
+          </NavLink>
           {user ? (
             <ProfileNavItem>
               <Suspense fallback={<ProfileModalFallback />}>
