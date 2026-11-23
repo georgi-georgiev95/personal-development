@@ -326,13 +326,17 @@ Cloudflare Worker secrets and fail closed when the provider is unavailable.
 
 ### Branch Strategy
 
-Start ticket work on a GitHub-linked `feature/` or `bugfix/` branch, push it to
-`origin`, and open a pull request against `main`. Do not commit directly to
-`main` for ticket work.
+For direct development, make changes on `main`, present them for user review,
+and commit and push to `origin/main` after approval. The push triggers the
+Firebase Hosting and Firestore deployment.
+
+When using the ticket workflow, start on a GitHub-linked `feature/` or `bugfix/`
+branch, push it to `origin`, and open a pull request against `main`.
 
 ### Commit Messages
 
-Follow conventional commits:
+Use a descriptive commit message on `main`. The commit hook accepts it as written.
+For ticket branches, use conventional commits and let the hook add the ticket title:
 
 ```
 feat: Add 3D particle system

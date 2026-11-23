@@ -4,6 +4,8 @@ commit_message_file="$1"
 [ "$2" = "message" ] || exit 0
 
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+[ "$branch" = "main" ] && exit 0
+
 ticket_number="$(printf '%s\n' "$branch" | grep -Eio 'pd-[1-9][0-9]*' | head -n 1 | cut -d '-' -f 2)"
 
 if [ -z "$ticket_number" ]; then
