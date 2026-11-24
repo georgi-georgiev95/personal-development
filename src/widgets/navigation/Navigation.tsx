@@ -98,6 +98,16 @@ export function Navigation() {
             My space
           </NavLink>
           <NavLink
+            href="/capacity"
+            $active={location.pathname === '/capacity'}
+            aria-current={
+              location.pathname === '/capacity' ? 'page' : undefined
+            }
+            onClick={(e) => handleClick(e, '/capacity')}
+          >
+            Planner
+          </NavLink>
+          <NavLink
             href="/sudoku"
             $active={location.pathname === '/sudoku'}
             onClick={(e) => handleClick(e, '/sudoku')}
