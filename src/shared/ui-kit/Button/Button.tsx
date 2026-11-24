@@ -1,7 +1,13 @@
 import type { MouseEventHandler, ReactNode } from 'react'
-import { PrimaryButton, SecondaryButton } from './Button.styles'
+import { PrimaryButton, QuietButton, SecondaryButton } from './Button.styles'
 
-type ButtonVariant = 'primary' | 'secondary'
+const variants = {
+  primary: PrimaryButton,
+  secondary: SecondaryButton,
+  quiet: QuietButton,
+}
+
+type ButtonVariant = keyof typeof variants
 
 interface ButtonProps {
   variant?: ButtonVariant
@@ -34,7 +40,7 @@ export function Button({
   'aria-label': ariaLabel,
   'aria-pressed': ariaPressed,
 }: ButtonProps) {
-  const Component = variant === 'secondary' ? SecondaryButton : PrimaryButton
+  const Component = variants[variant]
   return (
     <Component
       type={type}

@@ -26,6 +26,12 @@ export const Secondary: Story = {
   },
 }
 
+export const Quiet: Story = {
+  args: {
+    variant: 'quiet',
+  },
+}
+
 export const Disabled: Story = {
   args: {
     variant: 'primary',

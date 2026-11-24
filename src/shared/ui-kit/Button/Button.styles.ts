@@ -49,3 +49,16 @@ export const SecondaryButton = styled.button`
     background: ${theme.colors.cardBg};
   }
 `
+
+export const QuietButton = styled.button`
+  ${base}
+  padding: ${theme.spacing.sm};
+  background: transparent;
+  color: ${theme.colors.textSecondary};
+  font-size: ${theme.fontSizes.sm};
+
+  &:hover {
+    background: ${theme.colors.background};
+    color: ${theme.colors.text};
+  }
+`

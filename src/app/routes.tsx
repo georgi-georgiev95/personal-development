@@ -13,6 +13,9 @@ const PersonalWorkspacePage = lazy(
 const AIDeliveryLabPage = lazy(
   () => import('@/features/ai-delivery-lab/pages/AIDeliveryLabPage')
 )
+const CapacityPage = lazy(
+  () => import('@/features/capacity/pages/CapacityPage')
+)
 const SudokuPage = lazy(() => import('@/features/sudoku/pages/SudokuPage'))
 
 export const AppRoutes = () => (
@@ -38,6 +41,7 @@ export const AppRoutes = () => (
         />
         <Route path="/workspace/*" element={<PersonalWorkspacePage />} />
         <Route path="/demo/*" element={<AIDeliveryLabPage />} />
+        <Route path="/capacity" element={<CapacityPage />} />
         <Route path="/sudoku" element={<SudokuPage />} />
         {/* Keep the old demo URL working while retired portfolio URLs return home. */}
         <Route
