@@ -35,7 +35,7 @@ export default defineConfig({
         target:
           'https://personal-development-planner.g-georgiev9507.workers.dev',
         changeOrigin: true,
-        rewrite: () => '/plan',
+        rewrite: (url) => url.replace(/^\/api/, ''),
       },
     },
   },

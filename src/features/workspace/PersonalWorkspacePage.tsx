@@ -47,9 +47,8 @@ function SignedOutWorkspace() {
     <WorkspacePage aria-labelledby="workspace-heading">
       <Eyebrow>Your Daywise space</Eyebrow>
       <Heading id="workspace-heading">Start with a question</Heading>
-      <Message>
-        Sign in to Daywise to find your next steps and save them privately.
-      </Message>
+      <Message>Sign in to see your saved ideas.</Message>
+      <WorkspaceLink to="/workspace/tasks/new">Find next steps</WorkspaceLink>
       <WorkspaceLink to="/login">Sign in</WorkspaceLink>
       <WorkspaceLink to="/register">Create an account</WorkspaceLink>
     </WorkspacePage>
@@ -231,7 +230,14 @@ export function PersonalWorkspacePage() {
   const { user, loading } = useAuth()
 
   if (loading) return <PageSpinner />
-  if (!user) return <SignedOutWorkspace />
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="tasks/new" element={<TaskPlanPage />} />
+        <Route path="*" element={<SignedOutWorkspace />} />
+      </Routes>
+    )
+  }
 
   return (
     <OwnedWorkspace

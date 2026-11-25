@@ -303,12 +303,14 @@ resolve: {
 
 ## Firebase Tools
 
-### Emulators
+### Local verification
 
-```bash
-pnpm emulators:start
-pnpm worker:dev
-```
+Before handing off an app change, start the local development server and
+exercise the affected flow in a browser. For Daywise planning, check both
+guest and signed-in paths. Use the emulator-only test account and switch modes
+with sign-out or a separate browser context. See
+[local planning setup](../docs/zero-cost-ai-planning.md#local-verification).
+Record any checks the execution environment prevents.
 
 ### Deploy
 

@@ -1,6 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
   createDeliveryTask,
@@ -15,12 +21,14 @@ import {
   TaskListPage,
 } from './TaskWorkspace'
 
-const { generateDeliveryPlan } = vi.hoisted(() => ({
+const { generateDeliveryPlan, generateGuestPlan } = vi.hoisted(() => ({
   generateDeliveryPlan: vi.fn(),
+  generateGuestPlan: vi.fn(),
 }))
 
 vi.mock('@/entities/delivery-task/planService', () => ({
   generateDeliveryPlan,
+  generateGuestPlan,
 }))
 
 describe('private task creation retry', () => {
@@ -266,6 +274,78 @@ describe('one-screen private plan generation', () => {
       'Objective\nEdited objective'
     )
   })
+})
+
+it('keeps the guest input through limits and carries an edited draft through sign-in', async () => {
+  const user = userEvent.setup()
+  const onCreate = vi.fn((task: DeliveryTask) => ({
+    ...task,
+    persistenceRevision: 1,
+  }))
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText },
+  })
+  generateGuestPlan.mockReset()
+  generateGuestPlan
+    .mockRejectedValueOnce(new Error('Try again after midnight UTC.'))
+    .mockResolvedValueOnce({
+      objective: 'Original guest draft',
+      steps: ['First step', 'Second step'],
+      acceptanceCriteria: ['A result'],
+      risks: [],
+      contextRevision: 0,
+    })
+
+  function SignInFixture() {
+    const { state } = useLocation()
+    const navigate = useNavigate()
+    return (
+      <button onClick={() => navigate('/signed-in', { state })}>
+        Complete sign-in
+      </button>
+    )
+  }
+
+  render(
+    <MemoryRouter initialEntries={['/workspace/tasks/new']}>
+      <Routes>
+        <Route path="/workspace/tasks/new" element={<TaskPlanPage />} />
+        <Route path="/login" element={<SignInFixture />} />
+        <Route
+          path="/signed-in"
+          element={
+            <TaskPlanPage onCreate={onCreate} onUpdate={(task) => task} />
+          }
+        />
+      </Routes>
+    </MemoryRouter>
+  )
+  const goal = screen.getByLabelText('What do you want to accomplish?')
+  await user.type(goal, 'Plan meals for the week')
+  await user.click(screen.getByRole('button', { name: 'Find next steps' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('midnight UTC')
+  expect(goal).toHaveValue('Plan meals for the week')
+  await user.click(screen.getByRole('button', { name: 'Find next steps' }))
+  await user.click(await screen.findByRole('button', { name: 'Edit steps' }))
+  await user.clear(screen.getByLabelText('Objective'))
+  await user.type(screen.getByLabelText('Objective'), 'Edited guest draft')
+  await user.click(screen.getByRole('button', { name: 'Copy Markdown' }))
+  expect(writeText).toHaveBeenCalledWith(
+    expect.stringContaining('Edited guest draft')
+  )
+  expect(onCreate).not.toHaveBeenCalled()
+  await user.click(screen.getByRole('button', { name: 'Sign in to save' }))
+  await user.click(screen.getByRole('button', { name: 'Complete sign-in' }))
+  expect(await screen.findByText('Edited guest draft')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Save steps' }))
+  expect(
+    await screen.findByText('Saved to your private workspace.')
+  ).toBeInTheDocument()
+  expect(onCreate.mock.calls[0]?.[0].artifacts.planning?.content).toContain(
+    'Edited guest draft'
+  )
 })
 
 describe('private project context', () => {

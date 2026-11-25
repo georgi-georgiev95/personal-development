@@ -8,8 +8,15 @@
     "FREE_PLAN_CONFIRMED": "true",
     "FIREBASE_PROJECT_ID": "personal-development-c52b9",
     "CORS_ORIGINS": "https://georgiev-development.web.app",
-    "BETA_UIDS": ""
+    "TURNSTILE_HOSTNAME": "georgiev-development.web.app"
   },
+  "ratelimits": [
+    {
+      "name": "PLAN_RATE_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 6, "period": 60 }
+    }
+  ],
   "d1_databases": [
     {
       "binding": "QUOTA",

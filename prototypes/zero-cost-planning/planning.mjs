@@ -1,8 +1,7 @@
 export const PLAN_MAX_REQUEST_BYTES = 8_192
 export const PLAN_MAX_CONTEXT_ENTRIES = 5
 export const PLAN_MAX_CONTEXT_LENGTH = 12_000
-export const PLAN_DAILY_LIMIT = 5
-export const PLAN_GLOBAL_DAILY_LIMIT = 15
+export const PLAN_GLOBAL_DAILY_LIMIT = 100
 
 export class PlannerError extends Error {
   constructor(code, message) {
@@ -163,19 +162,50 @@ export async function generatePlanDraft(
       'Project context changed. Reload the task and try again.'
     )
   const contextEntries = selectedContext(task, input.contextEntryIds)
-  if (!(await dependencies.reserveUsage(uid, now.toISOString().slice(0, 10))))
+  return generateDraft(
+    { title: task.title, goal: task.goal, contextEntries, contextRevision },
+    {
+      ...dependencies,
+      reserveUsage: (day) => dependencies.reserveUsage(uid, day),
+    },
+    now
+  )
+}
+
+export async function generateGuestPlanDraft(data, dependencies) {
+  if (
+    !isRecord(data) ||
+    Object.keys(data).length !== 2 ||
+    typeof data.title !== 'string' ||
+    !data.title.trim() ||
+    data.title.length > 500 ||
+    typeof data.goal !== 'string' ||
+    !data.goal.trim() ||
+    data.goal.length > 2_000
+  )
+    throw new PlannerError('invalid-argument', 'Provide a title and goal.')
+
+  return generateDraft(
+    {
+      title: data.title,
+      goal: data.goal,
+      contextEntries: [],
+      contextRevision: 0,
+    },
+    dependencies,
+    new Date()
+  )
+}
+
+async function generateDraft(input, dependencies, now) {
+  if (!(await dependencies.reserveUsage(now.toISOString().slice(0, 10))))
     throw new PlannerError(
       'resource-exhausted',
-      'Daily plan generation limit reached. Try again tomorrow.'
+      'Daily plan generation limit reached.'
     )
   let generated
   try {
-    generated = await dependencies.generate({
-      title: task.title,
-      goal: task.goal,
-      contextEntries,
-      contextRevision,
-    })
+    generated = await dependencies.generate(input)
   } catch (error) {
     if (error instanceof PlannerError) throw error
     throw new PlannerError(
@@ -183,5 +213,5 @@ export async function generatePlanDraft(
       'The planning provider is temporarily unavailable.'
     )
   }
-  return validateDraft(generated, contextRevision)
+  return validateDraft(generated, input.contextRevision)
 }

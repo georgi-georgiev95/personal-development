@@ -9,7 +9,6 @@ import {
   createWorker,
   QUOTA_SCHEMA,
   readDocument,
-  RESERVE_SQL,
 } from './worker.mjs'
 
 // This file can write fixtures ONLY to the explicitly selected local demo emulators.
@@ -168,8 +167,16 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
       )
     })
 
-    const localFetcher = (url, options) =>
-      url === 'https://api.groq.com/openai/v1/chat/completions'
+    const localFetcher = (url, options) => {
+      if (url.includes('/siteverify'))
+        return Promise.resolve(
+          Response.json({
+            success: true,
+            hostname: 'app.example',
+            action: 'generate-plan',
+          })
+        )
+      return url === 'https://api.groq.com/openai/v1/chat/completions'
         ? Promise.resolve(
             Response.json({
               choices: [
@@ -198,6 +205,7 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
             ),
             options
           )
+    }
     const worker = createWorker(localFetcher, async (token) => {
       assert.equal(token, owner.idToken)
       return owner.localId
@@ -208,6 +216,8 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
         headers: {
           Authorization: `Bearer ${owner.idToken}`,
           Origin: 'https://app.example',
+          'CF-Connecting-IP': '192.0.2.1',
+          'X-Turnstile-Token': 'fixture',
         },
         body: JSON.stringify({
           taskId: 'pd41-fixture',
@@ -219,7 +229,9 @@ test('deterministic Worker endpoint reads the owner task from the Firestore emul
         FREE_PLAN_CONFIRMED: 'true',
         FIREBASE_PROJECT_ID: 'demo-pd-28',
         GROQ_API_KEY: 'fixture-only',
-        BETA_UIDS: owner.localId,
+        TURNSTILE_SECRET_KEY: 'fixture-only',
+        TURNSTILE_HOSTNAME: 'app.example',
+        PLAN_RATE_LIMIT: { limit: async () => ({ success: true }) },
         CORS_ORIGINS: 'https://app.example',
         QUOTA: store,
       }

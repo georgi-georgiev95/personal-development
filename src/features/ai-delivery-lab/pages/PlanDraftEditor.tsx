@@ -4,6 +4,7 @@ import {
   type DeliveryPlanProposal,
   type DeliveryTask,
 } from '@/entities/delivery-task'
+import { usePlanChallenge } from '@/features/ai-delivery-lab/pages/usePlanChallenge'
 import { Button, Textarea } from '@/shared/ui-kit'
 import {
   Actions,
@@ -26,6 +27,7 @@ export function PlanDraftEditor({
   ) => DeliveryTask | null | Promise<DeliveryTask | null>
 }) {
   const request = useRef(0)
+  const challenge = usePlanChallenge(!demo)
   const [draft, setDraft] = useState<DeliveryPlanProposal | null>(null)
   const [state, setState] = useState<'idle' | 'generating' | 'saving'>('idle')
   const [error, setError] = useState('')
@@ -38,6 +40,7 @@ export function PlanDraftEditor({
 
   const discard = () => {
     request.current += 1
+    if (state === 'generating') challenge.reset()
     setDraft(null)
     setError('')
     setState('idle')
@@ -62,11 +65,14 @@ export function PlanDraftEditor({
           }
         : await (
             await import('@/entities/delivery-task/planService')
-          ).generateDeliveryPlan({
-            taskId: task.id,
-            contextEntryIds: [],
-            contextRevision: task.contextRevision ?? 0,
-          })
+          ).generateDeliveryPlan(
+            {
+              taskId: task.id,
+              contextEntryIds: [],
+              contextRevision: task.contextRevision ?? 0,
+            },
+            ...(challenge.token ? [challenge.token] : [])
+          )
       if (token !== request.current) return
       const proposal: DeliveryPlanProposal = {
         ...result,
@@ -85,7 +91,10 @@ export function PlanDraftEditor({
             : 'Could not generate a plan. Try again.'
         )
     } finally {
-      if (token === request.current) setState('idle')
+      if (token === request.current) {
+        challenge.reset()
+        setState('idle')
+      }
     }
   }
   const accept = async () => {
@@ -120,6 +129,7 @@ export function PlanDraftEditor({
         <ArtifactMeta role="status">Generating a plan…</ArtifactMeta>
       )}
       {error && <FieldError role="alert">{error}</FieldError>}
+      {challenge.widget}
       {draft ? (
         <>
           <ArtifactMeta>
@@ -182,7 +192,10 @@ export function PlanDraftEditor({
               Cancel generation
             </Button>
           ) : (
-            <Button onClick={() => void generate()}>
+            <Button
+              disabled={challenge.waiting}
+              onClick={() => void generate()}
+            >
               {error ? 'Retry generation' : 'Find next steps'}
             </Button>
           )}

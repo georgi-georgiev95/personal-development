@@ -1,7 +1,5 @@
-CREATE TABLE IF NOT EXISTS usage (
-  uid TEXT PRIMARY KEY,
-  day TEXT NOT NULL,
-  count INTEGER NOT NULL
+CREATE TABLE IF NOT EXISTS planner_usage (
+  day TEXT PRIMARY KEY,
+  count INTEGER NOT NULL,
+  token_hashes TEXT NOT NULL
 );
-
-CREATE INDEX IF NOT EXISTS usage_day ON usage(day);

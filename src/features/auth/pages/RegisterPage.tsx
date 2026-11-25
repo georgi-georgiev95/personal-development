@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { createUserProfile } from '@/entities/user'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
 import {
@@ -46,6 +46,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [username, setUsername] = useState('')
@@ -124,7 +125,9 @@ export function RegisterPage() {
         lastName.trim(),
         age
       )
-      navigate('/')
+      if (state?.resumePlan)
+        navigate('/workspace/tasks/new', { state, replace: true })
+      else navigate('/')
     } catch (err: unknown) {
       setError(getAuthErrorMessage(err))
     } finally {
@@ -337,7 +340,10 @@ export function RegisterPage() {
             </StyledButton>
           </StyledForm>
           <BottomText>
-            Already have an account? <StyledLink to="/login">Login</StyledLink>
+            Already have an account?{' '}
+            <StyledLink to="/login" state={state}>
+              Login
+            </StyledLink>
           </BottomText>
         </FormContent>
       </StyledRegisterCard>

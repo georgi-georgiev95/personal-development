@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/shared/config/firebase/auth'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getAuthErrorMessage } from '@/shared/utils/authErrors'
 import {
   StyledLoginBox,
@@ -24,6 +24,7 @@ import {
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -58,7 +59,9 @@ export function LoginPage() {
     setLoading(true)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      navigate('/')
+      if (state?.resumePlan)
+        navigate('/workspace/tasks/new', { state, replace: true })
+      else navigate('/')
     } catch (err: unknown) {
       setError(getAuthErrorMessage(err))
     } finally {
@@ -136,7 +139,9 @@ export function LoginPage() {
           </StyledForm>
           <BottomText>
             Don&apos;t have an account?{' '}
-            <StyledLink to="/register">Register</StyledLink>
+            <StyledLink to="/register" state={state}>
+              Register
+            </StyledLink>
           </BottomText>
         </FormContent>
       </StyledLoginCard>

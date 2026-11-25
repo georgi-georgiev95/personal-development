@@ -36,8 +36,7 @@ export function HomePage() {
         </ol>
       </Example>
       <Section>
-        Sign in to find your next steps and save them privately. The demo uses
-        sample responses and resets on reload. You choose which steps to take.
+        Try the planner as a guest. Sign in to save ideas privately.
       </Section>
     </ProductPage>
   )

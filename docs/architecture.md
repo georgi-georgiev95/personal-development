@@ -11,10 +11,10 @@ Browser
   │
   ├─ Firebase Hosting ── serves the React/Vite application
   ├─ Firebase Authentication ── signs users in and issues ID tokens
-  └─ Cloudflare Worker /plan
-       ├─ verifies the Firebase ID token
-       ├─ reads the user's task from Firestore (context support retained for legacy data)
-       ├─ enforces the D1 quota
+  └─ Cloudflare Worker /plan or /plan/guest
+       ├─ verifies Turnstile and checks the request burst limit
+       ├─ reads owned Firestore tasks for signed-in requests
+       ├─ reserves capacity in the shared daily D1 quota
        └─ calls Groq's free-eligible model
 ```
 
@@ -34,8 +34,8 @@ The frontend uses:
 - Firebase Web SDK for Authentication and Firestore access.
 
 The browser is responsible for rendering the brief-first product experience,
-authenticating the user, applying the local light/dark preference, and sending
-an authenticated planning request. It is not a safe place for provider API
+applying the local light/dark preference, and sending planning requests as a
+guest or from a signed-in workspace. It is not a safe place for provider API
 keys, quota enforcement, or privileged database access because everything
 shipped to the browser can be inspected and modified by the user.
 
@@ -67,9 +67,8 @@ Authentication handles registration, login, session state, and Firebase ID
 tokens. The frontend sends the current user's ID token to the Worker as a
 Bearer token.
 
-Without Authentication, the application could still show a public demo, but
-it could not reliably associate planning requests with a user or prove to the
-Worker which Firestore data the requester is allowed to access.
+An account lets users save their plans and reopen them later. Guest generation
+submits a goal directly and uses no workspace data.
 
 ### Cloud Firestore
 
@@ -95,13 +94,11 @@ Firebase is therefore used for Hosting, Authentication, and Firestore only.
 The Worker in `prototypes/zero-cost-planning/worker.mjs` is the AI planning
 backend. It:
 
-1. validates the request and CORS origin;
-2. verifies the Firebase ID token;
-3. checks the optional beta allowlist;
-4. reads only authorized task data from Firestore (legacy context support remains bounded);
-5. applies per-user and global daily limits;
-6. calls Groq;
-7. validates the AI response before returning it.
+1. checks the browser origin, request size, and per-IP burst rate;
+2. verifies Turnstile with the expected hostname and action;
+3. checks Firebase identity and task ownership for saved-task requests;
+4. reserves one slot in the shared daily quota and blocks challenge replay;
+5. calls Groq and validates the returned draft.
 
 It is deployed at
 `personal-development-planner.g-georgiev9507.workers.dev`.
@@ -115,8 +112,8 @@ stable API boundary if the AI provider changes later.
 
 D1 is the Worker's small SQLite-compatible quota store. The deployed database
 is named `personal-development-usage`. It stores the current UTC day and
-request count per user, allowing the Worker to enforce hard limits without
-another paid database.
+shared request count and hashes of accepted Turnstile tokens, allowing the
+Worker to enforce the daily cap and reject duplicate challenges atomically.
 
 Without D1, the quota would either disappear on each request, rely on mutable
 client state, or require another persistent backend. In-memory Worker state is
@@ -162,8 +159,8 @@ provider fallback.
 - Firebase stays on Spark; no Firebase Functions are configured.
 - Cloudflare stays on the free Worker/D1 usage limits.
 - `FREE_PLAN_CONFIRMED=true` is required by the Worker configuration.
-- The Worker enforces five attempts per user and fifteen attempts globally per
-  UTC day.
+- Everyone shares up to 100 inference attempts per UTC day. Cloudflare applies
+  an approximate burst limit of six requests per minute per IP and location.
 - `GROQ_API_KEY` is a server-side secret and is never committed.
 - No payment method or paid fallback is required for the portfolio demo.
 

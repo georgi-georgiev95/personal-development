@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import type { DemoJourney } from '@/features/ai-delivery-lab/demoJourneys'
+import { usePlanChallenge } from '@/features/ai-delivery-lab/pages/usePlanChallenge'
 import { PlanDraftEditor } from '@/features/ai-delivery-lab/pages/PlanDraftEditor'
 import {
   DELIVERY_STAGES,
@@ -71,8 +72,8 @@ interface TaskCreatePageProps {
 }
 
 interface TaskPlanPageProps {
-  onCreate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
-  onUpdate: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  onCreate?: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
+  onUpdate?: (task: DeliveryTask) => DeliveryTask | Promise<DeliveryTask>
   basePath?: string
 }
 
@@ -333,6 +334,14 @@ export function TaskPlanPage({
 }: TaskPlanPageProps) {
   const navigate = useNavigate()
   const demo = basePath === '/demo'
+  const location = useLocation()
+  const resume = location.state?.resumePlan as
+    | { goal: string; draft: DeliveryPlanProposal }
+    | undefined
+  const guest = !onCreate || !onUpdate
+  const challenge = usePlanChallenge(!demo)
+  const [saving, setSaving] = useState(false)
+  const savingPlan = useRef(false)
   const request = useRef(0)
   useEffect(
     () => () => {
@@ -341,14 +350,20 @@ export function TaskPlanPage({
     []
   )
   const pendingTask = useRef<DeliveryTask | null>(null)
-  const [goal, setGoal] = useState('')
-  const [draft, setDraft] = useState<DeliveryPlanProposal | null>(null)
+  const [goal, setGoal] = useState(resume?.goal ?? '')
+  const [draft, setDraft] = useState<DeliveryPlanProposal | null>(
+    resume?.draft ?? null
+  )
   const [state, setState] = useState<'idle' | 'generating'>('idle')
   const [error, setError] = useState('')
   const [savedInput, setSavedInput] = useState(false)
   const [savedPlan, setSavedPlan] = useState(false)
   const [editingPlan, setEditingPlan] = useState(false)
   const [planStatus, setPlanStatus] = useState('')
+
+  useEffect(() => {
+    if (resume) navigate(location.pathname, { replace: true })
+  }, [location.pathname, navigate, resume])
 
   const invalidate = () => {
     request.current += 1
@@ -363,6 +378,8 @@ export function TaskPlanPage({
 
   const generate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (state === 'generating' || challenge.waiting || savingPlan.current)
+      return
     const token = ++request.current
     setState('generating')
     setEditingPlan(false)
@@ -377,13 +394,13 @@ export function TaskPlanPage({
         ? updateDeliveryTask(current, { title, goal })
         : createDeliveryTask({ title, goal })
       if (!current) pendingTask.current = task
-      if (task !== current || !task.persistenceRevision)
+      if (!guest && (task !== current || !task.persistenceRevision))
         task =
           task.persistenceRevision || (demo && current)
             ? await onUpdate(task)
             : await onCreate(task)
       pendingTask.current = task
-      if (token === request.current) setSavedInput(true)
+      if (token === request.current) setSavedInput(!guest)
       if (token !== request.current) return
 
       const result = demo
@@ -400,13 +417,7 @@ export function TaskPlanPage({
             risks: ['Sample steps only; adjust them to your situation.'],
             contextRevision: task.contextRevision ?? 0,
           }
-        : await (
-            await import('@/entities/delivery-task/planService')
-          ).generateDeliveryPlan({
-            taskId: task.id,
-            contextEntryIds: [],
-            contextRevision: task.contextRevision ?? 0,
-          })
+        : await requestDraft(task)
       if (token !== request.current) return
       setDraft({
         ...result,
@@ -423,8 +434,26 @@ export function TaskPlanPage({
             : 'Could not find next steps. Try again.'
         )
     } finally {
+      challenge.reset()
       if (token === request.current) setState('idle')
     }
+  }
+
+  const requestDraft = async (task: DeliveryTask) => {
+    const planner = await import('@/entities/delivery-task/planService')
+    if (guest)
+      return planner.generateGuestPlan(
+        { title: task.title, goal: task.goal },
+        challenge.token
+      )
+    const input = {
+      taskId: task.id,
+      contextEntryIds: [],
+      contextRevision: task.contextRevision ?? 0,
+    }
+    return challenge.token
+      ? planner.generateDeliveryPlan(input, challenge.token)
+      : planner.generateDeliveryPlan(input)
   }
 
   const planMarkdown = (proposal: DeliveryPlanProposal): string =>
@@ -449,14 +478,31 @@ export function TaskPlanPage({
       }`,
     ].join('\n\n')
   const savePlan = async () => {
-    if (!draft || !pendingTask.current) return
+    if (!draft || savingPlan.current) return
+    if (guest) {
+      navigate('/login', { state: { resumePlan: { goal, draft } } })
+      return
+    }
+    savingPlan.current = true
+    setSaving(true)
     setError('')
     setPlanStatus('')
     try {
-      const accepted = acceptDeliveryPlan(pendingTask.current, draft)
-      const saved = await onUpdate(accepted)
+      const task =
+        pendingTask.current ??
+        createDeliveryTask({ title: deriveDeliveryTaskTitle(goal), goal })
+      pendingTask.current = task
+      const proposal =
+        draft.taskId === task.id
+          ? draft
+          : { ...draft, taskId: task.id, taskRevision: task.revision }
+      const accepted = acceptDeliveryPlan(task, proposal)
+      const saved =
+        task.persistenceRevision || demo
+          ? await onUpdate(accepted)
+          : await onCreate(accepted)
       pendingTask.current = saved
-      setDraft({ ...draft, taskRevision: saved.revision })
+      setDraft({ ...proposal, taskRevision: saved.revision })
       setSavedPlan(true)
       setEditingPlan(false)
       setPlanStatus(
@@ -470,6 +516,9 @@ export function TaskPlanPage({
           ? caught.message
           : 'Could not save your steps. Try again.'
       )
+    } finally {
+      savingPlan.current = false
+      setSaving(false)
     }
   }
   const copyPlan = async () => {
@@ -494,7 +543,9 @@ export function TaskPlanPage({
 
   return (
     <TaskPage>
-      <Breadcrumb to={`${basePath}/tasks`}>← Saved ideas</Breadcrumb>
+      <Breadcrumb to={guest ? '/' : `${basePath}/tasks`}>
+        {guest ? '← Home' : '← Saved ideas'}
+      </Breadcrumb>
       <PageHeading
         title={
           demo ? 'Try an idea. Find a first step.' : 'Start with a question'
@@ -511,6 +562,7 @@ export function TaskPlanPage({
               placeholder="For example: plan meals for the week, organize my day, or make my room brighter."
               value={goal}
               rows={4}
+              disabled={state === 'generating' || saving}
               required
               onChange={(event) => {
                 setGoal(event.target.value)
@@ -533,17 +585,23 @@ export function TaskPlanPage({
             </Actions>
           )}
           {error && <FieldError role="alert">{error}</FieldError>}
+          {challenge.widget}
           <Actions className="form-actions">
-            <Button type="submit" disabled={state === 'generating'}>
+            <Button
+              type="submit"
+              disabled={state === 'generating' || challenge.waiting || saving}
+            >
               {state === 'generating' ? 'Generating…' : 'Find next steps'}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => navigate(`${basePath}/tasks`)}
-            >
-              Saved ideas
-            </Button>
+            {!guest && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => navigate(`${basePath}/tasks`)}
+              >
+                Saved ideas
+              </Button>
+            )}
           </Actions>
           {savedInput && (
             <TaskMeta role="status">
@@ -559,7 +617,9 @@ export function TaskPlanPage({
             <ArtifactMeta>
               {savedPlan
                 ? 'Saved steps. Edit and save again to update them.'
-                : 'Draft only. Edit it, then save when it is ready.'}
+                : guest
+                  ? 'Edit or copy your draft. Sign in to save it.'
+                  : 'Draft only. Edit it, then save when it is ready.'}
             </ArtifactMeta>
             {editingPlan ? (
               <>
@@ -667,12 +727,17 @@ export function TaskPlanPage({
               <Button
                 type="button"
                 variant="secondary"
+                disabled={saving}
                 onClick={() => setEditingPlan(!editingPlan)}
               >
                 {editingPlan ? 'Done editing' : 'Edit steps'}
               </Button>
-              <Button type="button" onClick={() => void savePlan()}>
-                Save steps
+              <Button
+                type="button"
+                disabled={saving}
+                onClick={() => void savePlan()}
+              >
+                {guest ? 'Sign in to save' : saving ? 'Saving…' : 'Save steps'}
               </Button>
               <Button
                 type="button"

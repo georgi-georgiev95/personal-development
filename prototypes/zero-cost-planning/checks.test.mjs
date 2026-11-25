@@ -79,15 +79,31 @@ const input = {
   contextEntryIds: ['readme'],
   contextRevision: 2,
 }
-const request = (token, body = input, origin) =>
-  new Request('https://spike.test/plan', {
-    method: 'POST',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(origin ? { Origin: origin } : {}),
-    },
-    body: JSON.stringify(body),
+const siteverify = () =>
+  Response.json({
+    success: true,
+    hostname: 'app.example',
+    action: 'generate-plan',
   })
+const request = (
+  token,
+  body = input,
+  origin,
+  { guest = false, challenge = crypto.randomUUID(), ip = '192.0.2.1' } = {}
+) =>
+  new Request(
+    guest ? 'https://spike.test/plan/guest' : 'https://spike.test/plan',
+    {
+      method: 'POST',
+      headers: {
+        'CF-Connecting-IP': ip,
+        ...(challenge ? { 'X-Turnstile-Token': challenge } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(origin ? { Origin: origin } : {}),
+      },
+      body: JSON.stringify(body),
+    }
+  )
 function quota() {
   const database = new DatabaseSync(':memory:')
   database.exec(QUOTA_SCHEMA)
@@ -104,7 +120,9 @@ const env = (store) => ({
   FREE_PLAN_CONFIRMED: 'true',
   FIREBASE_PROJECT_ID: 'demo-pd-28',
   GROQ_API_KEY: 'fixture-only',
-  BETA_UIDS: 'owner,other',
+  TURNSTILE_SECRET_KEY: 'fixture-only',
+  TURNSTILE_HOSTNAME: 'app.example',
+  PLAN_RATE_LIMIT: { limit: async () => ({ success: true }) },
   QUOTA: store,
 })
 
@@ -148,35 +166,83 @@ test('RS256 verification rejects forged, expired, wrong-project and invalid-clai
   )
 })
 
-test('atomic SQL enforces five per UID, 15 globally and UTC reset even with concurrent callers', async () => {
+test('atomic SQL enforces 100 shared calls and prevents token reuse across midnight', async () => {
   const store = quota()
   try {
-    const reserve = (uid, day = '2026-10-09') =>
-      store.prepare(RESERVE_SQL).bind(uid, day).first()
+    const reserve = (token, day = '2026-10-09') =>
+      store.prepare(RESERVE_SQL).bind(day, `:${token}:`).first()
+    assert.ok(await reserve('first'))
+    assert.equal(await reserve('first'), null)
+    assert.equal(await reserve('first', '2026-10-10'), null)
     assert.equal(
       (
-        await Promise.all(Array.from({ length: 20 }, () => reserve('owner')))
+        await Promise.all(Array.from({ length: 120 }, (_, i) => reserve(i)))
       ).filter(Boolean).length,
-      5
+      99
     )
-    for (let user = 0; user < 2; user++) {
-      assert.equal(
-        (
-          await Promise.all(
-            Array.from({ length: 6 }, () => reserve(`user-${user}`))
-          )
-        ).filter(Boolean).length,
-        5
-      )
-    }
-    assert.equal(await reserve('new-user'), null)
-    assert.ok(await reserve('owner', '2026-10-10'))
-    assert.equal(
-      store.database
-        .prepare('SELECT count FROM usage WHERE uid = ?')
-        .get('owner').count,
-      1
+    assert.equal(await reserve('blocked'), null)
+    assert.equal((await reserve('next-day', '2026-10-10')).count, 1)
+  } finally {
+    store.database.close()
+  }
+})
+
+test('guest inference requires verification, respects burst limits, and shares the global cap', async () => {
+  const store = quota()
+  const runtime = env(store)
+  let modelCalls = 0
+  let challengeResult = siteverify
+  const worker = createWorker(async (url) => {
+    if (url.includes('/siteverify')) return challengeResult()
+    assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions')
+    modelCalls++
+    return Response.json({
+      choices: [{ message: { content: JSON.stringify(draft) } }],
+    })
+  })
+  const guest = (challenge) =>
+    request(
+      undefined,
+      {
+        title: 'Onboarding',
+        goal: 'Improve onboarding.',
+      },
+      undefined,
+      { guest: true, challenge }
     )
+  try {
+    assert.equal((await worker.fetch(guest(null), runtime)).status, 403)
+    challengeResult = () =>
+      Response.json({
+        success: true,
+        hostname: 'wrong.example',
+        action: 'generate-plan',
+      })
+    assert.equal((await worker.fetch(guest(), runtime)).status, 403)
+    challengeResult = () =>
+      Response.json({
+        success: true,
+        hostname: 'app.example',
+        action: 'other-action',
+      })
+    assert.equal((await worker.fetch(guest(), runtime)).status, 403)
+    challengeResult = siteverify
+    const limited = await worker.fetch(guest(), {
+      ...runtime,
+      PLAN_RATE_LIMIT: { limit: async () => ({ success: false }) },
+    })
+    assert.equal(limited.status, 429)
+    assert.deepEqual(await limited.json(), { error: 'rate-limited' })
+    assert.equal(modelCalls, 0)
+    assert.equal((await worker.fetch(guest('fresh'), runtime)).status, 200)
+    assert.equal((await worker.fetch(guest('fresh'), runtime)).status, 403)
+    store.database.prepare('UPDATE planner_usage SET count = ?').run(100)
+    const exhausted = await worker.fetch(guest(), runtime)
+    assert.equal(exhausted.status, 429)
+    const result = await exhausted.json()
+    assert.equal(result.error, 'resource-exhausted')
+    assert.match(result.resetAt, /T00:00:00.000Z$/)
+    assert.equal(modelCalls, 1)
   } finally {
     store.database.close()
   }
@@ -189,6 +255,7 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
   const worker = createWorker(async (url, options) => {
     calls.push(url)
     if (url === JWKS_URL) return keyResponse()
+    if (url.includes('/siteverify')) return siteverify()
     if (url.includes('firestore.googleapis.com')) {
       assert.equal(
         options.headers.Authorization,
@@ -234,7 +301,9 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
       (await worker.fetch(request(undefined), env(store))).status,
       401
     )
-    assert.equal(calls.length, 0)
+    assert.deepEqual(calls, [
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    ])
     const valid = await worker.fetch(request(token), env(store))
     assert.equal(valid.status, 200)
     assert.deepEqual(await valid.json(), {
@@ -274,11 +343,8 @@ test('full handler scopes REST reads to the verified owner, validates drafts and
     provider = 'error'
     for (let attempt = 0; attempt < 3; attempt++)
       assert.equal((await worker.fetch(request(token), env(store))).status, 503)
-    assert.equal((await worker.fetch(request(token), env(store))).status, 429)
     assert.equal(
-      store.database
-        .prepare('SELECT count FROM usage WHERE uid = ?')
-        .get('owner').count,
+      store.database.prepare('SELECT count FROM planner_usage').get().count,
       5
     )
     assert.equal(
@@ -344,6 +410,7 @@ test('CORS preflight and response use the configured allowed origin', async () =
   const worker = createWorker(async (url, options) => {
     calls.push(url)
     if (url === JWKS_URL) return keyResponse()
+    if (url.includes('/siteverify')) return siteverify()
     if (url.endsWith('/workspaces/owner'))
       return Response.json({ fields: { ownerUid: { stringValue: 'owner' } } })
     if (url.endsWith('/workspaces/owner/tasks/task-1'))
@@ -395,7 +462,7 @@ test('CORS preflight and response use the configured allowed origin', async () =
       request(token, input, 'https://evil.example'),
       runtime
     )
-    assert.equal(disallowed.status, 200)
+    assert.equal(disallowed.status, 403)
     assert.equal(disallowed.headers.get('Access-Control-Allow-Origin'), null)
   } finally {
     store.database.close()

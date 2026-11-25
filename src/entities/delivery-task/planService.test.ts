@@ -118,6 +118,7 @@ describe('generateDeliveryPlan', () => {
           })
         )
         .mockResolvedValueOnce(new Response('not json', { status: 503 }))
+        .mockResolvedValueOnce(Response.json({}))
     )
     const { generateDeliveryPlan } = await import('./planService')
     const request = {
@@ -130,7 +131,52 @@ describe('generateDeliveryPlan', () => {
       'Daily limit reached.'
     )
     await expect(generateDeliveryPlan(request)).rejects.toThrow(
+      'AI generation is temporarily unavailable. Try again shortly.'
+    )
+    await expect(generateDeliveryPlan(request)).rejects.toThrow(
       'Could not generate a plan right now.'
+    )
+  })
+
+  it('sends guest input and verification without a Firebase token', async () => {
+    vi.stubEnv('VITE_AI_PLANNER_URL', 'https://planner.example/plan/')
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json({ draft: { objective: 'Draft' } }))
+      .mockResolvedValueOnce(
+        Response.json(
+          { error: 'resource-exhausted', resetAt: '2026-11-26T00:00:00.000Z' },
+          { status: 429 }
+        )
+      )
+      .mockResolvedValueOnce(
+        Response.json({ error: 'resource-exhausted' }, { status: 429 })
+      )
+      .mockResolvedValueOnce(
+        Response.json({ error: 'rate-limited' }, { status: 429 })
+      )
+      .mockResolvedValueOnce(
+        Response.json({ error: 'challenge-required' }, { status: 403 })
+      )
+    vi.stubGlobal('fetch', send)
+    const { generateGuestPlan } = await import('./planService')
+    const input = { title: 'Plan meals', goal: 'Plan meals for the week' }
+    await expect(generateGuestPlan(input, 'proof')).resolves.toEqual({
+      objective: 'Draft',
+    })
+    expect(send).toHaveBeenCalledWith('https://planner.example/plan/guest', {
+      method: 'POST',
+      headers: {
+        'X-Turnstile-Token': 'proof',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    })
+    await expect(generateGuestPlan(input)).rejects.toThrow('Try again after')
+    await expect(generateGuestPlan(input)).rejects.toThrow('midnight UTC')
+    await expect(generateGuestPlan(input)).rejects.toThrow('Too many requests')
+    await expect(generateGuestPlan(input)).rejects.toThrow(
+      'Complete the verification'
     )
   })
 })
