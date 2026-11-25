@@ -143,7 +143,7 @@ export const Example = styled.section`
 
   li {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: ${theme.spacing.sm};
     font-size: ${theme.fontSizes.md};
     counter-increment: plan-step;
