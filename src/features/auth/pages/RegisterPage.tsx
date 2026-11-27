@@ -12,6 +12,7 @@ import {
   Eyebrow,
   StyledTitle,
   StyledForm,
+  FieldColumn,
   InputWrapper,
   InputIcon,
   StyledInput,
@@ -197,144 +198,148 @@ export function RegisterPage() {
             </ErrorMessage>
           )}
           <StyledForm onSubmit={handleSubmit}>
-            <FieldLabel>Name</FieldLabel>
-            <Row>
+            <FieldColumn>
+              <FieldLabel>Name</FieldLabel>
+              <Row>
+                <InputWrapper>
+                  <InputIcon>{personIcon}</InputIcon>
+                  <StyledInput
+                    type="text"
+                    aria-label="First name"
+                    autoComplete="given-name"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </InputWrapper>
+                <InputWrapper>
+                  <InputIcon>{personIcon}</InputIcon>
+                  <StyledInput
+                    type="text"
+                    aria-label="Last name"
+                    autoComplete="family-name"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </InputWrapper>
+              </Row>
+              <FieldLabel htmlFor="register-username">Username</FieldLabel>
               <InputWrapper>
                 <InputIcon>{personIcon}</InputIcon>
                 <StyledInput
                   type="text"
-                  aria-label="First name"
-                  autoComplete="given-name"
-                  placeholder="First name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  id="register-username"
+                  autoComplete="username"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </InputWrapper>
+              <FieldLabel>Date of birth</FieldLabel>
+              <Row>
+                <StyledSelect
+                  aria-label="Day of birth"
+                  value={day}
+                  onChange={(e) => setDay(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>
+                    Day
+                  </option>
+                  {DAYS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </StyledSelect>
+                <StyledSelect
+                  aria-label="Month of birth"
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>
+                    Month
+                  </option>
+                  {MONTHS.map((m, i) => (
+                    <option key={m} value={i + 1}>
+                      {m}
+                    </option>
+                  ))}
+                </StyledSelect>
+                <StyledSelect
+                  aria-label="Year of birth"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>
+                    Year
+                  </option>
+                  {YEARS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </StyledSelect>
+              </Row>
+            </FieldColumn>
+            <FieldColumn>
+              <FieldLabel htmlFor="register-email">Email</FieldLabel>
               <InputWrapper>
-                <InputIcon>{personIcon}</InputIcon>
+                <InputIcon>{emailIcon}</InputIcon>
                 <StyledInput
-                  type="text"
-                  aria-label="Last name"
-                  autoComplete="family-name"
-                  placeholder="Last name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  type="email"
+                  id="register-email"
+                  autoComplete="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </InputWrapper>
-            </Row>
-            <FieldLabel htmlFor="register-username">Username</FieldLabel>
-            <InputWrapper>
-              <InputIcon>{personIcon}</InputIcon>
-              <StyledInput
-                type="text"
-                id="register-username"
-                autoComplete="username"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </InputWrapper>
-            <FieldLabel>Date of birth</FieldLabel>
-            <Row>
-              <StyledSelect
-                aria-label="Day of birth"
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  Day
-                </option>
-                {DAYS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </StyledSelect>
-              <StyledSelect
-                aria-label="Month of birth"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  Month
-                </option>
-                {MONTHS.map((m, i) => (
-                  <option key={m} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </StyledSelect>
-              <StyledSelect
-                aria-label="Year of birth"
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                required
-              >
-                <option value="" disabled>
-                  Year
-                </option>
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </StyledSelect>
-            </Row>
-            <FieldLabel htmlFor="register-email">Email</FieldLabel>
-            <InputWrapper>
-              <InputIcon>{emailIcon}</InputIcon>
-              <StyledInput
-                type="email"
-                id="register-email"
-                autoComplete="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </InputWrapper>
-            <FieldLabel htmlFor="register-password">Password</FieldLabel>
-            <InputWrapper>
-              <InputIcon>{lockIcon}</InputIcon>
-              <StyledInput
-                type="password"
-                id="register-password"
-                autoComplete="new-password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </InputWrapper>
-            <FieldLabel htmlFor="register-repeat-password">
-              Repeat password
-            </FieldLabel>
-            <InputWrapper>
-              <InputIcon>{lockIcon}</InputIcon>
-              <StyledInput
-                type="password"
-                id="register-repeat-password"
-                autoComplete="new-password"
-                placeholder="Repeat password"
-                value={repeatPassword}
-                onChange={(e) => {
-                  setRepeatPassword(e.target.value)
-                  setError(null)
-                }}
-                aria-invalid={error === 'Passwords do not match'}
-                aria-describedby={
-                  error === 'Passwords do not match'
-                    ? 'register-error'
-                    : undefined
-                }
-                required
-              />
-            </InputWrapper>
+              <FieldLabel htmlFor="register-password">Password</FieldLabel>
+              <InputWrapper>
+                <InputIcon>{lockIcon}</InputIcon>
+                <StyledInput
+                  type="password"
+                  id="register-password"
+                  autoComplete="new-password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </InputWrapper>
+              <FieldLabel htmlFor="register-repeat-password">
+                Repeat password
+              </FieldLabel>
+              <InputWrapper>
+                <InputIcon>{lockIcon}</InputIcon>
+                <StyledInput
+                  type="password"
+                  id="register-repeat-password"
+                  autoComplete="new-password"
+                  placeholder="Repeat password"
+                  value={repeatPassword}
+                  onChange={(e) => {
+                    setRepeatPassword(e.target.value)
+                    setError(null)
+                  }}
+                  aria-invalid={error === 'Passwords do not match'}
+                  aria-describedby={
+                    error === 'Passwords do not match'
+                      ? 'register-error'
+                      : undefined
+                  }
+                  required
+                />
+              </InputWrapper>
+            </FieldColumn>
             <StyledButton type="submit" disabled={loading}>
               {loading ? 'Registering...' : 'Register'}
             </StyledButton>

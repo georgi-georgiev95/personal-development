@@ -44,6 +44,11 @@ export const StyledRegisterCard = styled.div`
     border-left: 1px solid ${theme.colors.primary};
   }
 
+  @media (min-width: ${theme.breakpoint.tablet}) {
+    max-width: 820px;
+    padding: 32px;
+  }
+
   @media (max-width: ${theme.breakpoint.mobile}) {
     padding: 32px 20px 24px;
   }
@@ -81,9 +86,20 @@ export const StyledTitle = styled.h2`
 `
 
 export const StyledForm = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: ${theme.breakpoint.tablet}) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+`
+
+export const FieldColumn = styled.div`
+  display: grid;
+  min-width: 0;
+  grid-template-rows: repeat(3, auto 1fr);
+  gap: 8px;
 `
 
 export const FieldLabel = styled.label`
@@ -137,6 +153,7 @@ export const StyledInput = styled.input`
 `
 
 export const StyledButton = styled.button`
+  grid-column: 1 / -1;
   width: 100%;
   margin-top: 6px;
   padding: 14px;
@@ -206,6 +223,7 @@ export const Row = styled.div`
 
   & > * {
     flex: 1;
+    min-width: 0;
   }
 
   @media (max-width: ${theme.breakpoint.mobile}) {
